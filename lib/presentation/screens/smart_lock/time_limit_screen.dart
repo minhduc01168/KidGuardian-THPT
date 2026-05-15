@@ -26,13 +26,19 @@ class TimeLimitScreen extends StatelessWidget {
       create: (context) => SmartLockBloc(
         repository: repository ?? SmartLockRepository(), // In real app, inject via GetIt
       )..add(LoadAppTimeLimits(familyId, childId)),
-      child: const _TimeLimitView(),
+      child: _TimeLimitView(familyId: familyId, childId: childId),
     );
   }
 }
 
 class _TimeLimitView extends StatelessWidget {
-  const _TimeLimitView();
+  final String familyId;
+  final String childId;
+
+  const _TimeLimitView({
+    required this.familyId,
+    required this.childId,
+  });
 
   void _showTimePicker(BuildContext context, AppTimeLimitModel app) {
     final bloc = context.read<SmartLockBloc>();
@@ -45,8 +51,8 @@ class _TimeLimitView extends StatelessWidget {
           onSave: (limits) {
             final updatedApp = app.copyWith(limits: limits);
             bloc.add(SaveAppTimeLimit(
-              'familyId_stub', // TODO: Get from router or context
-              'childId_stub',
+              familyId,
+              childId,
               updatedApp,
             ));
           },

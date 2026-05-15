@@ -70,7 +70,11 @@ class SmartLockBloc extends Bloc<SmartLockEvent, SmartLockState> {
         (app) => app.appPackageName == event.limit.appPackageName,
       );
       
+      bool isUpdate = false;
       if (index != -1) {
+        if (_currentApps[index].limits.isNotEmpty) {
+          isUpdate = true;
+        }
         _currentApps[index] = event.limit;
       } else {
         _currentApps.add(event.limit);
@@ -84,7 +88,11 @@ class SmartLockBloc extends Bloc<SmartLockEvent, SmartLockState> {
         return a.appName.compareTo(b.appName);
       });
 
-      emit(SmartLockActionSuccess('Đã lưu cài đặt thời gian cho ${event.limit.appName} thành công'));
+      if (isUpdate) {
+        emit(const SmartLockActionSuccess('Đã cập nhật cài đặt thành công'));
+      } else {
+        emit(SmartLockActionSuccess('Đã lưu cài đặt thời gian cho ${event.limit.appName} thành công'));
+      }
       emit(SmartLockLoaded(List.from(_currentApps)));
     } catch (e) {
       emit(SmartLockError(e.toString()));

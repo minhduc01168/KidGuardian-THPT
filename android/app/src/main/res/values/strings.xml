@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="accessibility_service_description">KidGuardian needs accessibility access to monitor app usage time and block apps when the time limit is reached.</string>
+</resources>

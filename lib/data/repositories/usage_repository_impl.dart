@@ -78,8 +78,8 @@ class UsageRepositoryImpl implements UsageRepository {
     final Map<String, int> usageByApp = {};
 
     for (final log in logs) {
-      usageByApp[log.appName] =
-          (usageByApp[log.appName] ?? 0) + log.durationMinutes;
+      usageByApp[log.appPackage] =
+          (usageByApp[log.appPackage] ?? 0) + log.durationMinutes;
     }
 
     return usageByApp;

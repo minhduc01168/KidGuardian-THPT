@@ -12,6 +12,8 @@ import 'domain/repositories/family_repository.dart';
 import 'domain/repositories/report_repository.dart';
 import 'domain/repositories/summary_repository.dart';
 import 'domain/repositories/usage_repository.dart';
+import 'domain/usecases/smart_lock/check_app_access_usecase.dart';
+import 'domain/usecases/smart_lock/block_app_usecase.dart';
 import 'presentation/features/auth/bloc/auth_bloc.dart';
 import 'presentation/features/auth/bloc/auth_state.dart';
 import 'presentation/features/auth/bloc/family_bloc.dart';
@@ -21,7 +23,12 @@ import 'presentation/features/dashboard/screens/parent_dashboard.dart';
 import 'presentation/features/dashboard/screens/child_dashboard.dart';
 import 'presentation/features/report/bloc/report_bloc.dart';
 import 'presentation/features/summary/bloc/summary_bloc.dart';
+import 'presentation/blocs/smart_lock/app_monitor_bloc.dart';
+import 'presentation/screens/smart_lock/lock_screen.dart';
+import 'data/repositories/smart_lock_repository.dart';
 import 'domain/entities/user.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -55,6 +62,9 @@ class KidGuardianApp extends StatelessWidget {
             usageRepository: context.read<UsageRepository>(),
           ),
         ),
+        RepositoryProvider<SmartLockRepository>(
+          create: (_) => SmartLockRepository(),
+        ),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -86,28 +96,53 @@ class KidGuardianApp extends StatelessWidget {
               reportRepository: context.read<ReportRepository>(),
             ),
           ),
+          BlocProvider<AppMonitorBloc>(
+            create: (context) => AppMonitorBloc(
+              checkAppAccessUseCase: CheckAppAccessUseCase(
+                usageRepository: context.read<UsageRepository>(),
+                smartLockRepository: context.read<SmartLockRepository>(),
+              ),
+              blockAppUseCase: BlockAppUseCase(),
+              usageRepository: context.read<UsageRepository>(),
+            ),
+          ),
         ],
-        child: MaterialApp(
-          title: 'KidGuardian',
-          theme: AppTheme.lightTheme,
-          debugShowCheckedModeBanner: false,
-          home: BlocBuilder<AuthBloc, AuthState>(
-            builder: (context, state) {
-              if (state is AuthAuthenticated) {
-                return _buildHomeForRole(state.user);
-              }
-              return RoleSelectionScreen();
-            },
+        child: BlocListener<AppMonitorBloc, AppMonitorState>(
+          listener: (context, state) {
+            if (state is AppBlockedState) {
+              navigatorKey.currentState?.push(
+                MaterialPageRoute(
+                  builder: (_) => LockScreen(appPackageName: state.appPackageName),
+                ),
+              );
+            }
+          },
+          child: MaterialApp(
+            navigatorKey: navigatorKey,
+            title: 'KidGuardian',
+            theme: AppTheme.lightTheme,
+            debugShowCheckedModeBanner: false,
+            home: BlocBuilder<AuthBloc, AuthState>(
+              builder: (context, state) {
+                if (state is AuthAuthenticated) {
+                  return _buildHomeForRole(state.user, context);
+                }
+                return RoleSelectionScreen();
+              },
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildHomeForRole(User user) {
+  Widget _buildHomeForRole(User user, BuildContext context) {
     if (user.role == UserRole.parent) {
       return ParentDashboard();
     } else {
+      if (user.familyId != null) {
+        context.read<AppMonitorBloc>().add(StartMonitoring(user.familyId!, user.uid));
+      }
       return ChildDashboard();
     }
   }
