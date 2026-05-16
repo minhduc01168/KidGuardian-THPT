@@ -2,8 +2,6 @@
 marp: true
 theme: default
 paginate: true
-header: 'KidGuardian - Đồng Hành Số'
-footer: 'BUỔI 8: Tương Tác Hai Chiều (Request & Approve)'
 style: |
   section {
     background-color: #f8f9fa;
@@ -41,7 +39,7 @@ style: |
   pre {
     background-color: #f1f3f5;
     border-left: 4px solid #3498db;
-    max-height: 420px; /* Giới hạn chiều cao cho khối code */
+    max-height: 480px; /* Tăng chiều cao lên một chút do đã bỏ header/footer */
     overflow-y: auto;  /* Hiển thị thanh cuộn cho code dài */
     padding: 15px;
     box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
