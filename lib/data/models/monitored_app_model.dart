@@ -35,12 +35,13 @@ class MonitoredAppModel extends Equatable {
     String? appPackageName,
     String? appName,
     String? iconUrl,
+    bool clearIconUrl = false,
     bool? isMonitored,
   }) {
     return MonitoredAppModel(
       appPackageName: appPackageName ?? this.appPackageName,
       appName: appName ?? this.appName,
-      iconUrl: iconUrl ?? this.iconUrl,
+      iconUrl: clearIconUrl ? null : (iconUrl ?? this.iconUrl),
       isMonitored: isMonitored ?? this.isMonitored,
     );
   }

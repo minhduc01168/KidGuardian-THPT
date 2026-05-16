@@ -113,7 +113,7 @@ class SmartLockRepository {
         .doc(childId)
         .collection('monitoredApps')
         .doc(appPackageName)
-        .update({'isMonitored': isMonitored});
+        .set({'isMonitored': isMonitored}, SetOptions(merge: true));
   }
 
   Future<void> addCustomApp(

@@ -140,9 +140,9 @@ void main() {
       expect(result, isEmpty);
     });
 
-    test('toggleMonitoredApp should update the correct document', () async {
+    test('toggleMonitoredApp should set data to correct document', () async {
       // arrange
-      when(() => mockMonitoredAppDoc.update(any())).thenAnswer((_) async {});
+      when(() => mockMonitoredAppDoc.set(any(), any())).thenAnswer((_) async {});
 
       // act
       await repository.toggleMonitoredApp(
@@ -155,7 +155,7 @@ void main() {
       // assert
       verify(() => mockMonitoredAppsCollection.doc('com.zhiliaoapp.musically'))
           .called(1);
-      verify(() => mockMonitoredAppDoc.update({'isMonitored': false})).called(1);
+      verify(() => mockMonitoredAppDoc.set({'isMonitored': false}, any())).called(1);
     });
 
     test('addCustomApp should set data to correct document', () async {

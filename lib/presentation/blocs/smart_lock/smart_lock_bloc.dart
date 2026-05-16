@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kidguardian/data/repositories/smart_lock_repository.dart';
 import 'package:kidguardian/data/models/app_time_limit_model.dart';
@@ -8,9 +9,15 @@ import 'smart_lock_state.dart';
 
 class SmartLockBloc extends Bloc<SmartLockEvent, SmartLockState> {
   final SmartLockRepository repository;
-  
+
   List<AppTimeLimitModel> _currentApps = [];
   List<MonitoredAppModel> _currentMonitoredApps = [];
+
+  // P6: Debounce timer for native sync
+  Timer? _syncDebounceTimer;
+
+  // P7: Package name validation regex
+  static final _packageNameRegex = RegExp(r'^[a-zA-Z][a-zA-Z0-9_]*(\.[a-zA-Z][a-zA-Z0-9_]*){2,}$');
 
   SmartLockBloc({required this.repository}) : super(SmartLockInitial()) {
     on<LoadAppTimeLimits>(_onLoadAppTimeLimits);
@@ -30,24 +37,20 @@ class SmartLockBloc extends Bloc<SmartLockEvent, SmartLockState> {
         event.familyId,
         event.childId,
       );
-      
-      // Get predefined popular apps and merge with configured ones
+
       final popularApps = repository.getPopularApps();
       final Map<String, AppTimeLimitModel> mergedApps = {};
-      
-      // Add predefined apps first
+
       for (var app in popularApps) {
         mergedApps[app.appPackageName] = app;
       }
-      
-      // Override with configured limits
+
       for (var app in configuredApps) {
         mergedApps[app.appPackageName] = app;
       }
-      
+
       _currentApps = mergedApps.values.toList()
         ..sort((a, b) {
-          // Sort apps with limits to the top
           final aHasLimit = a.limits.isNotEmpty ? -1 : 1;
           final bHasLimit = b.limits.isNotEmpty ? -1 : 1;
           if (aHasLimit != bHasLimit) return aHasLimit.compareTo(bHasLimit);
@@ -70,12 +73,11 @@ class SmartLockBloc extends Bloc<SmartLockEvent, SmartLockState> {
         event.childId,
         event.limit,
       );
-      
-      // Update local cache
+
       final index = _currentApps.indexWhere(
         (app) => app.appPackageName == event.limit.appPackageName,
       );
-      
+
       bool isUpdate = false;
       if (index != -1) {
         if (_currentApps[index].limits.isNotEmpty) {
@@ -85,8 +87,7 @@ class SmartLockBloc extends Bloc<SmartLockEvent, SmartLockState> {
       } else {
         _currentApps.add(event.limit);
       }
-      
-      // Sort again
+
       _currentApps.sort((a, b) {
         final aHasLimit = a.limits.isNotEmpty ? -1 : 1;
         final bHasLimit = b.limits.isNotEmpty ? -1 : 1;
@@ -138,6 +139,9 @@ class SmartLockBloc extends Bloc<SmartLockEvent, SmartLockState> {
           return a.appName.compareTo(b.appName);
         });
 
+      // P3: Sync native on initial load
+      await _syncBlockedAppsToNative();
+
       emit(MonitoredAppsLoaded(List.from(_currentMonitoredApps)));
     } catch (e) {
       emit(SmartLockError(e.toString()));
@@ -172,7 +176,8 @@ class SmartLockBloc extends Bloc<SmartLockEvent, SmartLockState> {
         return a.appName.compareTo(b.appName);
       });
 
-      await _syncBlockedAppsToNative();
+      // P6: Debounce native sync
+      _debounceSync();
 
       emit(MonitoredAppsLoaded(List.from(_currentMonitoredApps)));
     } catch (e) {
@@ -185,6 +190,20 @@ class SmartLockBloc extends Bloc<SmartLockEvent, SmartLockState> {
     AddCustomApp event,
     Emitter<SmartLockState> emit,
   ) async {
+    // P7: Validate package name format
+    if (!_packageNameRegex.hasMatch(event.packageName)) {
+      emit(const SmartLockError('Package name không hợp lệ. Định dạng: com.example.app'));
+      emit(MonitoredAppsLoaded(List.from(_currentMonitoredApps)));
+      return;
+    }
+
+    // P4: Check for duplicates
+    if (_currentMonitoredApps.any((a) => a.appPackageName == event.packageName)) {
+      emit(const SmartLockError('Ứng dụng này đã tồn tại trong danh sách'));
+      emit(MonitoredAppsLoaded(List.from(_currentMonitoredApps)));
+      return;
+    }
+
     try {
       final app = MonitoredAppModel(
         appPackageName: event.packageName,
@@ -202,7 +221,8 @@ class SmartLockBloc extends Bloc<SmartLockEvent, SmartLockState> {
         return a.appName.compareTo(b.appName);
       });
 
-      await _syncBlockedAppsToNative();
+      // P6: Debounce native sync
+      _debounceSync();
 
       emit(MonitoredAppsLoaded(List.from(_currentMonitoredApps)));
     } catch (e) {
@@ -211,11 +231,25 @@ class SmartLockBloc extends Bloc<SmartLockEvent, SmartLockState> {
     }
   }
 
+  // P6: Debounce native sync to avoid rapid-fire IPC
+  void _debounceSync() {
+    _syncDebounceTimer?.cancel();
+    _syncDebounceTimer = Timer(const Duration(milliseconds: 300), () {
+      _syncBlockedAppsToNative();
+    });
+  }
+
   Future<void> _syncBlockedAppsToNative() async {
     final monitoredPackageNames = _currentMonitoredApps
         .where((app) => app.isMonitored)
         .map((app) => app.appPackageName)
         .toList();
     await AccessibilityChannel.updateBlockedApps(monitoredPackageNames);
+  }
+
+  @override
+  Future<void> close() {
+    _syncDebounceTimer?.cancel();
+    return super.close();
   }
 }
