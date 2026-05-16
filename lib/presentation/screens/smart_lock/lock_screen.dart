@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:kidguardian/platform/android/accessibility_channel.dart';
 import 'package:kidguardian/presentation/widgets/smart_lock/app_icon_display.dart';
 import 'package:kidguardian/presentation/widgets/smart_lock/countdown_timer.dart';
 import 'package:kidguardian/presentation/widgets/smart_lock/request_time_dialog.dart';
@@ -12,6 +14,8 @@ class LockScreen extends StatefulWidget {
   final int limitMinutes;
   final int usedMinutes;
   final DateTime resetTime;
+  final String? familyId;
+  final String? childUid;
 
   const LockScreen({
     super.key,
@@ -21,6 +25,8 @@ class LockScreen extends StatefulWidget {
     required this.limitMinutes,
     required this.usedMinutes,
     required this.resetTime,
+    this.familyId,
+    this.childUid,
   });
 
   @override
@@ -37,8 +43,10 @@ class _LockScreenState extends State<LockScreen> {
   }
 
   void _goHome() {
-    const MethodChannel('com.kidguardian/accessibility')
-        .invokeMethod('moveTaskToBack');
+    // P3 + P7: Use AccessibilityChannel with error handling
+    AccessibilityChannel.moveTaskToBack().catchError((e) {
+      debugPrint('LockScreen._goHome error: $e');
+    });
   }
 
   void _showRequestTimeDialog() {
@@ -47,6 +55,8 @@ class _LockScreenState extends State<LockScreen> {
       builder: (_) => RequestTimeDialog(
         appPackageName: widget.appPackageName,
         appName: widget.appName,
+        familyId: widget.familyId,
+        childUid: widget.childUid,
       ),
     );
   }

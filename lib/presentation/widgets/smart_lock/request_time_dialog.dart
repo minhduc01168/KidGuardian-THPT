@@ -4,11 +4,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class RequestTimeDialog extends StatefulWidget {
   final String appPackageName;
   final String appName;
+  final String? familyId;
+  final String? childUid;
 
   const RequestTimeDialog({
     super.key,
     required this.appPackageName,
     required this.appName,
+    this.familyId,
+    this.childUid,
   });
 
   @override
@@ -40,6 +44,8 @@ class _RequestTimeDialogState extends State<RequestTimeDialog> {
         'requestedMinutes': _selectedMinutes,
         'reason': _reasonController.text.trim(),
         'status': 'pending',
+        'familyId': widget.familyId,
+        'childUid': widget.childUid,
         'createdAt': FieldValue.serverTimestamp(),
       });
 
@@ -161,6 +167,7 @@ class _RequestTimeDialogState extends State<RequestTimeDialog> {
               ),
             ),
             maxLines: 2,
+            maxLength: 500,
           ),
         ],
       ),

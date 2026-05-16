@@ -42,6 +42,7 @@ class _CountdownTimerState extends State<CountdownTimer> {
   }
 
   void _updateRemaining() {
+    if (!mounted) return;
     final now = DateTime.now();
     final remaining = widget.resetTime.difference(now);
     setState(() {

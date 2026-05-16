@@ -129,6 +129,8 @@ class KidGuardianApp extends StatelessWidget {
                       limitMinutes: state.limitMinutes,
                       usedMinutes: state.usedMinutes,
                       resetTime: state.resetTime,
+                      familyId: state.familyId,
+                      childUid: state.childUid,
                     ),
                   ),
                 );

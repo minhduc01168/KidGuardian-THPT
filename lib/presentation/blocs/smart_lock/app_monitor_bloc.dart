@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:kidguardian/platform/android/accessibility_channel.dart';
 import 'package:kidguardian/domain/usecases/smart_lock/check_app_access_usecase.dart';
 import 'package:kidguardian/domain/usecases/smart_lock/block_app_usecase.dart';
@@ -44,7 +45,7 @@ abstract class AppMonitorState extends Equatable {
   const AppMonitorState();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
 class AppMonitorInitial extends AppMonitorState {}
@@ -56,6 +57,8 @@ class AppBlockedState extends AppMonitorState {
   final int limitMinutes;
   final int usedMinutes;
   final DateTime resetTime;
+  final String? familyId;
+  final String? childUid;
 
   const AppBlockedState({
     required this.appPackageName,
@@ -64,15 +67,20 @@ class AppBlockedState extends AppMonitorState {
     required this.limitMinutes,
     required this.usedMinutes,
     required this.resetTime,
+    this.familyId,
+    this.childUid,
   });
 
   @override
-  List<Object> get props => [
+  List<Object?> get props => [
         appPackageName,
         appName,
+        iconUrl,
         limitMinutes,
         usedMinutes,
         resetTime,
+        familyId,
+        childUid,
       ];
 }
 
@@ -156,8 +164,9 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
         final blockedState = await _buildBlockedState(_currentAppPackage!);
         emit(blockedState);
       }
-    } catch (_) {
-      // Silently handle - will retry on next timer tick
+    } catch (e) {
+      // P8: Log error for debugging
+      debugPrint('AppMonitorBloc._onCheckCurrentAppLimit error: $e');
     }
   }
 
@@ -202,8 +211,9 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
               final blockedState = await _buildBlockedState(packageName);
               emit(blockedState);
             }
-          } catch (_) {
-            // If check fails, allow access (fail-open for UX)
+          } catch (e) {
+            // P8: Log error, fail-open for UX
+            debugPrint('AppMonitorBloc._onAppEventReceived check error: $e');
           }
         }
       } else if (eventType == 'closed') {
@@ -219,7 +229,8 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
   Future<AppBlockedState> _buildBlockedState(String packageName) async {
     final appName = _appNameMap[packageName] ?? packageName;
     final now = DateTime.now();
-    final resetTime = DateTime(now.year, now.month, now.day + 1);
+    // P1: Use add() instead of day+1 to avoid Dec 31 crash
+    final resetTime = DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
 
     int limitMinutes = 0;
     int usedMinutes = 0;
@@ -250,8 +261,9 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
         final appUsages = await usageRepository.getUsageByApp(_childUid!, dateStr);
         usedMinutes = appUsages[packageName] ?? 0;
       }
-    } catch (_) {
-      // Use cached/default values on error
+    } catch (e) {
+      // P8: Log error for debugging instead of silent swallow
+      debugPrint('AppMonitorBloc._buildBlockedState error: $e');
     }
 
     return AppBlockedState(
@@ -260,6 +272,8 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
       limitMinutes: limitMinutes,
       usedMinutes: usedMinutes,
       resetTime: resetTime,
+      familyId: _familyId,
+      childUid: _childUid,
     );
   }
 
