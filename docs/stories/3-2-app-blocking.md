@@ -4,7 +4,7 @@
 **Story ID:** E3.2
 **Story Key:** 3-2-app-blocking
 **Epic:** E3: Smart Lock (Android)
-**Status:** review
+**Status:** done
 **Priority:** P0
 **Sprint:** 5
 
