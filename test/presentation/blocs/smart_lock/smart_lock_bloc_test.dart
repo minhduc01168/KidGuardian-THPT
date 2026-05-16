@@ -5,6 +5,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:kidguardian/data/repositories/smart_lock_repository.dart';
 import 'package:kidguardian/data/models/app_time_limit_model.dart';
 import 'package:kidguardian/data/models/monitored_app_model.dart';
+import 'package:kidguardian/data/models/schedule_model.dart';
 import 'package:kidguardian/presentation/blocs/smart_lock/smart_lock_bloc.dart';
 import 'package:kidguardian/presentation/blocs/smart_lock/smart_lock_event.dart';
 import 'package:kidguardian/presentation/blocs/smart_lock/smart_lock_state.dart';
@@ -19,6 +20,16 @@ void main() {
       appPackageName: '',
       appName: '',
       isMonitored: true,
+    ));
+    registerFallbackValue(const ScheduleModel(
+      id: '',
+      name: '',
+      type: 'blocked',
+      startHour: 0,
+      startMinute: 0,
+      endHour: 0,
+      endMinute: 0,
+      days: {},
     ));
 
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -191,6 +202,123 @@ void main() {
           'contains custom app',
           true,
         ),
+      ],
+    );
+  });
+
+  group('SmartLockBloc - Schedules', () {
+    late SmartLockBloc bloc;
+    late MockSmartLockRepository mockRepository;
+
+    const familyId = 'family1';
+    const childId = 'child1';
+
+    final tSchedule = ScheduleModel(
+      id: 'schedule1',
+      name: 'Giờ ngủ',
+      type: 'blocked',
+      startHour: 21,
+      startMinute: 0,
+      endHour: 6,
+      endMinute: 0,
+      days: const {
+        'monday': true,
+        'tuesday': true,
+        'wednesday': true,
+        'thursday': true,
+        'friday': true,
+        'saturday': true,
+        'sunday': true,
+      },
+      isEnabled: true,
+    );
+
+    setUp(() {
+      mockRepository = MockSmartLockRepository();
+      bloc = SmartLockBloc(repository: mockRepository);
+    });
+
+    tearDown(() {
+      bloc.close();
+    });
+
+    blocTest<SmartLockBloc, SmartLockState>(
+      'emits [SmartLockLoading, SchedulesLoaded] when LoadSchedules is added',
+      build: () {
+        when(() => mockRepository.getSchedules(familyId, childId))
+            .thenAnswer((_) async => [tSchedule]);
+        return bloc;
+      },
+      act: (bloc) => bloc.add(const LoadSchedules(familyId, childId)),
+      expect: () => [
+        isA<SmartLockLoading>(),
+        isA<SchedulesLoaded>().having(
+          (state) => state.schedules.length,
+          'schedules count',
+          1,
+        ),
+      ],
+    );
+
+    blocTest<SmartLockBloc, SmartLockState>(
+      'emits [SmartLockActionSuccess, SchedulesLoaded] when SaveSchedule is added',
+      build: () {
+        when(() => mockRepository.saveSchedule(familyId, childId, any()))
+            .thenAnswer((_) async {});
+        return bloc;
+      },
+      act: (bloc) => bloc.add(SaveSchedule(familyId, childId, tSchedule)),
+      expect: () => [
+        isA<SmartLockActionSuccess>(),
+        isA<SchedulesLoaded>(),
+      ],
+    );
+
+    blocTest<SmartLockBloc, SmartLockState>(
+      'emits [SmartLockActionSuccess, SchedulesLoaded] when DeleteSchedule is added',
+      build: () {
+        when(() => mockRepository.deleteSchedule(familyId, childId, 'schedule1'))
+            .thenAnswer((_) async {});
+        return bloc;
+      },
+      seed: () => SchedulesLoaded([tSchedule]),
+      act: (bloc) => bloc.add(const DeleteSchedule(familyId, childId, 'schedule1')),
+      expect: () => [
+        isA<SmartLockActionSuccess>(),
+        isA<SchedulesLoaded>().having(
+          (state) => state.schedules.length,
+          'schedules count after delete',
+          0,
+        ),
+      ],
+    );
+
+    blocTest<SmartLockBloc, SmartLockState>(
+      'emits [SmartLockError, SchedulesLoaded] when SaveSchedule fails',
+      build: () {
+        when(() => mockRepository.saveSchedule(familyId, childId, any()))
+            .thenThrow(Exception('Firestore error'));
+        return bloc;
+      },
+      act: (bloc) => bloc.add(SaveSchedule(familyId, childId, tSchedule)),
+      expect: () => [
+        isA<SmartLockError>(),
+        isA<SchedulesLoaded>(),
+      ],
+    );
+
+    blocTest<SmartLockBloc, SmartLockState>(
+      'emits [SmartLockError, SchedulesLoaded] when DeleteSchedule fails',
+      build: () {
+        when(() => mockRepository.deleteSchedule(familyId, childId, 'schedule1'))
+            .thenThrow(Exception('Firestore error'));
+        return bloc;
+      },
+      seed: () => SchedulesLoaded([tSchedule]),
+      act: (bloc) => bloc.add(const DeleteSchedule(familyId, childId, 'schedule1')),
+      expect: () => [
+        isA<SmartLockError>(),
+        isA<SchedulesLoaded>(),
       ],
     );
   });

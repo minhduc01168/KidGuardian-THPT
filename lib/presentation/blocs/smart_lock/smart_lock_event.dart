@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:kidguardian/data/models/app_time_limit_model.dart';
+import 'package:kidguardian/data/models/schedule_model.dart';
 
 abstract class SmartLockEvent extends Equatable {
   const SmartLockEvent();
@@ -71,4 +72,36 @@ class AddCustomApp extends SmartLockEvent {
 
   @override
   List<Object> get props => [familyId, childId, packageName, appName];
+}
+
+class LoadSchedules extends SmartLockEvent {
+  final String familyId;
+  final String childId;
+
+  const LoadSchedules(this.familyId, this.childId);
+
+  @override
+  List<Object> get props => [familyId, childId];
+}
+
+class SaveSchedule extends SmartLockEvent {
+  final String familyId;
+  final String childId;
+  final ScheduleModel schedule;
+
+  const SaveSchedule(this.familyId, this.childId, this.schedule);
+
+  @override
+  List<Object> get props => [familyId, childId, schedule];
+}
+
+class DeleteSchedule extends SmartLockEvent {
+  final String familyId;
+  final String childId;
+  final String scheduleId;
+
+  const DeleteSchedule(this.familyId, this.childId, this.scheduleId);
+
+  @override
+  List<Object> get props => [familyId, childId, scheduleId];
 }

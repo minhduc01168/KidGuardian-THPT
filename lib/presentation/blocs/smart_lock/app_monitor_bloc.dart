@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:kidguardian/platform/android/accessibility_channel.dart';
 import 'package:kidguardian/domain/usecases/smart_lock/check_app_access_usecase.dart';
 import 'package:kidguardian/domain/usecases/smart_lock/block_app_usecase.dart';
+import 'package:kidguardian/domain/usecases/smart_lock/schedule_checker.dart';
 import 'package:kidguardian/domain/entities/usage_log.dart';
 import 'package:kidguardian/domain/repositories/usage_repository.dart';
 import 'package:kidguardian/data/repositories/smart_lock_repository.dart';
@@ -59,6 +60,8 @@ class AppBlockedState extends AppMonitorState {
   final DateTime resetTime;
   final String? familyId;
   final String? childUid;
+  final String? blockReason;
+  final String? scheduleName;
 
   const AppBlockedState({
     required this.appPackageName,
@@ -69,6 +72,8 @@ class AppBlockedState extends AppMonitorState {
     required this.resetTime,
     this.familyId,
     this.childUid,
+    this.blockReason,
+    this.scheduleName,
   });
 
   @override
@@ -81,6 +86,8 @@ class AppBlockedState extends AppMonitorState {
         resetTime,
         familyId,
         childUid,
+        blockReason,
+        scheduleName,
       ];
 }
 
@@ -100,6 +107,7 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
   final BlockAppUseCase blockAppUseCase;
   final UsageRepository usageRepository;
   final SmartLockRepository smartLockRepository;
+  final ScheduleChecker scheduleChecker;
 
   StreamSubscription? _accessibilitySubscription;
   // P2: Timer for continuous time checking
@@ -117,6 +125,7 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
     required this.blockAppUseCase,
     required this.usageRepository,
     required this.smartLockRepository,
+    required this.scheduleChecker,
   }) : super(AppMonitorInitial()) {
     on<StartMonitoring>(_onStartMonitoring);
     on<AppEventReceived>(_onAppEventReceived);
@@ -149,6 +158,7 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
     if (_currentAppPackage == null || _familyId == null || _childUid == null) return;
 
     try {
+      // Check time limits
       final isAllowed = await checkAppAccessUseCase.execute(
         familyId: _familyId!,
         childUid: _childUid!,
@@ -161,7 +171,24 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
         await blockAppUseCase.execute(appPackageName: _currentAppPackage!);
         // D1: Tell native to move task to back
         await AccessibilityChannel.moveTaskToBack();
-        final blockedState = await _buildBlockedState(_currentAppPackage!);
+        final blockedState = await _buildBlockedState(_currentAppPackage!, blockReason: 'time_limit');
+        emit(blockedState);
+        return;
+      }
+
+      // Check schedules
+      final schedules = await smartLockRepository.getSchedules(_familyId!, _childUid!);
+      final activeSchedule = scheduleChecker.getActiveSchedule(schedules, DateTime.now());
+      if (activeSchedule != null) {
+        _logCurrentAppUsage();
+        await blockAppUseCase.execute(appPackageName: _currentAppPackage!);
+        await AccessibilityChannel.moveTaskToBack();
+        final blockedState = await _buildBlockedState(
+          _currentAppPackage!,
+          blockReason: 'schedule',
+          scheduleName: activeSchedule.name,
+          scheduleEndTime: scheduleChecker.getScheduleEndTime(activeSchedule, DateTime.now()),
+        );
         emit(blockedState);
       }
     } catch (e) {
@@ -196,6 +223,7 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
         // Check if new app is allowed
         if (_familyId != null && _childUid != null) {
           try {
+            // Check time limits
             final isAllowed = await checkAppAccessUseCase.execute(
               familyId: _familyId!,
               childUid: _childUid!,
@@ -208,8 +236,26 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
               await blockAppUseCase.execute(appPackageName: packageName);
               // D1: Tell native to move task to back
               await AccessibilityChannel.moveTaskToBack();
-              final blockedState = await _buildBlockedState(packageName);
+              final blockedState = await _buildBlockedState(packageName, blockReason: 'time_limit');
               emit(blockedState);
+              return;
+            }
+
+            // Check schedules
+            final schedules = await smartLockRepository.getSchedules(_familyId!, _childUid!);
+            final activeSchedule = scheduleChecker.getActiveSchedule(schedules, DateTime.now());
+            if (activeSchedule != null) {
+              _logCurrentAppUsage();
+              await blockAppUseCase.execute(appPackageName: packageName);
+              await AccessibilityChannel.moveTaskToBack();
+              final blockedState = await _buildBlockedState(
+                packageName,
+                blockReason: 'schedule',
+                scheduleName: activeSchedule.name,
+                scheduleEndTime: scheduleChecker.getScheduleEndTime(activeSchedule, DateTime.now()),
+              );
+              emit(blockedState);
+              return;
             }
           } catch (e) {
             // P8: Log error, fail-open for UX
@@ -226,40 +272,47 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
     }
   }
 
-  Future<AppBlockedState> _buildBlockedState(String packageName) async {
+  Future<AppBlockedState> _buildBlockedState(
+    String packageName, {
+    String? blockReason,
+    String? scheduleName,
+    DateTime? scheduleEndTime,
+  }) async {
     final appName = _appNameMap[packageName] ?? packageName;
     final now = DateTime.now();
     // P1: Use add() instead of day+1 to avoid Dec 31 crash
-    final resetTime = DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
+    final resetTime = scheduleEndTime ?? DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
 
     int limitMinutes = 0;
     int usedMinutes = 0;
 
     try {
       if (_familyId != null && _childUid != null) {
-        final limits = await smartLockRepository.getAppTimeLimits(
-          _familyId!,
-          _childUid!,
-        );
-        for (final limit in limits) {
-          if (limit.appPackageName == packageName) {
-            final dayKeys = [
-              'monday', 'tuesday', 'wednesday', 'thursday',
-              'friday', 'saturday', 'sunday',
-            ];
-            final dayOfWeek = dayKeys[now.weekday - 1];
-            if (limit.limits.containsKey(dayOfWeek)) {
-              limitMinutes = limit.limits[dayOfWeek]!;
-            } else if (limit.limits.containsKey('everyday')) {
-              limitMinutes = limit.limits['everyday']!;
+        if (blockReason != 'schedule') {
+          final limits = await smartLockRepository.getAppTimeLimits(
+            _familyId!,
+            _childUid!,
+          );
+          for (final limit in limits) {
+            if (limit.appPackageName == packageName) {
+              final dayKeys = [
+                'monday', 'tuesday', 'wednesday', 'thursday',
+                'friday', 'saturday', 'sunday',
+              ];
+              final dayOfWeek = dayKeys[now.weekday - 1];
+              if (limit.limits.containsKey(dayOfWeek)) {
+                limitMinutes = limit.limits[dayOfWeek]!;
+              } else if (limit.limits.containsKey('everyday')) {
+                limitMinutes = limit.limits['everyday']!;
+              }
+              break;
             }
-            break;
           }
-        }
 
-        final dateStr = DateFormat('yyyy-MM-dd').format(now);
-        final appUsages = await usageRepository.getUsageByApp(_childUid!, dateStr);
-        usedMinutes = appUsages[packageName] ?? 0;
+          final dateStr = DateFormat('yyyy-MM-dd').format(now);
+          final appUsages = await usageRepository.getUsageByApp(_childUid!, dateStr);
+          usedMinutes = appUsages[packageName] ?? 0;
+        }
       }
     } catch (e) {
       // P8: Log error for debugging instead of silent swallow
@@ -274,6 +327,8 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
       resetTime: resetTime,
       familyId: _familyId,
       childUid: _childUid,
+      blockReason: blockReason,
+      scheduleName: scheduleName,
     );
   }
 

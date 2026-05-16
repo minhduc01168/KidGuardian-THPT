@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/app_time_limit_model.dart';
 import '../models/monitored_app_model.dart';
+import '../models/schedule_model.dart';
 
 class SmartLockRepository {
   final FirebaseFirestore _firestore;
@@ -129,6 +130,67 @@ class SmartLockRepository {
         .collection('monitoredApps')
         .doc(app.appPackageName)
         .set(app.toJson());
+  }
+
+  // Schedule CRUD methods
+
+  Future<List<ScheduleModel>> getSchedules(
+    String familyId,
+    String childId,
+  ) async {
+    final snapshot = await _firestore
+        .collection('families')
+        .doc(familyId)
+        .collection('children')
+        .doc(childId)
+        .collection('schedules')
+        .get();
+
+    return snapshot.docs
+        .map((doc) => ScheduleModel.fromJson({
+              ...doc.data(),
+              'id': doc.id,
+            }))
+        .toList();
+  }
+
+  Future<void> saveSchedule(
+    String familyId,
+    String childId,
+    ScheduleModel schedule,
+  ) async {
+    final docRef = schedule.id.isEmpty
+        ? _firestore
+            .collection('families')
+            .doc(familyId)
+            .collection('children')
+            .doc(childId)
+            .collection('schedules')
+            .doc()
+        : _firestore
+            .collection('families')
+            .doc(familyId)
+            .collection('children')
+            .doc(childId)
+            .collection('schedules')
+            .doc(schedule.id);
+
+    await docRef.set(schedule.toJson());
+  }
+
+  Future<void> deleteSchedule(
+    String familyId,
+    String childId,
+    String scheduleId,
+  ) async {
+    await _firestore
+        .collection('families')
+        .doc(familyId)
+        .collection('children')
+        .doc(childId)
+        .collection('schedules')
+        .doc(scheduleId)
+        .delete();
   }
 
   List<MonitoredAppModel> getPopularMonitoredApps() {

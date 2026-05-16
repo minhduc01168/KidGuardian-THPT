@@ -16,6 +16,8 @@ class LockScreen extends StatefulWidget {
   final DateTime resetTime;
   final String? familyId;
   final String? childUid;
+  final String? blockReason;
+  final String? scheduleName;
 
   const LockScreen({
     super.key,
@@ -27,6 +29,8 @@ class LockScreen extends StatefulWidget {
     required this.resetTime,
     this.familyId,
     this.childUid,
+    this.blockReason,
+    this.scheduleName,
   });
 
   @override
@@ -129,24 +133,28 @@ class _LockScreenState extends State<LockScreen> {
                             ),
                             child: Column(
                               children: [
-                                const Text(
-                                  'Bạn đã sử dụng hết thời gian cho phép hôm nay',
-                                  style: TextStyle(
+                                Text(
+                                  widget.blockReason == 'schedule' && widget.scheduleName != null
+                                      ? 'Đang trong ${widget.scheduleName!.toLowerCase()}'
+                                      : 'Bạn đã sử dụng hết thời gian cho phép hôm nay',
+                                  style: const TextStyle(
                                     fontSize: 15,
                                     color: Colors.white,
                                   ),
                                   textAlign: TextAlign.center,
                                 ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  'Đã dùng: ${widget.usedMinutes}/${widget.limitMinutes} phút',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white.withValues(alpha: 0.9),
+                                if (widget.blockReason != 'schedule') ...[
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    'Đã dùng: ${widget.usedMinutes}/${widget.limitMinutes} phút',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white.withValues(alpha: 0.9),
+                                    ),
+                                    textAlign: TextAlign.center,
                                   ),
-                                  textAlign: TextAlign.center,
-                                ),
+                                ],
                               ],
                             ),
                           ),
@@ -183,30 +191,32 @@ class _LockScreenState extends State<LockScreen> {
                               ),
                             ),
                           ] else ...[
-                            // Request more time button
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton.icon(
-                                onPressed: _showRequestTimeDialog,
-                                icon: const Icon(Icons.access_time),
-                                label: const Text(
-                                  'Xin thêm thời gian',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
+                            // Request more time button (only for time limit blocks)
+                            if (widget.blockReason != 'schedule') ...[
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton.icon(
+                                  onPressed: _showRequestTimeDialog,
+                                  icon: const Icon(Icons.access_time),
+                                  label: const Text(
+                                    'Xin thêm thời gian',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
-                                ),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.white,
-                                  foregroundColor: const Color(0xFF6B7FE8),
-                                  padding: const EdgeInsets.symmetric(vertical: 14),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.white,
+                                    foregroundColor: const Color(0xFF6B7FE8),
+                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(height: 12),
+                              const SizedBox(height: 12),
+                            ],
                             // Emergency contact button
                             SizedBox(
                               width: double.infinity,

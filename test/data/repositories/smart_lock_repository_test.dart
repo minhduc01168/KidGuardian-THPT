@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:kidguardian/data/repositories/smart_lock_repository.dart';
 import 'package:kidguardian/data/models/app_time_limit_model.dart';
 import 'package:kidguardian/data/models/monitored_app_model.dart';
+import 'package:kidguardian/data/models/schedule_model.dart';
 
 class MockFirebaseFirestore extends Mock implements FirebaseFirestore {}
 class MockCollectionReference extends Mock implements CollectionReference<Map<String, dynamic>> {}
@@ -184,6 +185,138 @@ void main() {
       expect(result.length, 7);
       expect(result.every((app) => app.isMonitored), true);
       expect(result.first.appName, 'TikTok');
+    });
+  });
+
+  group('SmartLockRepository - Schedules', () {
+    const familyId = 'family1';
+    const childId = 'child1';
+    late MockCollectionReference mockSchedulesCollection;
+    late MockDocumentReference mockScheduleDoc;
+
+    final tSchedule = ScheduleModel(
+      id: 'schedule1',
+      name: 'Giờ ngủ',
+      type: 'blocked',
+      startHour: 21,
+      startMinute: 0,
+      endHour: 6,
+      endMinute: 0,
+      days: const {
+        'monday': true,
+        'tuesday': true,
+        'wednesday': true,
+        'thursday': true,
+        'friday': true,
+        'saturday': true,
+        'sunday': true,
+      },
+      isEnabled: true,
+    );
+
+    setUp(() {
+      mockSchedulesCollection = MockCollectionReference();
+      mockScheduleDoc = MockDocumentReference();
+
+      when(() => mockChildDoc.collection('schedules'))
+          .thenReturn(mockSchedulesCollection);
+      when(() => mockSchedulesCollection.doc(any()))
+          .thenReturn(mockScheduleDoc);
+    });
+
+    test('getSchedules should return a list of ScheduleModel', () async {
+      // arrange
+      final mockQuerySnapshot = MockQuerySnapshot();
+      final mockDocSnapshot = MockQueryDocumentSnapshot();
+
+      when(() => mockDocSnapshot.id).thenReturn('schedule1');
+      when(() => mockDocSnapshot.data()).thenReturn({
+        'id': 'schedule1',
+        'name': 'Giờ ngủ',
+        'type': 'blocked',
+        'startHour': 21,
+        'startMinute': 0,
+        'endHour': 6,
+        'endMinute': 0,
+        'days': {
+          'monday': true,
+          'tuesday': true,
+          'wednesday': true,
+          'thursday': true,
+          'friday': true,
+          'saturday': true,
+          'sunday': true,
+        },
+        'isEnabled': true,
+      });
+
+      when(() => mockQuerySnapshot.docs).thenReturn([mockDocSnapshot]);
+      when(() => mockSchedulesCollection.get())
+          .thenAnswer((_) async => mockQuerySnapshot);
+
+      // act
+      final result = await repository.getSchedules(familyId, childId);
+
+      // assert
+      expect(result, isA<List<ScheduleModel>>());
+      expect(result.length, 1);
+      expect(result.first.name, 'Giờ ngủ');
+      expect(result.first.type, 'blocked');
+      verify(() => mockSchedulesCollection.get()).called(1);
+    });
+
+    test('getSchedules should return empty list when no documents', () async {
+      // arrange
+      final mockQuerySnapshot = MockQuerySnapshot();
+      when(() => mockQuerySnapshot.docs).thenReturn([]);
+      when(() => mockSchedulesCollection.get())
+          .thenAnswer((_) async => mockQuerySnapshot);
+
+      // act
+      final result = await repository.getSchedules(familyId, childId);
+
+      // assert
+      expect(result, isEmpty);
+    });
+
+    test('saveSchedule should set data to correct document', () async {
+      // arrange
+      when(() => mockScheduleDoc.set(any())).thenAnswer((_) async {});
+      when(() => mockSchedulesCollection.doc()).thenReturn(mockScheduleDoc);
+
+      // act
+      await repository.saveSchedule(familyId, childId, tSchedule);
+
+      // assert
+      verify(() => mockScheduleDoc.set(tSchedule.toJson())).called(1);
+    });
+
+    test('saveSchedule should use provided id when not empty', () async {
+      // arrange
+      when(() => mockScheduleDoc.set(any())).thenAnswer((_) async {});
+      when(() => mockSchedulesCollection.doc('schedule1'))
+          .thenReturn(mockScheduleDoc);
+
+      // act
+      await repository.saveSchedule(familyId, childId, tSchedule);
+
+      // assert
+      verify(() => mockSchedulesCollection.doc('schedule1')).called(1);
+      verify(() => mockScheduleDoc.set(tSchedule.toJson())).called(1);
+    });
+
+    test('deleteSchedule should delete correct document', () async {
+      // arrange
+      when(() => mockScheduleDoc.delete()).thenAnswer((_) async {});
+      when(() => mockSchedulesCollection.doc('schedule1'))
+          .thenReturn(mockScheduleDoc);
+
+      // act
+      await repository.deleteSchedule(familyId, childId, 'schedule1');
+
+      // assert
+      verify(() => mockSchedulesCollection.doc('schedule1')).called(1);
+      verify(() => mockScheduleDoc.delete()).called(1);
     });
   });
 }

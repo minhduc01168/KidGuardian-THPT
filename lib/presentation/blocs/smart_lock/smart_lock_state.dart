@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:kidguardian/data/models/app_time_limit_model.dart';
 import 'package:kidguardian/data/models/monitored_app_model.dart';
+import 'package:kidguardian/data/models/schedule_model.dart';
 
 abstract class SmartLockState extends Equatable {
   const SmartLockState();
@@ -29,6 +30,15 @@ class MonitoredAppsLoaded extends SmartLockState {
 
   @override
   List<Object> get props => [apps];
+}
+
+class SchedulesLoaded extends SmartLockState {
+  final List<ScheduleModel> schedules;
+
+  const SchedulesLoaded(this.schedules);
+
+  @override
+  List<Object> get props => [schedules];
 }
 
 class SmartLockActionSuccess extends SmartLockState {

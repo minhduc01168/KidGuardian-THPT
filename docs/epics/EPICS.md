@@ -301,7 +301,7 @@
 
 **Goal:** Enable parents to set time limits and automatically block social media apps when limits are reached.
 
-**Status:** In Progress (3/8 stories completed: E3.1, E3.2, E3.6)
+**Status:** In Progress (4/8 stories completed: E3.1, E3.2, E3.3, E3.4)
 
 ### User Stories
 
@@ -361,20 +361,21 @@
 
 ---
 
-#### E3.4: Schedule Setting
+#### E3.4: Schedule Setting ✅
 **As a** parent,  
 **I want to** set schedules for when apps are blocked,  
 **So that** my child focuses on homework or sleep.
 
 **Acceptance Criteria:**
-- [ ] Parent can set blocked time periods (e.g., 9PM-6AM)
-- [ ] Can set different schedules for different days
-- [ ] Can set "homework hours" schedule
-- [ ] Schedule is enforced automatically
+- [x] Parent can set blocked time periods (e.g., 9PM-6AM)
+- [x] Can set different schedules for different days
+- [x] Can set "homework hours" schedule
+- [x] Schedule is enforced automatically
 
 **Story Points:** 5  
 **Priority:** P1  
 **Sprint:** 6  
+**Status:** ✅ Done  
 
 ---
 

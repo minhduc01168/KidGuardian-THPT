@@ -263,15 +263,15 @@
 
 | Story | Task | Assignee | Status |
 |-------|------|----------|--------|
-| E3.3 | **Lock Screen Display** | | |
-| | Design lock screen UI | AI | ⬜ |
-| | Show blocking reason | AI | ⬜ |
-| | Add request button | AI | ⬜ |
-| | Add emergency button | AI | ⬜ |
-| E3.4 | **Schedule Setting** | | |
-| | Create schedule UI | AI | ⬜ |
-| | Implement schedule logic | AI | ⬜ |
-| | Add recurring schedules | AI | ⬜ |
+| E3.3 | **Lock Screen Display** ✅ | | |
+| | Design lock screen UI | AI | ✅ |
+| | Show blocking reason | AI | ✅ |
+| | Add request button | AI | ✅ |
+| | Add emergency button | AI | ✅ |
+| E3.4 | **Schedule Setting** ✅ | | |
+| | Create schedule UI | AI | ✅ |
+| | Implement schedule logic | AI | ✅ |
+| | Add recurring schedules | AI | ✅ |
 | E3.5 | **Emergency Access** | | |
 | | Implement emergency mode | AI | ⬜ |
 | | Add call/SMS functionality | AI | ⬜ |
