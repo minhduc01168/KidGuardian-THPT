@@ -9,10 +9,12 @@ style: |
     background-color: #f8f9fa;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     padding: 40px 50px;
+    font-size: 26px; /* Giảm nhẹ font chữ chung */
+    overflow-y: auto; /* Cho phép cuộn toàn trang nếu text quá dài */
   }
   h1 {
     color: #2c3e50;
-    font-size: 2.2em;
+    font-size: 2.0em;
     text-align: center;
   }
   h2 {
@@ -20,9 +22,11 @@ style: |
     border-bottom: 2px solid #3498db;
     padding-bottom: 10px;
     margin-bottom: 20px;
+    font-size: 1.4em;
   }
   h3 {
     color: #2980b9;
+    font-size: 1.2em;
   }
   .center {
     text-align: center;
@@ -32,21 +36,43 @@ style: |
     border-radius: 4px;
     padding: 2px 4px;
     color: #c0392b;
-  }
-  pre code {
-    color: #333;
-    background-color: transparent;
+    font-size: 0.85em;
   }
   pre {
     background-color: #f1f3f5;
     border-left: 4px solid #3498db;
+    max-height: 420px; /* Giới hạn chiều cao cho khối code */
+    overflow-y: auto;  /* Hiển thị thanh cuộn cho code dài */
+    padding: 15px;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+  }
+  pre code {
+    color: #333;
+    background-color: transparent;
+    font-size: 0.85em;
+  }
+  /* Tùy chỉnh thanh cuộn (Scrollbar) cho đẹp mắt */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #e1e1e1; 
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #888; 
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #555; 
   }
 ---
 
 <!-- _class: lead -->
 # 🚀 BUỔI 1: Khởi Động Dự Án & Thiết Kế UI/UX
 
-**Thời gian:** 2 tiết (90 phút)  
+**Thời gian:** 2 tiết (90 phút)    
 **Mục tiêu:** Hiểu dự án, vẽ User Flow, thiết kế giao diện trên Figma
 
 ---
