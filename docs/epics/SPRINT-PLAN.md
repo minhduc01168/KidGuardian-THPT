@@ -224,9 +224,9 @@
 | | Create app monitoring logic | AI | ✅ |
 | | Implement blocking mechanism | AI | ✅ |
 | | Add overlay window | AI | ✅ |
-| E3.6 | **Blocked Apps Management** | | |
-| | Create app selector UI | AI | ⬜ |
-| | Implement app toggling | AI | ⬜ |
+| E3.6 | **Blocked Apps Management** ✅ | | |
+| | Create app selector UI | AI | ✅ |
+| | Implement app toggling | AI | ✅ |
 
 ### Technical Tasks
 

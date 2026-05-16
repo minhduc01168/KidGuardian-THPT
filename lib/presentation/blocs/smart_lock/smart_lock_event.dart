@@ -28,3 +28,47 @@ class SaveAppTimeLimit extends SmartLockEvent {
   @override
   List<Object> get props => [familyId, childId, limit];
 }
+
+class LoadMonitoredApps extends SmartLockEvent {
+  final String familyId;
+  final String childId;
+
+  const LoadMonitoredApps(this.familyId, this.childId);
+
+  @override
+  List<Object> get props => [familyId, childId];
+}
+
+class ToggleMonitoredApp extends SmartLockEvent {
+  final String familyId;
+  final String childId;
+  final String appPackageName;
+  final bool isMonitored;
+
+  const ToggleMonitoredApp(
+    this.familyId,
+    this.childId,
+    this.appPackageName,
+    this.isMonitored,
+  );
+
+  @override
+  List<Object> get props => [familyId, childId, appPackageName, isMonitored];
+}
+
+class AddCustomApp extends SmartLockEvent {
+  final String familyId;
+  final String childId;
+  final String packageName;
+  final String appName;
+
+  const AddCustomApp(
+    this.familyId,
+    this.childId,
+    this.packageName,
+    this.appName,
+  );
+
+  @override
+  List<Object> get props => [familyId, childId, packageName, appName];
+}

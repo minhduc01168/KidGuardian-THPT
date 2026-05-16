@@ -12,6 +12,7 @@ import '../../auth/screens/create_child_screen.dart';
 import '../../auth/screens/profile_screen.dart';
 import '../../report/screens/weekly_report_screen.dart';
 import '../../summary/screens/daily_summary_screen.dart';
+import '../../../screens/smart_lock/blocked_apps_screen.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../bloc/dashboard_event.dart';
 import '../bloc/dashboard_state.dart';
@@ -448,33 +449,83 @@ class _ParentDashboardState extends State<ParentDashboard> {
   }
 
   Widget _buildMonitoringTab(User user) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.monitor,
-            size: 80,
-            color: AppColors.textSecondary,
-          ),
-          SizedBox(height: 16),
-          Text(
-            'Giám sát',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
+    return BlocBuilder<DashboardBloc, DashboardState>(
+      builder: (context, state) {
+        final childUids = state is DashboardLoaded ? state.childUids : <String>[];
+
+        return ListView(
+          padding: EdgeInsets.all(16),
+          children: [
+            Text(
+              'Quản lý Smart Lock',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
-          SizedBox(height: 8),
-          Text(
-            'Tính năng đang phát triển',
-            style: TextStyle(
-              fontSize: 16,
-              color: AppColors.textSecondary,
+            SizedBox(height: 8),
+            Text(
+              'Các tính năng giám sát và quản lý ứng dụng trên thiết bị con',
+              style: TextStyle(
+                fontSize: 14,
+                color: AppColors.textSecondary,
+              ),
             ),
-          ),
-        ],
-      ),
+            SizedBox(height: 24),
+            Card(
+              child: ListTile(
+                leading: Icon(Icons.apps, color: AppColors.primary),
+                title: Text('Quản lý ứng dụng giám sát'),
+                subtitle: Text('Chọn ứng dụng cần giám sát'),
+                trailing: Icon(Icons.chevron_right),
+                onTap: () {
+                  if (user.familyId == null || childUids.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Vui lòng thêm tài khoản con trước')),
+                    );
+                    return;
+                  }
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => BlockedAppsScreen(
+                        familyId: user.familyId!,
+                        childId: childUids.first,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            Card(
+              child: ListTile(
+                leading: Icon(Icons.timer, color: AppColors.warning),
+                title: Text('Giới hạn thời gian'),
+                subtitle: Text('Đặt giới hạn sử dụng theo ứng dụng'),
+                trailing: Icon(Icons.chevron_right),
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Tính năng đang phát triển')),
+                  );
+                },
+              ),
+            ),
+            Card(
+              child: ListTile(
+                leading: Icon(Icons.lock_clock, color: AppColors.error),
+                title: Text('Khóa ứng dụng'),
+                subtitle: Text('Khóa ngay lập tức các ứng dụng'),
+                trailing: Icon(Icons.chevron_right),
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Tính năng đang phát triển')),
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 

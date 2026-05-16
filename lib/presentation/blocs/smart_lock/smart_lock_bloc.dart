@@ -1,6 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kidguardian/data/repositories/smart_lock_repository.dart';
 import 'package:kidguardian/data/models/app_time_limit_model.dart';
+import 'package:kidguardian/data/models/monitored_app_model.dart';
+import 'package:kidguardian/platform/android/accessibility_channel.dart';
 import 'smart_lock_event.dart';
 import 'smart_lock_state.dart';
 
@@ -8,10 +10,14 @@ class SmartLockBloc extends Bloc<SmartLockEvent, SmartLockState> {
   final SmartLockRepository repository;
   
   List<AppTimeLimitModel> _currentApps = [];
+  List<MonitoredAppModel> _currentMonitoredApps = [];
 
   SmartLockBloc({required this.repository}) : super(SmartLockInitial()) {
     on<LoadAppTimeLimits>(_onLoadAppTimeLimits);
     on<SaveAppTimeLimit>(_onSaveAppTimeLimit);
+    on<LoadMonitoredApps>(_onLoadMonitoredApps);
+    on<ToggleMonitoredApp>(_onToggleMonitoredApp);
+    on<AddCustomApp>(_onAddCustomApp);
   }
 
   Future<void> _onLoadAppTimeLimits(
@@ -98,5 +104,118 @@ class SmartLockBloc extends Bloc<SmartLockEvent, SmartLockState> {
       emit(SmartLockError(e.toString()));
       emit(SmartLockLoaded(List.from(_currentApps)));
     }
+  }
+
+  // Monitored Apps handlers
+
+  Future<void> _onLoadMonitoredApps(
+    LoadMonitoredApps event,
+    Emitter<SmartLockState> emit,
+  ) async {
+    emit(SmartLockLoading());
+    try {
+      final configuredApps = await repository.getMonitoredApps(
+        event.familyId,
+        event.childId,
+      );
+
+      final popularApps = repository.getPopularMonitoredApps();
+      final Map<String, MonitoredAppModel> mergedApps = {};
+
+      for (var app in popularApps) {
+        mergedApps[app.appPackageName] = app;
+      }
+
+      for (var app in configuredApps) {
+        mergedApps[app.appPackageName] = app;
+      }
+
+      _currentMonitoredApps = mergedApps.values.toList()
+        ..sort((a, b) {
+          if (a.isMonitored != b.isMonitored) {
+            return a.isMonitored ? -1 : 1;
+          }
+          return a.appName.compareTo(b.appName);
+        });
+
+      emit(MonitoredAppsLoaded(List.from(_currentMonitoredApps)));
+    } catch (e) {
+      emit(SmartLockError(e.toString()));
+    }
+  }
+
+  Future<void> _onToggleMonitoredApp(
+    ToggleMonitoredApp event,
+    Emitter<SmartLockState> emit,
+  ) async {
+    try {
+      await repository.toggleMonitoredApp(
+        event.familyId,
+        event.childId,
+        event.appPackageName,
+        event.isMonitored,
+      );
+
+      final index = _currentMonitoredApps.indexWhere(
+        (app) => app.appPackageName == event.appPackageName,
+      );
+      if (index != -1) {
+        _currentMonitoredApps[index] = _currentMonitoredApps[index].copyWith(
+          isMonitored: event.isMonitored,
+        );
+      }
+
+      _currentMonitoredApps.sort((a, b) {
+        if (a.isMonitored != b.isMonitored) {
+          return a.isMonitored ? -1 : 1;
+        }
+        return a.appName.compareTo(b.appName);
+      });
+
+      await _syncBlockedAppsToNative();
+
+      emit(MonitoredAppsLoaded(List.from(_currentMonitoredApps)));
+    } catch (e) {
+      emit(SmartLockError(e.toString()));
+      emit(MonitoredAppsLoaded(List.from(_currentMonitoredApps)));
+    }
+  }
+
+  Future<void> _onAddCustomApp(
+    AddCustomApp event,
+    Emitter<SmartLockState> emit,
+  ) async {
+    try {
+      final app = MonitoredAppModel(
+        appPackageName: event.packageName,
+        appName: event.appName,
+        isMonitored: true,
+      );
+
+      await repository.addCustomApp(event.familyId, event.childId, app);
+
+      _currentMonitoredApps.add(app);
+      _currentMonitoredApps.sort((a, b) {
+        if (a.isMonitored != b.isMonitored) {
+          return a.isMonitored ? -1 : 1;
+        }
+        return a.appName.compareTo(b.appName);
+      });
+
+      await _syncBlockedAppsToNative();
+
+      emit(MonitoredAppsLoaded(List.from(_currentMonitoredApps)));
+    } catch (e) {
+      emit(SmartLockError(e.toString()));
+      emit(MonitoredAppsLoaded(List.from(_currentMonitoredApps)));
+    }
+  }
+
+  Future<void> _syncBlockedAppsToNative() async {
+    final monitoredPackageNames = _currentMonitoredApps
+        .where((app) => app.isMonitored)
+        .map((app) => app.appPackageName)
+        .toList();
+    await AccessibilityChannel.updateBlockedApps(monitoredPackageNames);
   }
 }

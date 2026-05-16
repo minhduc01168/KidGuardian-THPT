@@ -301,7 +301,7 @@
 
 **Goal:** Enable parents to set time limits and automatically block social media apps when limits are reached.
 
-**Status:** In Progress (2/8 stories completed: E3.1, E3.2)
+**Status:** In Progress (3/8 stories completed: E3.1, E3.2, E3.6)
 
 ### User Stories
 
@@ -396,20 +396,21 @@
 
 ---
 
-#### E3.6: Blocked Apps Management
+#### E3.6: Blocked Apps Management ✅
 **As a** parent,  
 **I want to** manage which apps are monitored and blocked,  
 **So that** I can customize monitoring for my child.
 
 **Acceptance Criteria:**
-- [ ] List of installed social media apps
-- [ ] Can toggle monitoring for each app
-- [ ] Can add custom apps to monitor
-- [ ] Changes take effect immediately
+- [x] List of installed social media apps
+- [x] Can toggle monitoring for each app
+- [x] Can add custom apps to monitor
+- [x] Changes take effect immediately
 
 **Story Points:** 3  
 **Priority:** P0  
 **Sprint:** 5  
+**Status:** ✅ Done  
 
 ---
 
