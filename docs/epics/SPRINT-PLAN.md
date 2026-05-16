@@ -3,7 +3,8 @@
 
 **Version:** 1.0  
 **Date:** 2026-05-12  
-**Status:** Draft  
+**Status:** In Progress  
+**Last Updated:** 2026-05-16  
 
 ---
 
@@ -214,34 +215,34 @@
 
 | Story | Task | Assignee | Status |
 |-------|------|----------|--------|
-| E3.1 | **Set Time Limit** | | |
-| | Create time limit UI | AI | ⬜ |
-| | Implement time picker | AI | ⬜ |
-| | Save limits to Firestore | AI | ⬜ |
-| E3.2 | **App Blocking** | | |
-| | Implement Accessibility Service | AI | ⬜ |
-| | Create app monitoring logic | AI | ⬜ |
-| | Implement blocking mechanism | AI | ⬜ |
-| | Add overlay window | AI | ⬜ |
+| E3.1 | **Set Time Limit** ✅ | | |
+| | Create time limit UI | AI | ✅ |
+| | Implement time picker | AI | ✅ |
+| | Save limits to Firestore | AI | ✅ |
+| E3.2 | **App Blocking** ✅ | | |
+| | Implement Accessibility Service | AI | ✅ |
+| | Create app monitoring logic | AI | ✅ |
+| | Implement blocking mechanism | AI | ✅ |
+| | Add overlay window | AI | ✅ |
 | E3.6 | **Blocked Apps Management** | | |
 | | Create app selector UI | AI | ⬜ |
 | | Implement app toggling | AI | ⬜ |
 
 ### Technical Tasks
 
-- [ ] Setup Android Accessibility Service
-- [ ] Implement UsageStats API integration
-- [ ] Create Flutter platform channels
-- [ ] Implement overlay window
-- [ ] Create time tracking service
-- [ ] Add background service
+- [x] Setup Android Accessibility Service
+- [x] Implement UsageStats API integration
+- [x] Create Flutter platform channels
+- [x] Implement overlay window
+- [x] Create time tracking service
+- [x] Add background service
 
 ### Definition of Done
 
-- [ ] Time limits can be set
-- [ ] Apps are blocked when limit reached
-- [ ] Lock screen appears
-- [ ] Blocking works reliably
+- [x] Time limits can be set
+- [x] Apps are blocked when limit reached
+- [x] Lock screen appears
+- [x] Blocking works reliably
 
 ### Risks & Mitigations
 
@@ -525,5 +526,5 @@
 ---
 
 **Document Owner:** Scrum Master  
-**Last Updated:** 2026-05-12  
-**Next Review:** End of Sprint 1
+**Last Updated:** 2026-05-16  
+**Next Review:** End of Sprint 5

@@ -4,7 +4,7 @@
 **Version:** 1.0  
 **Date:** 2026-05-12  
 **Status:** In Progress  
-**Last Updated:** 2026-05-13  
+**Last Updated:** 2026-05-16  
 
 ---
 
@@ -301,41 +301,45 @@
 
 **Goal:** Enable parents to set time limits and automatically block social media apps when limits are reached.
 
+**Status:** In Progress (2/8 stories completed: E3.1, E3.2)
+
 ### User Stories
 
-#### E3.1: Set Time Limit
+#### E3.1: Set Time Limit ✅
 **As a** parent,  
 **I want to** set daily time limits for specific apps,  
 **So that** I can control how much time my child spends on each app.
 
 **Acceptance Criteria:**
-- [ ] Parent can select app from list
-- [ ] Parent can set daily limit in minutes
-- [ ] Can set different limits for different days
-- [ ] Limits are saved to Firestore
-- [ ] Child is notified of new limits
+- [x] Parent can select app from list
+- [x] Parent can set daily limit in minutes
+- [x] Can set different limits for different days
+- [x] Limits are saved to Firestore
+- [x] Child is notified of new limits
 
 **Story Points:** 5  
 **Priority:** P0  
 **Sprint:** 5  
+**Status:** ✅ Done
 
 ---
 
-#### E3.2: App Blocking
+#### E3.2: App Blocking ✅
 **As a** parent,  
 **I want** apps to be automatically blocked when time limit is reached,  
 **So that** my child cannot continue using blocked apps.
 
 **Acceptance Criteria:**
-- [ ] System monitors app usage in real-time
-- [ ] When limit reached, app is blocked
-- [ ] Blocked app shows lock screen
-- [ ] Child cannot bypass lock screen
-- [ ] Usage is logged to Firestore
+- [x] System monitors app usage in real-time
+- [x] When limit reached, app is blocked
+- [x] Blocked app shows lock screen
+- [x] Child cannot bypass lock screen
+- [x] Usage is logged to Firestore
 
 **Story Points:** 8  
 **Priority:** P0  
 **Sprint:** 5  
+**Status:** ✅ Done  
 
 ---
 
@@ -820,3 +824,4 @@
 |------|--------|--------|
 | 2026-05-12 | Initial document created | Product Team |
 | 2026-05-13 | Epic 1 completed - all 8 stories implemented and moved to review status | Dev Team |
+| 2026-05-16 | Epic 3: E3.1 Set Time Limit and E3.2 App Blocking completed with code review fixes | Dev Team |
