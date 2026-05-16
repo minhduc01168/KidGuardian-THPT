@@ -13,6 +13,7 @@ import '../../auth/screens/profile_screen.dart';
 import '../../report/screens/weekly_report_screen.dart';
 import '../../summary/screens/daily_summary_screen.dart';
 import '../../../screens/smart_lock/blocked_apps_screen.dart';
+import '../../usage_statistics/screens/usage_statistics_screen.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../bloc/dashboard_event.dart';
 import '../bloc/dashboard_state.dart';
@@ -519,6 +520,31 @@ class _ParentDashboardState extends State<ParentDashboard> {
                 onTap: () {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Tính năng đang phát triển')),
+                  );
+                },
+              ),
+            ),
+            Card(
+              child: ListTile(
+                leading: Icon(Icons.bar_chart, color: AppColors.accent),
+                title: Text('Thống kê sử dụng'),
+                subtitle: Text('Xem chi tiết thống kê sử dụng ứng dụng'),
+                trailing: Icon(Icons.chevron_right),
+                onTap: () {
+                  if (user.familyId == null || childUids.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Vui lòng thêm tài khoản con trước')),
+                    );
+                    return;
+                  }
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => UsageStatisticsScreen(
+                        childUid: childUids.first,
+                        childName: 'Con',
+                      ),
+                    ),
                   );
                 },
               ),
