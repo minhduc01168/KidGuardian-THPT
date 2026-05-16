@@ -301,7 +301,7 @@
 
 **Goal:** Enable parents to set time limits and automatically block social media apps when limits are reached.
 
-**Status:** In Progress (5/8 stories completed: E3.1, E3.2, E3.4, E3.6, E3.8)
+**Status:** ✅ Done (8/8 stories completed)
 
 ### User Stories
 
@@ -379,21 +379,22 @@
 
 ---
 
-#### E3.5: Emergency Access
+#### E3.5: Emergency Access ✅
 **As a** child,  
 **I want to** have emergency access to phone functions,  
 **So that** I can call or text in emergencies even when apps are blocked.
 
 **Acceptance Criteria:**
-- [ ] Emergency button on lock screen
-- [ ] Can make phone calls
-- [ ] Can send SMS
-- [ ] Emergency access is time-limited (5 minutes)
-- [ ] Emergency usage is logged
+- [x] Emergency button on lock screen
+- [x] Can make phone calls
+- [x] Can send SMS
+- [x] Emergency access is time-limited (5 minutes)
+- [x] Emergency usage is logged
 
 **Story Points:** 3  
 **Priority:** P0  
 **Sprint:** 6  
+**Status:** ✅ Done
 
 ---
 
@@ -415,20 +416,39 @@
 
 ---
 
-#### E3.7: Usage Statistics
+#### E3.7: Usage Statistics ✅
 **As a** parent,  
 **I want to** see detailed usage statistics,  
 **So that** I can understand my child's app usage patterns.
 
 **Acceptance Criteria:**
-- [ ] Shows usage by hour/day/week
-- [ ] Shows most used apps
-- [ ] Shows peak usage times
-- [ ] Can export data
+- [x] Shows usage by hour/day/week
+- [x] Shows most used apps
+- [x] Shows peak usage times
+- [x] Can export data
 
 **Story Points:** 5  
 **Priority:** P1  
 **Sprint:** 6  
+**Status:** ✅ Done
+
+---
+
+#### E3.8: Smart Lock Settings ✅
+**As a** parent,  
+**I want to** configure Smart Lock settings,  
+**So that** I can customize how the feature works.
+
+**Acceptance Criteria:**
+- [x] Can enable/disable Smart Lock
+- [x] Can set default time limits
+- [x] Can configure notification preferences
+- [x] Can view lock history
+
+**Story Points:** 3  
+**Priority:** P1  
+**Sprint:** 6  
+**Status:** ✅ Done
 
 ---
 

@@ -272,16 +272,16 @@
 | | Create schedule UI | AI | ✅ |
 | | Implement schedule logic | AI | ✅ |
 | | Add recurring schedules | AI | ✅ |
-| E3.5 | **Emergency Access** | | |
-| | Implement emergency mode | AI | ⬜ |
-| | Add call/SMS functionality | AI | ⬜ |
-| | Add time limit for emergency | AI | ⬜ |
-| E3.7 | **Usage Statistics** | | |
-| | Create detailed stats UI | AI | ⬜ |
-| | Implement data aggregation | AI | ⬜ |
-| E3.8 | **Smart Lock Settings** | | |
-| | Create settings UI | AI | ⬜ |
-| | Implement configuration logic | AI | ⬜ |
+| E3.5 | **Emergency Access** ✅ | | |
+| | Implement emergency mode | AI | ✅ |
+| | Add call/SMS functionality | AI | ✅ |
+| | Add time limit for emergency | AI | ✅ |
+| E3.7 | **Usage Statistics** ✅ | | |
+| | Create detailed stats UI | AI | ✅ |
+| | Implement data aggregation | AI | ✅ |
+| E3.8 | **Smart Lock Settings** ✅ | | |
+| | Create settings UI | AI | ✅ |
+| | Implement configuration logic | AI | ✅ |
 
 ### Technical Tasks
 
