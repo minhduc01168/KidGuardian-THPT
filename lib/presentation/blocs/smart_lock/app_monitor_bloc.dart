@@ -6,6 +6,7 @@ import 'package:kidguardian/domain/usecases/smart_lock/check_app_access_usecase.
 import 'package:kidguardian/domain/usecases/smart_lock/block_app_usecase.dart';
 import 'package:kidguardian/domain/entities/usage_log.dart';
 import 'package:kidguardian/domain/repositories/usage_repository.dart';
+import 'package:kidguardian/data/repositories/smart_lock_repository.dart';
 import 'package:intl/intl.dart';
 
 // Events
@@ -50,11 +51,29 @@ class AppMonitorInitial extends AppMonitorState {}
 class AppMonitorRunning extends AppMonitorState {}
 class AppBlockedState extends AppMonitorState {
   final String appPackageName;
+  final String appName;
+  final String? iconUrl;
+  final int limitMinutes;
+  final int usedMinutes;
+  final DateTime resetTime;
 
-  const AppBlockedState(this.appPackageName);
+  const AppBlockedState({
+    required this.appPackageName,
+    required this.appName,
+    this.iconUrl,
+    required this.limitMinutes,
+    required this.usedMinutes,
+    required this.resetTime,
+  });
 
   @override
-  List<Object> get props => [appPackageName];
+  List<Object> get props => [
+        appPackageName,
+        appName,
+        limitMinutes,
+        usedMinutes,
+        resetTime,
+      ];
 }
 
 // P9: App name mapping for common apps
@@ -72,6 +91,7 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
   final CheckAppAccessUseCase checkAppAccessUseCase;
   final BlockAppUseCase blockAppUseCase;
   final UsageRepository usageRepository;
+  final SmartLockRepository smartLockRepository;
 
   StreamSubscription? _accessibilitySubscription;
   // P2: Timer for continuous time checking
@@ -88,6 +108,7 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
     required this.checkAppAccessUseCase,
     required this.blockAppUseCase,
     required this.usageRepository,
+    required this.smartLockRepository,
   }) : super(AppMonitorInitial()) {
     on<StartMonitoring>(_onStartMonitoring);
     on<AppEventReceived>(_onAppEventReceived);
@@ -132,7 +153,8 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
         await blockAppUseCase.execute(appPackageName: _currentAppPackage!);
         // D1: Tell native to move task to back
         await AccessibilityChannel.moveTaskToBack();
-        emit(AppBlockedState(_currentAppPackage!));
+        final blockedState = await _buildBlockedState(_currentAppPackage!);
+        emit(blockedState);
       }
     } catch (_) {
       // Silently handle - will retry on next timer tick
@@ -147,7 +169,8 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
 
     if (type == 'app_blocked') {
       // D1: Re-show lock screen when user returns to app
-      emit(AppBlockedState(packageName));
+      final blockedState = await _buildBlockedState(packageName);
+      emit(blockedState);
       return;
     }
 
@@ -176,7 +199,8 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
               await blockAppUseCase.execute(appPackageName: packageName);
               // D1: Tell native to move task to back
               await AccessibilityChannel.moveTaskToBack();
-              emit(AppBlockedState(packageName));
+              final blockedState = await _buildBlockedState(packageName);
+              emit(blockedState);
             }
           } catch (_) {
             // If check fails, allow access (fail-open for UX)
@@ -190,6 +214,53 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
         }
       }
     }
+  }
+
+  Future<AppBlockedState> _buildBlockedState(String packageName) async {
+    final appName = _appNameMap[packageName] ?? packageName;
+    final now = DateTime.now();
+    final resetTime = DateTime(now.year, now.month, now.day + 1);
+
+    int limitMinutes = 0;
+    int usedMinutes = 0;
+
+    try {
+      if (_familyId != null && _childUid != null) {
+        final limits = await smartLockRepository.getAppTimeLimits(
+          _familyId!,
+          _childUid!,
+        );
+        for (final limit in limits) {
+          if (limit.appPackageName == packageName) {
+            final dayKeys = [
+              'monday', 'tuesday', 'wednesday', 'thursday',
+              'friday', 'saturday', 'sunday',
+            ];
+            final dayOfWeek = dayKeys[now.weekday - 1];
+            if (limit.limits.containsKey(dayOfWeek)) {
+              limitMinutes = limit.limits[dayOfWeek]!;
+            } else if (limit.limits.containsKey('everyday')) {
+              limitMinutes = limit.limits['everyday']!;
+            }
+            break;
+          }
+        }
+
+        final dateStr = DateFormat('yyyy-MM-dd').format(now);
+        final appUsages = await usageRepository.getUsageByApp(_childUid!, dateStr);
+        usedMinutes = appUsages[packageName] ?? 0;
+      }
+    } catch (_) {
+      // Use cached/default values on error
+    }
+
+    return AppBlockedState(
+      appPackageName: packageName,
+      appName: appName,
+      limitMinutes: limitMinutes,
+      usedMinutes: usedMinutes,
+      resetTime: resetTime,
+    );
   }
 
   void _logCurrentAppUsage() {

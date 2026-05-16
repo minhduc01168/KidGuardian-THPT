@@ -1,69 +1,256 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:kidguardian/presentation/widgets/smart_lock/app_icon_display.dart';
+import 'package:kidguardian/presentation/widgets/smart_lock/countdown_timer.dart';
+import 'package:kidguardian/presentation/widgets/smart_lock/request_time_dialog.dart';
+import 'package:kidguardian/presentation/widgets/smart_lock/emergency_contact_sheet.dart';
 
-class LockScreen extends StatelessWidget {
+class LockScreen extends StatefulWidget {
   final String appPackageName;
+  final String appName;
+  final String? iconUrl;
+  final int limitMinutes;
+  final int usedMinutes;
+  final DateTime resetTime;
 
-  const LockScreen({super.key, required this.appPackageName});
+  const LockScreen({
+    super.key,
+    required this.appPackageName,
+    required this.appName,
+    this.iconUrl,
+    required this.limitMinutes,
+    required this.usedMinutes,
+    required this.resetTime,
+  });
+
+  @override
+  State<LockScreen> createState() => _LockScreenState();
+}
+
+class _LockScreenState extends State<LockScreen> {
+  bool _isReset = false;
+
+  void _onReset() {
+    setState(() {
+      _isReset = true;
+    });
+  }
+
+  void _goHome() {
+    const MethodChannel('com.kidguardian/accessibility')
+        .invokeMethod('moveTaskToBack');
+  }
+
+  void _showRequestTimeDialog() {
+    showDialog(
+      context: context,
+      builder: (_) => RequestTimeDialog(
+        appPackageName: widget.appPackageName,
+        appName: widget.appName,
+      ),
+    );
+  }
+
+  void _showEmergencyContactSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => const EmergencyContactSheet(),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
       child: Scaffold(
-        backgroundColor: Colors.redAccent,
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.lock_clock,
-                  size: 100,
-                  color: Colors.white,
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Hết thời gian sử dụng',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Ứng dụng $appPackageName đã bị khóa do đạt đến giới hạn thời gian cài đặt.',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Colors.white70,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 48),
-                ElevatedButton(
-                  onPressed: () {
-                    // D1: Use native moveTaskToBack instead of SystemNavigator.pop
-                    const MethodChannel('com.kidguardian/accessibility')
-                        .invokeMethod('moveTaskToBack');
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.redAccent,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 32, vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFF6B7FE8),
+                Color(0xFF9B6BCC),
+              ],
+            ),
+          ),
+          child: SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                    child: IntrinsicHeight(
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 16),
+                          // App icon
+                          AppIconDisplay(
+                            iconUrl: widget.iconUrl,
+                            appName: widget.appName,
+                            size: 80,
+                          ),
+                          const SizedBox(height: 16),
+                          // App name
+                          Text(
+                            widget.appName,
+                            style: const TextStyle(
+                              fontSize: 26,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8),
+                          // Block reason
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Column(
+                              children: [
+                                const Text(
+                                  'Bạn đã sử dụng hết thời gian cho phép hôm nay',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    color: Colors.white,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  'Đã dùng: ${widget.usedMinutes}/${widget.limitMinutes} phút',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white.withValues(alpha: 0.9),
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          // Countdown timer
+                          CountdownTimer(
+                            resetTime: widget.resetTime,
+                            onReset: _onReset,
+                          ),
+                          const SizedBox(height: 24),
+                          // Action buttons
+                          if (_isReset) ...[
+                            // Show close button when reset
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                onPressed: _goHome,
+                                icon: const Icon(Icons.check_circle),
+                                label: const Text(
+                                  'Giới hạn đã được đặt lại - Về màn hình chính',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.green.shade400,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(30),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ] else ...[
+                            // Request more time button
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                onPressed: _showRequestTimeDialog,
+                                icon: const Icon(Icons.access_time),
+                                label: const Text(
+                                  'Xin thêm thời gian',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.white,
+                                  foregroundColor: const Color(0xFF6B7FE8),
+                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(30),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            // Emergency contact button
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton.icon(
+                                onPressed: _showEmergencyContactSheet,
+                                icon: const Icon(Icons.emergency),
+                                label: const Text(
+                                  'Liên hệ khẩn cấp',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: Colors.white,
+                                  side: const BorderSide(
+                                    color: Colors.white70,
+                                    width: 1.5,
+                                  ),
+                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(30),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            // Go home button
+                            SizedBox(
+                              width: double.infinity,
+                              child: TextButton.icon(
+                                onPressed: _goHome,
+                                icon: const Icon(Icons.home),
+                                label: const Text(
+                                  'Quay về màn hình chính',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: Colors.white70,
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                ),
+                              ),
+                            ),
+                          ],
+                          const Spacer(),
+                        ],
+                      ),
                     ),
                   ),
-                  child: const Text(
-                    'Quay về màn hình chính',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ],
+                );
+              },
             ),
           ),
         ),

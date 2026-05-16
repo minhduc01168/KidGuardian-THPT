@@ -104,6 +104,7 @@ class KidGuardianApp extends StatelessWidget {
               ),
               blockAppUseCase: BlockAppUseCase(),
               usageRepository: context.read<UsageRepository>(),
+              smartLockRepository: context.read<SmartLockRepository>(),
             ),
           ),
         ],
@@ -121,7 +122,14 @@ class KidGuardianApp extends StatelessWidget {
                 navigator.push(
                   MaterialPageRoute(
                     settings: const RouteSettings(name: 'lock_screen'),
-                    builder: (_) => LockScreen(appPackageName: state.appPackageName),
+                    builder: (_) => LockScreen(
+                      appPackageName: state.appPackageName,
+                      appName: state.appName,
+                      iconUrl: state.iconUrl,
+                      limitMinutes: state.limitMinutes,
+                      usedMinutes: state.usedMinutes,
+                      resetTime: state.resetTime,
+                    ),
                   ),
                 );
               }
