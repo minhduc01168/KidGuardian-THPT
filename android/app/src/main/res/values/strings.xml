@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="accessibility_service_description">KidGuardian needs accessibility access to monitor app usage time and block apps when the time limit is reached.</string>
+    <string name="google_app_id">1:542039480808:android:ce46722061709552d26c5d</string>
+    <string name="default_web_client_id"></string>
+    <string name="firebase_database_url"></string>
+    <string name="gcm_defaultSenderId">542039480808</string>
+    <string name="project_id">kidguardian-b54f7</string>
 </resources>

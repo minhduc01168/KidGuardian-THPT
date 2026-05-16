@@ -1,7 +1,7 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:kidguardian/platform/android/accessibility_channel.dart';
+import 'package:kidguardian/domain/usecases/smart_lock/emergency_access_manager.dart';
 import 'package:kidguardian/presentation/widgets/smart_lock/app_icon_display.dart';
 import 'package:kidguardian/presentation/widgets/smart_lock/countdown_timer.dart';
 import 'package:kidguardian/presentation/widgets/smart_lock/request_time_dialog.dart';
@@ -16,6 +16,7 @@ class LockScreen extends StatefulWidget {
   final DateTime resetTime;
   final String? familyId;
   final String? childUid;
+  final String? parentUid;
   final String? blockReason;
   final String? scheduleName;
 
@@ -29,6 +30,7 @@ class LockScreen extends StatefulWidget {
     required this.resetTime,
     this.familyId,
     this.childUid,
+    this.parentUid,
     this.blockReason,
     this.scheduleName,
   });
@@ -39,6 +41,31 @@ class LockScreen extends StatefulWidget {
 
 class _LockScreenState extends State<LockScreen> {
   bool _isReset = false;
+  final _emergencyManager = EmergencyAccessManager();
+  StreamSubscription<int>? _emergencySub;
+  StreamSubscription<EmergencyState>? _emergencyStateSub;
+  int _emergencyRemaining = 0;
+  bool _emergencyActive = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _emergencySub = _emergencyManager.remainingStream.listen((remaining) {
+      if (mounted) setState(() => _emergencyRemaining = remaining);
+    });
+    _emergencyStateSub = _emergencyManager.stateStream.listen((state) {
+      if (mounted) setState(() => _emergencyActive = state == EmergencyState.active);
+    });
+    _emergencyActive = _emergencyManager.isActive;
+    _emergencyRemaining = _emergencyManager.remainingSeconds;
+  }
+
+  @override
+  void dispose() {
+    _emergencySub?.cancel();
+    _emergencyStateSub?.cancel();
+    super.dispose();
+  }
 
   void _onReset() {
     setState(() {
@@ -51,6 +78,12 @@ class _LockScreenState extends State<LockScreen> {
     AccessibilityChannel.moveTaskToBack().catchError((e) {
       debugPrint('LockScreen._goHome error: $e');
     });
+  }
+
+  String _formatEmergencyTime(int seconds) {
+    final m = seconds ~/ 60;
+    final s = seconds % 60;
+    return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
   }
 
   void _showRequestTimeDialog() {
@@ -72,7 +105,12 @@ class _LockScreenState extends State<LockScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (_) => const EmergencyContactSheet(),
+      builder: (_) => EmergencyContactSheet(
+        familyId: widget.familyId,
+        childUid: widget.childUid,
+        parentUid: widget.parentUid,
+        appPackageName: widget.appPackageName,
+      ),
     );
   }
 
@@ -165,6 +203,33 @@ class _LockScreenState extends State<LockScreen> {
                             onReset: _onReset,
                           ),
                           const SizedBox(height: 24),
+                          // Emergency access banner
+                          if (_emergencyActive) ...[
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              decoration: BoxDecoration(
+                                color: Colors.orange.shade600,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.timer, color: Colors.white, size: 20),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Truy cập khẩn cấp: còn ${_formatEmergencyTime(_emergencyRemaining)}',
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                          ],
                           // Action buttons
                           if (_isReset) ...[
                             // Show close button when reset

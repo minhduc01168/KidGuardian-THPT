@@ -2,12 +2,23 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/app_time_limit_model.dart';
 import '../models/monitored_app_model.dart';
 import '../models/schedule_model.dart';
+import '../models/family_model.dart';
 
 class SmartLockRepository {
   final FirebaseFirestore _firestore;
 
   SmartLockRepository({FirebaseFirestore? firestore})
       : _firestore = firestore ?? FirebaseFirestore.instance;
+
+  Future<FamilyModel?> getFamily(String familyId) async {
+    try {
+      final doc = await _firestore.collection('families').doc(familyId).get();
+      if (!doc.exists) return null;
+      return FamilyModel.fromFirestore(doc);
+    } catch (e) {
+      return null;
+    }
+  }
 
   Future<List<AppTimeLimitModel>> getAppTimeLimits(
     String familyId,

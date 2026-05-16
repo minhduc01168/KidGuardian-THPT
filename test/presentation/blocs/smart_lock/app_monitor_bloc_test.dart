@@ -132,7 +132,7 @@ void main() {
       );
 
       expect(state1, equals(state2));
-      expect(state1.props.length, 10);
+      expect(state1.props.length, 11);
     });
 
     test('AppBlockedState equality with different usedMinutes', () {

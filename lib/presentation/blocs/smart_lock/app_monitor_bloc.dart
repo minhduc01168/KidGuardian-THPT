@@ -60,6 +60,7 @@ class AppBlockedState extends AppMonitorState {
   final DateTime resetTime;
   final String? familyId;
   final String? childUid;
+  final String? parentUid;
   final String? blockReason;
   final String? scheduleName;
 
@@ -72,6 +73,7 @@ class AppBlockedState extends AppMonitorState {
     required this.resetTime,
     this.familyId,
     this.childUid,
+    this.parentUid,
     this.blockReason,
     this.scheduleName,
   });
@@ -86,6 +88,7 @@ class AppBlockedState extends AppMonitorState {
         resetTime,
         familyId,
         childUid,
+        parentUid,
         blockReason,
         scheduleName,
       ];
@@ -327,9 +330,21 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
       resetTime: resetTime,
       familyId: _familyId,
       childUid: _childUid,
+      parentUid: await _getParentUid(),
       blockReason: blockReason,
       scheduleName: scheduleName,
     );
+  }
+
+  Future<String?> _getParentUid() async {
+    if (_familyId == null) return null;
+    try {
+      final family = await smartLockRepository.getFamily(_familyId!);
+      return family?.parentUid;
+    } catch (e) {
+      debugPrint('AppMonitorBloc._getParentUid error: $e');
+      return null;
+    }
   }
 
   void _logCurrentAppUsage() {

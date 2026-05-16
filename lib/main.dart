@@ -14,6 +14,7 @@ import 'domain/repositories/summary_repository.dart';
 import 'domain/repositories/usage_repository.dart';
 import 'domain/usecases/smart_lock/check_app_access_usecase.dart';
 import 'domain/usecases/smart_lock/block_app_usecase.dart';
+import 'domain/usecases/smart_lock/schedule_checker.dart';
 import 'presentation/features/auth/bloc/auth_bloc.dart';
 import 'presentation/features/auth/bloc/auth_state.dart';
 import 'presentation/features/auth/bloc/family_bloc.dart';
@@ -105,6 +106,7 @@ class KidGuardianApp extends StatelessWidget {
               blockAppUseCase: BlockAppUseCase(),
               usageRepository: context.read<UsageRepository>(),
               smartLockRepository: context.read<SmartLockRepository>(),
+              scheduleChecker: ScheduleChecker(),
             ),
           ),
         ],
@@ -131,6 +133,7 @@ class KidGuardianApp extends StatelessWidget {
                       resetTime: state.resetTime,
                       familyId: state.familyId,
                       childUid: state.childUid,
+                      parentUid: state.parentUid,
                     ),
                   ),
                 );
@@ -161,7 +164,10 @@ class KidGuardianApp extends StatelessWidget {
       return ParentDashboard();
     } else {
       if (user.familyId != null) {
-        context.read<AppMonitorBloc>().add(StartMonitoring(user.familyId!, user.uid));
+        // Use post-frame callback to avoid dispatching event during build
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          context.read<AppMonitorBloc>().add(StartMonitoring(user.familyId!, user.uid));
+        });
       }
       return ChildDashboard();
     }
