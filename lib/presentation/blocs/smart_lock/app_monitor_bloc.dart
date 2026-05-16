@@ -9,6 +9,7 @@ import 'package:kidguardian/domain/usecases/smart_lock/schedule_checker.dart';
 import 'package:kidguardian/domain/entities/usage_log.dart';
 import 'package:kidguardian/domain/repositories/usage_repository.dart';
 import 'package:kidguardian/data/repositories/smart_lock_repository.dart';
+import 'package:kidguardian/data/models/smart_lock_settings_model.dart';
 import 'package:intl/intl.dart';
 
 // Events
@@ -122,6 +123,7 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
   DateTime? _currentAppStartTime;
   // P11: Cache last known limits
   bool _isMonitoring = false;
+  SmartLockSettingsModel? _settings;
 
   AppMonitorBloc({
     required this.checkAppAccessUseCase,
@@ -140,6 +142,8 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
     _childUid = event.childUid;
     _isMonitoring = true;
 
+    _loadSettings();
+
     _accessibilitySubscription?.cancel();
     _accessibilitySubscription = AccessibilityChannel.accessibilityEvents.listen((data) {
       add(AppEventReceived(data));
@@ -156,9 +160,21 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
     emit(AppMonitorRunning());
   }
 
+  Future<void> _loadSettings() async {
+    if (_familyId == null || _childUid == null) return;
+    try {
+      _settings = await smartLockRepository.getSmartLockSettings(_familyId!, _childUid!);
+    } catch (e) {
+      debugPrint('AppMonitorBloc._loadSettings error: $e');
+    }
+  }
+
   // P2: Continuous time checking
   Future<void> _onCheckCurrentAppLimit(CheckCurrentAppLimit event, Emitter<AppMonitorState> emit) async {
     if (_currentAppPackage == null || _familyId == null || _childUid == null) return;
+
+    // Check if Smart Lock is enabled
+    if (_settings != null && !_settings!.isEnabled) return;
 
     try {
       // Check time limits
@@ -225,6 +241,9 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
 
         // Check if new app is allowed
         if (_familyId != null && _childUid != null) {
+          // Check if Smart Lock is enabled
+          if (_settings != null && !_settings!.isEnabled) return;
+
           try {
             // Check time limits
             final isAllowed = await checkAppAccessUseCase.execute(

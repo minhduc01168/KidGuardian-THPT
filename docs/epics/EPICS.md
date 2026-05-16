@@ -301,7 +301,7 @@
 
 **Goal:** Enable parents to set time limits and automatically block social media apps when limits are reached.
 
-**Status:** In Progress (4/8 stories completed: E3.1, E3.2, E3.3, E3.4)
+**Status:** In Progress (5/8 stories completed: E3.1, E3.2, E3.4, E3.6, E3.8)
 
 ### User Stories
 
@@ -438,14 +438,15 @@
 **So that** I can customize how the feature works.
 
 **Acceptance Criteria:**
-- [ ] Can enable/disable Smart Lock
-- [ ] Can set default time limits
-- [ ] Can configure notification preferences
-- [ ] Can view lock history
+- [x] Can enable/disable Smart Lock
+- [x] Can set default time limits
+- [x] Can configure notification preferences
+- [x] Can view lock history
 
 **Story Points:** 3  
 **Priority:** P1  
 **Sprint:** 6  
+**Status:** ✅ Done  
 
 ---
 

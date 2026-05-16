@@ -6,6 +6,8 @@ import 'package:kidguardian/data/repositories/smart_lock_repository.dart';
 import 'package:kidguardian/data/models/app_time_limit_model.dart';
 import 'package:kidguardian/data/models/monitored_app_model.dart';
 import 'package:kidguardian/data/models/schedule_model.dart';
+import 'package:kidguardian/data/models/smart_lock_settings_model.dart';
+import 'package:kidguardian/data/models/lock_history_entry_model.dart';
 import 'package:kidguardian/presentation/blocs/smart_lock/smart_lock_bloc.dart';
 import 'package:kidguardian/presentation/blocs/smart_lock/smart_lock_event.dart';
 import 'package:kidguardian/presentation/blocs/smart_lock/smart_lock_state.dart';
@@ -31,6 +33,7 @@ void main() {
       endMinute: 0,
       days: {},
     ));
+    registerFallbackValue(const SmartLockSettingsModel());
 
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
@@ -319,6 +322,119 @@ void main() {
       expect: () => [
         isA<SmartLockError>(),
         isA<SchedulesLoaded>(),
+      ],
+    );
+
+    // Smart Lock Settings tests
+
+    blocTest<SmartLockBloc, SmartLockState>(
+      'emits [SmartLockLoading, SmartLockSettingsLoaded] when LoadSmartLockSettings succeeds',
+      build: () {
+        when(() => mockRepository.getSmartLockSettings(familyId, childId))
+            .thenAnswer((_) async => const SmartLockSettingsModel(
+                  isEnabled: false,
+                  defaultTimeLimitMinutes: 90,
+                ));
+        return bloc;
+      },
+      act: (bloc) => bloc.add(const LoadSmartLockSettings(familyId, childId)),
+      expect: () => [
+        isA<SmartLockLoading>(),
+        isA<SmartLockSettingsLoaded>()
+            .having((s) => s.settings.isEnabled, 'isEnabled', false)
+            .having((s) => s.settings.defaultTimeLimitMinutes, 'defaultTimeLimit', 90),
+      ],
+    );
+
+    blocTest<SmartLockBloc, SmartLockState>(
+      'emits [SmartLockLoading, SmartLockSettingsLoaded] with defaults when settings null',
+      build: () {
+        when(() => mockRepository.getSmartLockSettings(familyId, childId))
+            .thenAnswer((_) async => null);
+        return bloc;
+      },
+      act: (bloc) => bloc.add(const LoadSmartLockSettings(familyId, childId)),
+      expect: () => [
+        isA<SmartLockLoading>(),
+        isA<SmartLockSettingsLoaded>()
+            .having((s) => s.settings.isEnabled, 'isEnabled', true)
+            .having((s) => s.settings.defaultTimeLimitMinutes, 'defaultTimeLimit', 60),
+      ],
+    );
+
+    blocTest<SmartLockBloc, SmartLockState>(
+      'emits [SmartLockActionSuccess, SmartLockSettingsLoaded] when SaveSmartLockSettings succeeds',
+      build: () {
+        when(() => mockRepository.saveSmartLockSettings(familyId, childId, any()))
+            .thenAnswer((_) async {});
+        return bloc;
+      },
+      act: (bloc) => bloc.add(const SaveSmartLockSettings(
+        familyId,
+        childId,
+        SmartLockSettingsModel(isEnabled: false),
+      )),
+      expect: () => [
+        isA<SmartLockActionSuccess>(),
+        isA<SmartLockSettingsLoaded>()
+            .having((s) => s.settings.isEnabled, 'isEnabled', false),
+      ],
+    );
+
+    blocTest<SmartLockBloc, SmartLockState>(
+      'emits [SmartLockError, SmartLockSettingsLoaded] when SaveSmartLockSettings fails',
+      build: () {
+        when(() => mockRepository.saveSmartLockSettings(familyId, childId, any()))
+            .thenThrow(Exception('Firestore error'));
+        return bloc;
+      },
+      act: (bloc) => bloc.add(const SaveSmartLockSettings(
+        familyId,
+        childId,
+        SmartLockSettingsModel(),
+      )),
+      expect: () => [
+        isA<SmartLockError>(),
+        isA<SmartLockSettingsLoaded>(),
+      ],
+    );
+
+    // Lock History tests
+
+    blocTest<SmartLockBloc, SmartLockState>(
+      'emits [SmartLockLoading, LockHistoryLoaded] when LoadLockHistory succeeds',
+      build: () {
+        when(() => mockRepository.getLockHistory(familyId, childId))
+            .thenAnswer((_) async => [
+                  LockHistoryEntryModel(
+                    id: 'entry1',
+                    appPackageName: 'com.tiktok',
+                    appName: 'TikTok',
+                    reason: 'time_limit',
+                    lockedAt: DateTime(2026, 5, 16, 10),
+                  ),
+                ]);
+        return bloc;
+      },
+      act: (bloc) => bloc.add(const LoadLockHistory(familyId, childId)),
+      expect: () => [
+        isA<SmartLockLoading>(),
+        isA<LockHistoryLoaded>()
+            .having((s) => s.history.length, 'history count', 1),
+      ],
+    );
+
+    blocTest<SmartLockBloc, SmartLockState>(
+      'emits [SmartLockError] when LoadLockHistory fails',
+      build: () {
+        when(() => mockRepository.getLockHistory(familyId, childId))
+            .thenThrow(Exception('Firestore error'));
+        return bloc;
+      },
+      act: (bloc) => bloc.add(const LoadLockHistory(familyId, childId)),
+      expect: () => [
+        isA<SmartLockLoading>(),
+        isA<SmartLockError>(),
       ],
     );
   });

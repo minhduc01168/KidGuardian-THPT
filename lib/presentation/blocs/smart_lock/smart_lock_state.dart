@@ -2,6 +2,8 @@ import 'package:equatable/equatable.dart';
 import 'package:kidguardian/data/models/app_time_limit_model.dart';
 import 'package:kidguardian/data/models/monitored_app_model.dart';
 import 'package:kidguardian/data/models/schedule_model.dart';
+import 'package:kidguardian/data/models/smart_lock_settings_model.dart';
+import 'package:kidguardian/data/models/lock_history_entry_model.dart';
 
 abstract class SmartLockState extends Equatable {
   const SmartLockState();
@@ -57,4 +59,22 @@ class SmartLockError extends SmartLockState {
 
   @override
   List<Object> get props => [message];
+}
+
+class SmartLockSettingsLoaded extends SmartLockState {
+  final SmartLockSettingsModel settings;
+
+  const SmartLockSettingsLoaded(this.settings);
+
+  @override
+  List<Object> get props => [settings];
+}
+
+class LockHistoryLoaded extends SmartLockState {
+  final List<LockHistoryEntryModel> history;
+
+  const LockHistoryLoaded(this.history);
+
+  @override
+  List<Object> get props => [history];
 }
