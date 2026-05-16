@@ -9,7 +9,7 @@ class LockScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: false, // Prevent back button
+      canPop: false,
       child: Scaffold(
         backgroundColor: Colors.redAccent,
         body: Center(
@@ -45,8 +45,9 @@ class LockScreen extends StatelessWidget {
                 const SizedBox(height: 48),
                 ElevatedButton(
                   onPressed: () {
-                    // Send to background / home screen
-                    SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+                    // D1: Use native moveTaskToBack instead of SystemNavigator.pop
+                    const MethodChannel('com.kidguardian/accessibility')
+                        .invokeMethod('moveTaskToBack');
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,

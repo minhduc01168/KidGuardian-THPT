@@ -34,6 +34,10 @@ class AppEventReceived extends AppMonitorEvent {
   List<Object> get props => [event];
 }
 
+class CheckCurrentAppLimit extends AppMonitorEvent {
+  const CheckCurrentAppLimit();
+}
+
 // States
 abstract class AppMonitorState extends Equatable {
   const AppMonitorState();
@@ -53,17 +57,32 @@ class AppBlockedState extends AppMonitorState {
   List<Object> get props => [appPackageName];
 }
 
+// P9: App name mapping for common apps
+const _appNameMap = {
+  'com.zhiliaoapp.musically': 'TikTok',
+  'com.facebook.katana': 'Facebook',
+  'com.google.android.youtube': 'YouTube',
+  'com.instagram.android': 'Instagram',
+  'com.zing.zalo': 'Zalo',
+  'com.roblox.client': 'Roblox',
+  'com.dts.freefireth': 'Free Fire',
+};
+
 class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
   final CheckAppAccessUseCase checkAppAccessUseCase;
   final BlockAppUseCase blockAppUseCase;
   final UsageRepository usageRepository;
 
   StreamSubscription? _accessibilitySubscription;
+  // P2: Timer for continuous time checking
+  Timer? _limitCheckTimer;
   String? _familyId;
   String? _childUid;
 
   String? _currentAppPackage;
   DateTime? _currentAppStartTime;
+  // P11: Cache last known limits
+  bool _isMonitoring = false;
 
   AppMonitorBloc({
     required this.checkAppAccessUseCase,
@@ -72,18 +91,52 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
   }) : super(AppMonitorInitial()) {
     on<StartMonitoring>(_onStartMonitoring);
     on<AppEventReceived>(_onAppEventReceived);
+    on<CheckCurrentAppLimit>(_onCheckCurrentAppLimit);
   }
 
   void _onStartMonitoring(StartMonitoring event, Emitter<AppMonitorState> emit) {
     _familyId = event.familyId;
     _childUid = event.childUid;
+    _isMonitoring = true;
 
     _accessibilitySubscription?.cancel();
     _accessibilitySubscription = AccessibilityChannel.accessibilityEvents.listen((data) {
       add(AppEventReceived(data));
     });
 
+    // P2: Start periodic limit check every 30 seconds
+    _limitCheckTimer?.cancel();
+    _limitCheckTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (_isMonitoring) {
+        add(const CheckCurrentAppLimit());
+      }
+    });
+
     emit(AppMonitorRunning());
+  }
+
+  // P2: Continuous time checking
+  Future<void> _onCheckCurrentAppLimit(CheckCurrentAppLimit event, Emitter<AppMonitorState> emit) async {
+    if (_currentAppPackage == null || _familyId == null || _childUid == null) return;
+
+    try {
+      final isAllowed = await checkAppAccessUseCase.execute(
+        familyId: _familyId!,
+        childUid: _childUid!,
+        appPackageName: _currentAppPackage!,
+      );
+
+      if (!isAllowed) {
+        // P5: Log usage before blocking
+        _logCurrentAppUsage();
+        await blockAppUseCase.execute(appPackageName: _currentAppPackage!);
+        // D1: Tell native to move task to back
+        await AccessibilityChannel.moveTaskToBack();
+        emit(AppBlockedState(_currentAppPackage!));
+      }
+    } catch (_) {
+      // Silently handle - will retry on next timer tick
+    }
   }
 
   Future<void> _onAppEventReceived(AppEventReceived event, Emitter<AppMonitorState> emit) async {
@@ -93,6 +146,7 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
     if (packageName == null) return;
 
     if (type == 'app_blocked') {
+      // D1: Re-show lock screen when user returns to app
       emit(AppBlockedState(packageName));
       return;
     }
@@ -109,15 +163,23 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
 
         // Check if new app is allowed
         if (_familyId != null && _childUid != null) {
-          final isAllowed = await checkAppAccessUseCase.execute(
-            familyId: _familyId!,
-            childUid: _childUid!,
-            appPackageName: packageName,
-          );
+          try {
+            final isAllowed = await checkAppAccessUseCase.execute(
+              familyId: _familyId!,
+              childUid: _childUid!,
+              appPackageName: packageName,
+            );
 
-          if (!isAllowed) {
-            await blockAppUseCase.execute(appPackageName: packageName);
-            emit(AppBlockedState(packageName));
+            if (!isAllowed) {
+              // P5: Log usage before blocking
+              _logCurrentAppUsage();
+              await blockAppUseCase.execute(appPackageName: packageName);
+              // D1: Tell native to move task to back
+              await AccessibilityChannel.moveTaskToBack();
+              emit(AppBlockedState(packageName));
+            }
+          } catch (_) {
+            // If check fails, allow access (fail-open for UX)
           }
         }
       } else if (eventType == 'closed') {
@@ -133,18 +195,19 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
   void _logCurrentAppUsage() {
     if (_currentAppPackage != null && _currentAppStartTime != null && _childUid != null && _familyId != null) {
       final now = DateTime.now();
-      final duration = now.difference(_currentAppStartTime!).inMinutes;
+      final durationSeconds = now.difference(_currentAppStartTime!).inSeconds;
+      final durationMinutes = (durationSeconds / 60).ceil();
 
-      if (duration >= 1) { // Only log if used for at least 1 minute
+      if (durationSeconds >= 30) {
         final log = UsageLog(
           docId: '',
           childUid: _childUid!,
           familyId: _familyId!,
           appPackage: _currentAppPackage!,
-          appName: _currentAppPackage!, // We might need to map package to name later
+          appName: _appNameMap[_currentAppPackage!] ?? _currentAppPackage!,
           startTime: _currentAppStartTime!,
           endTime: now,
-          durationMinutes: duration,
+          durationMinutes: durationMinutes,
           date: DateFormat('yyyy-MM-dd').format(now),
         );
         usageRepository.logUsage(log);
@@ -154,7 +217,9 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
 
   @override
   Future<void> close() {
+    _isMonitoring = false;
     _accessibilitySubscription?.cancel();
+    _limitCheckTimer?.cancel();
     _logCurrentAppUsage();
     return super.close();
   }

@@ -5,8 +5,6 @@ import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.Intent
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
-import android.content.Context
-import android.content.SharedPreferences
 
 class AppMonitorService : AccessibilityService() {
 
@@ -16,14 +14,34 @@ class AppMonitorService : AccessibilityService() {
         const val ACTION_APP_EVENT = "com.kidguardian.kidguardian.ACTION_APP_EVENT"
         const val EXTRA_PACKAGE_NAME = "package_name"
         const val EXTRA_EVENT_TYPE = "event_type"
-        
-        // This should be updated via MethodChannel from Flutter
+
         var blockedApps = mutableSetOf<String>()
         var appLimits = mutableMapOf<String, Int>()
+
+        private val SYSTEM_PACKAGES = setOf(
+            "com.android.systemui",
+            "com.google.android.googlequicksearchbox",
+            "com.android.launcher",
+            "com.android.launcher2",
+            "com.android.launcher3",
+            "com.google.android.apps.nexuslauncher",
+            "com.sec.android.app.launcher",
+            "com.huawei.android.launcher",
+            "com.miui.home",
+            "com.android.inputmethod.latin",
+            "com.google.android.inputmethod.latin",
+            "com.android.inputmethod.lazyswipe",
+        )
+
+        private fun isSystemPackage(packageName: String): Boolean {
+            if (SYSTEM_PACKAGES.contains(packageName)) return true
+            if (packageName.startsWith("com.android.") && !packageName.contains("kidguardian")) return true
+            if (packageName.startsWith("com.google.android.inputmethod")) return true
+            return false
+        }
     }
 
     private var currentPackageName: String? = null
-    private var lastEventTime: Long = 0
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -38,22 +56,19 @@ class AppMonitorService : AccessibilityService() {
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (event?.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
             val packageName = event.packageName?.toString() ?: return
-            
-            // Basic tracking logic - this can be enhanced
+
+            if (isSystemPackage(packageName)) return
+
             if (currentPackageName != packageName) {
-                // Notify closed for previous app
                 if (currentPackageName != null) {
                     sendAppEvent(currentPackageName!!, "closed")
                 }
 
                 currentPackageName = packageName
-                lastEventTime = System.currentTimeMillis()
                 Log.d(TAG, "Window State Changed: $packageName")
-                
-                // Notify opened for new app
+
                 sendAppEvent(packageName, "opened")
-                
-                // If this app is in the blocked list (managed by Flutter logic)
+
                 if (blockedApps.contains(packageName)) {
                     blockApp(packageName)
                 }
@@ -71,14 +86,8 @@ class AppMonitorService : AccessibilityService() {
 
     private fun blockApp(packageName: String) {
         Log.d(TAG, "Blocking app: $packageName")
-        // Go to home screen to effectively block the app
-        val homeIntent = Intent(Intent.ACTION_MAIN).apply {
-            addCategory(Intent.CATEGORY_HOME)
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK
-        }
-        startActivity(homeIntent)
-        
-        // Broadcast to MainActivity so Flutter can show Lock Screen
+        // D1 Approach 2: Use moveTaskToBack instead of Home Intent
+        // This keeps the task in recent apps so we can re-show lock screen on resume
         val broadcastIntent = Intent(ACTION_APP_BLOCKED).apply {
             putExtra(EXTRA_PACKAGE_NAME, packageName)
         }

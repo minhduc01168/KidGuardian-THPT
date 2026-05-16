@@ -108,13 +108,23 @@ class KidGuardianApp extends StatelessWidget {
           ),
         ],
         child: BlocListener<AppMonitorBloc, AppMonitorState>(
+          listenWhen: (previous, current) => current is AppBlockedState,
           listener: (context, state) {
             if (state is AppBlockedState) {
-              navigatorKey.currentState?.push(
-                MaterialPageRoute(
-                  builder: (_) => LockScreen(appPackageName: state.appPackageName),
-                ),
-              );
+              // D1: Push lock screen and ensure only one lock screen at a time
+              final navigator = navigatorKey.currentState;
+              if (navigator != null) {
+                // Pop any existing lock screens first
+                navigator.popUntil((route) {
+                  return route.settings.name != 'lock_screen';
+                });
+                navigator.push(
+                  MaterialPageRoute(
+                    settings: const RouteSettings(name: 'lock_screen'),
+                    builder: (_) => LockScreen(appPackageName: state.appPackageName),
+                  ),
+                );
+              }
             }
           },
           child: MaterialApp(
