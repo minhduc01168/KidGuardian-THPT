@@ -4,3 +4,20 @@ _bmad
 .agent
 .agents
 
+# Flutter/Dart
+.dart_tool/
+build/
+*.iml
+.idea/
+.metadata
+.flutter-plugins-dependencies
+ios/
+macos/
+linux/
+windows/
+web/
+android/.gradle/
+android/app/google-services.json
+android/local.properties
+android/key.properties
+
