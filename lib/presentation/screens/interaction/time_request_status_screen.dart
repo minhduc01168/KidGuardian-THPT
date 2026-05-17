@@ -18,7 +18,7 @@ class TimeRequestStatusScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => TimeRequestBloc(
-        repository: TimeRequestRepositoryImpl(),
+        repository: context.read<TimeRequestRepository>(),
       )..add(LoadTimeRequests(familyId: familyId, childUid: childUid)),
       child: Scaffold(
         appBar: AppBar(

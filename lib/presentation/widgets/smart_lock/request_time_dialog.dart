@@ -37,7 +37,7 @@ class _RequestTimeDialogState extends State<RequestTimeDialog> {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => TimeRequestBloc(
-        repository: TimeRequestRepositoryImpl(),
+        repository: context.read<TimeRequestRepository>(),
       ),
       child: BlocConsumer<TimeRequestBloc, TimeRequestState>(
         listener: (context, state) {
