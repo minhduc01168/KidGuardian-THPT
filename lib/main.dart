@@ -25,6 +25,7 @@ import 'presentation/features/dashboard/screens/child_dashboard.dart';
 import 'presentation/features/report/bloc/report_bloc.dart';
 import 'presentation/features/summary/bloc/summary_bloc.dart';
 import 'presentation/blocs/smart_lock/app_monitor_bloc.dart';
+import 'presentation/blocs/notification/notification_bloc.dart';
 import 'presentation/screens/smart_lock/lock_screen.dart';
 import 'data/repositories/smart_lock_repository.dart';
 import 'domain/repositories/alert_repository.dart';
@@ -114,6 +115,11 @@ class KidGuardianApp extends StatelessWidget {
               alertRepository: context.read<AlertRepository>(),
             ),
           ),
+          BlocProvider<NotificationBloc>(
+            create: (context) => NotificationBloc(
+              alertRepository: context.read<AlertRepository>(),
+            )..initializeNotifications(),
+          ),
         ],
         child: MultiBlocListener(
           listeners: [
@@ -183,10 +189,16 @@ class KidGuardianApp extends StatelessWidget {
 
   Widget _buildHomeForRole(User user, BuildContext context) {
     if (user.role == UserRole.parent) {
+      if (user.familyId != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          context.read<NotificationBloc>().add(
+            StartAlertListening(familyId: user.familyId!, childUid: user.uid),
+          );
+        });
+      }
       return ParentDashboard();
     } else {
       if (user.familyId != null) {
-        // Use post-frame callback to avoid dispatching event during build
         WidgetsBinding.instance.addPostFrameCallback((_) {
           context.read<AppMonitorBloc>().add(StartMonitoring(user.familyId!, user.uid));
         });
