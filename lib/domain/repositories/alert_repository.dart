@@ -14,7 +14,31 @@ abstract class AlertRepository {
     required String childUid,
   });
 
+  Stream<List<AlertModel>> watchAllAlerts({
+    required String familyId,
+    required String childUid,
+  });
+
+  Future<AlertModel?> getAlert({
+    required String familyId,
+    required String childUid,
+    required String alertId,
+  });
+
   Future<void> markAlertAsReviewed({
+    required String familyId,
+    required String childUid,
+    required String alertId,
+  });
+
+  Future<void> addNotesToAlert({
+    required String familyId,
+    required String childUid,
+    required String alertId,
+    required String notes,
+  });
+
+  Future<void> dismissAlert({
     required String familyId,
     required String childUid,
     required String alertId,
@@ -29,6 +53,8 @@ class AlertModel {
   final String textContext;
   final DateTime? timestamp;
   final bool isReviewed;
+  final bool isDismissed;
+  final String notes;
 
   AlertModel({
     required this.id,
@@ -38,6 +64,8 @@ class AlertModel {
     required this.textContext,
     this.timestamp,
     required this.isReviewed,
+    this.isDismissed = false,
+    this.notes = '',
   });
 
   factory AlertModel.fromFirestore(DocumentSnapshot doc) {
@@ -50,6 +78,8 @@ class AlertModel {
       textContext: data['textContext'] ?? '',
       timestamp: (data['timestamp'] as Timestamp?)?.toDate(),
       isReviewed: data['isReviewed'] ?? false,
+      isDismissed: data['isDismissed'] ?? false,
+      notes: data['notes'] ?? '',
     );
   }
 }
@@ -82,6 +112,8 @@ class AlertRepositoryImpl implements AlertRepository {
         'textContext': textContext,
         'timestamp': FieldValue.serverTimestamp(),
         'isReviewed': false,
+        'isDismissed': false,
+        'notes': '',
       });
     } catch (e) {
       throw Exception('Failed to create keyword alert: $e');
@@ -100,11 +132,54 @@ class AlertRepositoryImpl implements AlertRepository {
         .doc(childUid)
         .collection('alerts')
         .where('isReviewed', isEqualTo: false)
+        .where('isDismissed', isEqualTo: false)
         .orderBy('timestamp', descending: true)
         .snapshots()
         .map((snapshot) {
       return snapshot.docs.map((doc) => AlertModel.fromFirestore(doc)).toList();
     });
+  }
+
+  @override
+  Stream<List<AlertModel>> watchAllAlerts({
+    required String familyId,
+    required String childUid,
+  }) {
+    return _firestore
+        .collection('families')
+        .doc(familyId)
+        .collection('children')
+        .doc(childUid)
+        .collection('alerts')
+        .orderBy('timestamp', descending: true)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) => AlertModel.fromFirestore(doc)).toList();
+    });
+  }
+
+  @override
+  Future<AlertModel?> getAlert({
+    required String familyId,
+    required String childUid,
+    required String alertId,
+  }) async {
+    try {
+      final doc = await _firestore
+          .collection('families')
+          .doc(familyId)
+          .collection('children')
+          .doc(childUid)
+          .collection('alerts')
+          .doc(alertId)
+          .get();
+      if (doc.exists) {
+        return AlertModel.fromFirestore(doc);
+      }
+      return null;
+    } catch (e) {
+      throw Exception('Failed to get alert: $e');
+    }
   }
 
   @override
@@ -124,6 +199,47 @@ class AlertRepositoryImpl implements AlertRepository {
           .update({'isReviewed': true});
     } catch (e) {
       throw Exception('Failed to mark alert as reviewed: $e');
+    }
+  }
+
+  @override
+  Future<void> addNotesToAlert({
+    required String familyId,
+    required String childUid,
+    required String alertId,
+    required String notes,
+  }) async {
+    try {
+      await _firestore
+          .collection('families')
+          .doc(familyId)
+          .collection('children')
+          .doc(childUid)
+          .collection('alerts')
+          .doc(alertId)
+          .update({'notes': notes});
+    } catch (e) {
+      throw Exception('Failed to add notes to alert: $e');
+    }
+  }
+
+  @override
+  Future<void> dismissAlert({
+    required String familyId,
+    required String childUid,
+    required String alertId,
+  }) async {
+    try {
+      await _firestore
+          .collection('families')
+          .doc(familyId)
+          .collection('children')
+          .doc(childUid)
+          .collection('alerts')
+          .doc(alertId)
+          .update({'isDismissed': true, 'isReviewed': true});
+    } catch (e) {
+      throw Exception('Failed to dismiss alert: $e');
     }
   }
 }
