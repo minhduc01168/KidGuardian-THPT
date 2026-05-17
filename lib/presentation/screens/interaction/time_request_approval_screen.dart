@@ -13,7 +13,7 @@ class TimeRequestApprovalScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => TimeRequestBloc(
-        repository: TimeRequestRepositoryImpl(),
+        repository: context.read<TimeRequestRepository>(),
       )..add(LoadPendingRequests(familyId)),
       child: Scaffold(
         appBar: AppBar(
@@ -268,11 +268,12 @@ class _RequestCard extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () {
-              context.read<TimeRequestBloc>().add(ApproveTimeRequest(
+              final bloc = context.read<TimeRequestBloc>();
+              bloc.add(ApproveTimeRequest(
                 familyId: familyId,
                 childUid: request.childUid,
                 requestId: request.id,
-                response: responseController.text.trim(),
+                response: responseController.text.trim().isEmpty ? null : responseController.text.trim(),
               ));
               Navigator.pop(ctx);
             },
@@ -284,7 +285,7 @@ class _RequestCard extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ).whenComplete(() => responseController.dispose());
   }
 
   void _showRejectDialog(BuildContext context) {
@@ -316,11 +317,12 @@ class _RequestCard extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () {
-              context.read<TimeRequestBloc>().add(RejectTimeRequest(
+              final bloc = context.read<TimeRequestBloc>();
+              bloc.add(RejectTimeRequest(
                 familyId: familyId,
                 childUid: request.childUid,
                 requestId: request.id,
-                response: responseController.text.trim(),
+                response: responseController.text.trim().isEmpty ? null : responseController.text.trim(),
               ));
               Navigator.pop(ctx);
             },
@@ -332,6 +334,6 @@ class _RequestCard extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ).whenComplete(() => responseController.dispose());
   }
 }

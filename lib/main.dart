@@ -29,6 +29,7 @@ import 'presentation/blocs/notification/notification_bloc.dart';
 import 'presentation/screens/smart_lock/lock_screen.dart';
 import 'data/repositories/smart_lock_repository.dart';
 import 'domain/repositories/alert_repository.dart';
+import 'domain/repositories/time_request_repository.dart';
 import 'domain/entities/user.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -70,6 +71,9 @@ class KidGuardianApp extends StatelessWidget {
         ),
         RepositoryProvider<AlertRepository>(
           create: (_) => AlertRepositoryImpl(),
+        ),
+        RepositoryProvider<TimeRequestRepository>(
+          create: (_) => TimeRequestRepositoryImpl(),
         ),
       ],
       child: MultiBlocProvider(
@@ -192,7 +196,7 @@ class KidGuardianApp extends StatelessWidget {
       if (user.familyId != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           context.read<NotificationBloc>().add(
-            StartAlertListening(familyId: user.familyId!, childUid: user.uid),
+            StartAlertListening(familyId: user.familyId!),
           );
         });
       }

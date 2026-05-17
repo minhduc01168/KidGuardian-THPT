@@ -19,6 +19,10 @@ abstract class AlertRepository {
     required String childUid,
   });
 
+  Stream<List<AlertModel>> watchAllFamilyAlerts({
+    required String familyId,
+  });
+
   Future<AlertModel?> getAlert({
     required String familyId,
     required String childUid,
@@ -155,6 +159,21 @@ class AlertRepositoryImpl implements AlertRepository {
         .snapshots()
         .map((snapshot) {
       return snapshot.docs.map((doc) => AlertModel.fromFirestore(doc)).toList();
+    });
+  }
+
+  @override
+  Stream<List<AlertModel>> watchAllFamilyAlerts({required String familyId}) {
+    return _firestore
+        .collectionGroup('alerts')
+        .where('type', isEqualTo: 'keyword_detected')
+        .orderBy('timestamp', descending: true)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs
+          .where((doc) => doc.reference.path.contains('families/$familyId/'))
+          .map((doc) => AlertModel.fromFirestore(doc))
+          .toList();
     });
   }
 

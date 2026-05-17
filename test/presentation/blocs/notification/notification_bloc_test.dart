@@ -62,24 +62,22 @@ void main() {
     });
 
     test('StartAlertListening emits NotificationListening state', () async {
-      when(() => mockAlertRepository.watchNewAlerts(
+      when(() => mockAlertRepository.watchAllFamilyAlerts(
             familyId: any(named: 'familyId'),
-            childUid: any(named: 'childUid'),
           )).thenAnswer((_) => Stream.value([]));
 
-      bloc.add(const StartAlertListening(familyId: 'family1', childUid: 'child1'));
+      bloc.add(const StartAlertListening(familyId: 'family1'));
       await Future.delayed(const Duration(milliseconds: 100));
 
       expect(bloc.state, isA<NotificationListening>());
     });
 
     test('StopAlertListening emits NotificationInitial state', () async {
-      when(() => mockAlertRepository.watchNewAlerts(
+      when(() => mockAlertRepository.watchAllFamilyAlerts(
             familyId: any(named: 'familyId'),
-            childUid: any(named: 'childUid'),
           )).thenAnswer((_) => Stream.value([]));
 
-      bloc.add(const StartAlertListening(familyId: 'family1', childUid: 'child1'));
+      bloc.add(const StartAlertListening(familyId: 'family1'));
       await Future.delayed(const Duration(milliseconds: 100));
 
       bloc.add(StopAlertListening());
@@ -89,9 +87,8 @@ void main() {
     });
 
     test('MarkAlertReviewed calls repository and updates state', () async {
-      when(() => mockAlertRepository.watchNewAlerts(
+      when(() => mockAlertRepository.watchAllFamilyAlerts(
             familyId: any(named: 'familyId'),
-            childUid: any(named: 'childUid'),
           )).thenAnswer((_) => Stream.value([]));
       when(() => mockAlertRepository.markAlertAsReviewed(
             familyId: any(named: 'familyId'),
@@ -99,7 +96,7 @@ void main() {
             alertId: any(named: 'alertId'),
           )).thenAnswer((_) async {});
 
-      bloc.add(const StartAlertListening(familyId: 'family1', childUid: 'child1'));
+      bloc.add(const StartAlertListening(familyId: 'family1'));
       await Future.delayed(const Duration(milliseconds: 100));
 
       bloc.add(const MarkAlertReviewed(

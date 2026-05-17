@@ -116,7 +116,7 @@ class AlertHistoryBloc extends Bloc<AlertHistoryEvent, AlertHistoryState> {
 
     _alertSubscription?.cancel();
     _alertSubscription = alertRepository
-        .watchNewAlerts(familyId: event.familyId, childUid: event.childUid)
+        .watchAllAlerts(familyId: event.familyId, childUid: event.childUid)
         .listen(
       (alerts) {
         add(_AlertsUpdated(alerts));
@@ -170,7 +170,7 @@ class AlertHistoryBloc extends Bloc<AlertHistoryEvent, AlertHistoryState> {
     if (_startDate != null) {
       filtered = filtered.where((a) {
         if (a.timestamp == null) return false;
-        return a.timestamp!.isAfter(_startDate!);
+        return !a.timestamp!.isBefore(_startDate!);
       }).toList();
     }
     if (_endDate != null) {

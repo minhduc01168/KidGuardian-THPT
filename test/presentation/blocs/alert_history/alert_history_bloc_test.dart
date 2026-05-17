@@ -24,7 +24,7 @@ void main() {
     });
 
     test('LoadAlerts starts listening and emits AlertHistoryLoaded', () async {
-      when(() => mockAlertRepository.watchNewAlerts(
+      when(() => mockAlertRepository.watchAllAlerts(
             familyId: any(named: 'familyId'),
             childUid: any(named: 'childUid'),
           )).thenAnswer((_) => Stream.value([]));
@@ -52,7 +52,7 @@ void main() {
         ),
       ];
 
-      when(() => mockAlertRepository.watchNewAlerts(
+      when(() => mockAlertRepository.watchAllAlerts(
             familyId: any(named: 'familyId'),
             childUid: any(named: 'childUid'),
           )).thenAnswer((_) => Stream.value(alerts));
@@ -82,7 +82,7 @@ void main() {
         ),
       ];
 
-      when(() => mockAlertRepository.watchNewAlerts(
+      when(() => mockAlertRepository.watchAllAlerts(
             familyId: any(named: 'familyId'),
             childUid: any(named: 'childUid'),
           )).thenAnswer((_) => Stream.value(alerts));
@@ -99,7 +99,7 @@ void main() {
     });
 
     test('MarkAlertReviewed calls repository', () async {
-      when(() => mockAlertRepository.watchNewAlerts(
+      when(() => mockAlertRepository.watchAllAlerts(
             familyId: any(named: 'familyId'),
             childUid: any(named: 'childUid'),
           )).thenAnswer((_) => Stream.value([]));

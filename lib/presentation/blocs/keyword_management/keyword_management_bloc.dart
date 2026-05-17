@@ -119,9 +119,15 @@ class KeywordManagementBloc extends Bloc<KeywordManagementEvent, KeywordManageme
     final updatedKeywords = List<String>.from(currentState.keywords);
     if (!updatedKeywords.contains(event.keyword.trim())) {
       updatedKeywords.add(event.keyword.trim());
-      await _saveKeywords(event.familyId, updatedKeywords);
-      await _syncToNative(updatedKeywords);
-      emit(KeywordManagementLoaded(updatedKeywords));
+      try {
+        await _saveKeywords(event.familyId, updatedKeywords);
+        await _syncToNative(updatedKeywords);
+        emit(KeywordManagementLoaded(updatedKeywords));
+      } catch (e) {
+        debugPrint('Error adding keyword: $e');
+        emit(KeywordManagementError('Failed to add keyword'));
+        emit(currentState);
+      }
     }
   }
 
@@ -131,28 +137,35 @@ class KeywordManagementBloc extends Bloc<KeywordManagementEvent, KeywordManageme
 
     final updatedKeywords = List<String>.from(currentState.keywords);
     updatedKeywords.remove(event.keyword);
-    await _saveKeywords(event.familyId, updatedKeywords);
-    await _syncToNative(updatedKeywords);
-    emit(KeywordManagementLoaded(updatedKeywords));
+    try {
+      await _saveKeywords(event.familyId, updatedKeywords);
+      await _syncToNative(updatedKeywords);
+      emit(KeywordManagementLoaded(updatedKeywords));
+    } catch (e) {
+      debugPrint('Error removing keyword: $e');
+      emit(KeywordManagementError('Failed to remove keyword'));
+      emit(currentState);
+    }
   }
 
   Future<void> _onResetToDefaults(ResetToDefaults event, Emitter<KeywordManagementState> emit) async {
     final keywords = List<String>.from(_defaultKeywords);
-    await _saveKeywords(event.familyId, keywords);
-    await _syncToNative(keywords);
-    emit(KeywordManagementLoaded(keywords));
+    try {
+      await _saveKeywords(event.familyId, keywords);
+      await _syncToNative(keywords);
+      emit(KeywordManagementLoaded(keywords));
+    } catch (e) {
+      debugPrint('Error resetting keywords: $e');
+      emit(KeywordManagementError('Failed to reset keywords'));
+    }
   }
 
   Future<void> _saveKeywords(String familyId, List<String> keywords) async {
-    try {
-      await _firestore
-          .collection('families')
-          .doc(familyId)
-          .collection('settings')
-          .doc('keywords')
-          .set({'keywords': keywords}, SetOptions(merge: true));
-    } catch (e) {
-      debugPrint('Error saving keywords: $e');
-    }
+    await _firestore
+        .collection('families')
+        .doc(familyId)
+        .collection('settings')
+        .doc('keywords')
+        .set({'keywords': keywords}, SetOptions(merge: true));
   }
 }

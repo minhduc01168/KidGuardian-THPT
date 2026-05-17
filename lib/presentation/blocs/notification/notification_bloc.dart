@@ -14,10 +14,9 @@ abstract class NotificationEvent extends Equatable {
 
 class StartAlertListening extends NotificationEvent {
   final String familyId;
-  final String childUid;
-  const StartAlertListening({required this.familyId, required this.childUid});
+  const StartAlertListening({required this.familyId});
   @override
-  List<Object?> get props => [familyId, childUid];
+  List<Object?> get props => [familyId];
 }
 
 class StopAlertListening extends NotificationEvent {}
@@ -104,14 +103,16 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
 
   void _onStartListening(StartAlertListening event, Emitter<NotificationState> emit) {
     _familyId = event.familyId;
-    _childUid = event.childUid;
+    _childUid = null;
     _notifiedAlertIds = {};
 
     _alertSubscription?.cancel();
     _alertSubscription = alertRepository
-        .watchNewAlerts(familyId: event.familyId, childUid: event.childUid)
+        .watchAllFamilyAlerts(familyId: event.familyId)
         .listen(
       (alerts) {
+        final currentIds = alerts.map((a) => a.id).toSet();
+        _notifiedAlertIds.removeWhere((id) => !currentIds.contains(id));
         for (final alert in alerts) {
           if (!_notifiedAlertIds.contains(alert.id)) {
             _notifiedAlertIds.add(alert.id);
