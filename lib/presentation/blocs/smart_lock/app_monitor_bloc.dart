@@ -8,6 +8,7 @@ import 'package:kidguardian/domain/usecases/smart_lock/block_app_usecase.dart';
 import 'package:kidguardian/domain/usecases/smart_lock/schedule_checker.dart';
 import 'package:kidguardian/domain/entities/usage_log.dart';
 import 'package:kidguardian/domain/repositories/usage_repository.dart';
+import 'package:kidguardian/domain/repositories/alert_repository.dart';
 import 'package:kidguardian/data/repositories/smart_lock_repository.dart';
 import 'package:kidguardian/data/models/smart_lock_settings_model.dart';
 import 'package:intl/intl.dart';
@@ -38,6 +39,21 @@ class AppEventReceived extends AppMonitorEvent {
   List<Object> get props => [event];
 }
 
+class KeywordDetectedEvent extends AppMonitorEvent {
+  final String keyword;
+  final String packageName;
+  final String textContext;
+
+  const KeywordDetectedEvent({
+    required this.keyword,
+    required this.packageName,
+    required this.textContext,
+  });
+
+  @override
+  List<Object> get props => [keyword, packageName, textContext];
+}
+
 class CheckCurrentAppLimit extends AppMonitorEvent {
   const CheckCurrentAppLimit();
 }
@@ -52,6 +68,20 @@ abstract class AppMonitorState extends Equatable {
 
 class AppMonitorInitial extends AppMonitorState {}
 class AppMonitorRunning extends AppMonitorState {}
+class KeywordAlertEmitted extends AppMonitorState {
+  final String keyword;
+  final String packageName;
+  final String textContext;
+
+  const KeywordAlertEmitted({
+    required this.keyword,
+    required this.packageName,
+    required this.textContext,
+  });
+
+  @override
+  List<Object?> get props => [keyword, packageName, textContext];
+}
 class AppBlockedState extends AppMonitorState {
   final String appPackageName;
   final String appName;
@@ -112,6 +142,7 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
   final UsageRepository usageRepository;
   final SmartLockRepository smartLockRepository;
   final ScheduleChecker scheduleChecker;
+  final AlertRepository alertRepository;
 
   StreamSubscription? _accessibilitySubscription;
   // P2: Timer for continuous time checking
@@ -131,9 +162,11 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
     required this.usageRepository,
     required this.smartLockRepository,
     required this.scheduleChecker,
+    required this.alertRepository,
   }) : super(AppMonitorInitial()) {
     on<StartMonitoring>(_onStartMonitoring);
     on<AppEventReceived>(_onAppEventReceived);
+    on<KeywordDetectedEvent>(_onKeywordDetected);
     on<CheckCurrentAppLimit>(_onCheckCurrentAppLimit);
   }
 
@@ -146,7 +179,15 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
 
     _accessibilitySubscription?.cancel();
     _accessibilitySubscription = AccessibilityChannel.accessibilityEvents.listen((data) {
-      add(AppEventReceived(data));
+      if (data['type'] == 'keyword_detected') {
+        add(KeywordDetectedEvent(
+          keyword: data['keyword'] as String? ?? '',
+          packageName: data['packageName'] as String? ?? '',
+          textContext: data['textContext'] as String? ?? '',
+        ));
+      } else {
+        add(AppEventReceived(data));
+      }
     });
 
     // P2: Start periodic limit check every 30 seconds
@@ -291,6 +332,29 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
           _currentAppStartTime = null;
         }
       }
+    }
+  }
+
+  Future<void> _onKeywordDetected(KeywordDetectedEvent event, Emitter<AppMonitorState> emit) async {
+    if (_familyId == null || _childUid == null) return;
+    if (event.keyword.isEmpty || event.packageName.isEmpty) return;
+    
+    try {
+      await alertRepository.createKeywordAlert(
+        familyId: _familyId!,
+        childUid: _childUid!,
+        keyword: event.keyword,
+        packageName: event.packageName,
+        textContext: event.textContext,
+      );
+      debugPrint('Keyword alert saved: ${event.keyword} in ${event.packageName}');
+      emit(KeywordAlertEmitted(
+        keyword: event.keyword,
+        packageName: event.packageName,
+        textContext: event.textContext,
+      ));
+    } catch (e) {
+      debugPrint('Error saving keyword alert: $e');
     }
   }
 

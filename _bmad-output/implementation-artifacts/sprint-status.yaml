@@ -7,4 +7,5 @@ development_status:
   3-5-emergency-access: done
   3-7-usage-statistics: done
   3-8-smart-lock-settings: done
-last_updated: '2026-05-16'
+  4-1-keyword-detection: review
+last_updated: '2026-05-17'

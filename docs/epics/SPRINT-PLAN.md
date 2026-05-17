@@ -20,16 +20,16 @@
 
 ## Sprint Summary
 
-| Sprint | Dates | Focus | Stories | Points |
-|--------|-------|-------|---------|--------|
-| Sprint 1 | Week 1 | Project Setup & Parent Auth | E1.1, E1.2, E1.3 | 10 |
-| Sprint 2 | Week 2 | Child Auth & Basic Features | E1.4, E1.5, E1.6, E1.7 | 9 |
-| Sprint 3 | Week 3 | Parent Dashboard | E2.1, E2.2 | 10 |
-| Sprint 4 | Week 4 | Child Dashboard & Monitoring | E2.3, E2.4, E2.5 | 9 |
-| Sprint 5 | Week 5 | Smart Lock Core | E3.1, E3.2, E3.6 | 16 |
-| Sprint 6 | Week 6 | Smart Lock Advanced | E3.3, E3.4, E3.5, E3.7, E3.8 | 21 |
-| Sprint 7 | Week 7 | Alerts & Interaction | E4.1-E4.5, E5.1-E5.3 | 32 |
-| Sprint 8 | Week 8 | Polish & Extras | E1.8, E2.6, E5.4-E5.6, E6.1-E6.4, E7.1-E7.3 | 43 |
+| Sprint | Dates | Focus | Status | Stories | Points |
+|--------|-------|-------|--------|---------|--------|
+| Sprint 1 | Week 1 | Project Setup & Parent Auth | ✅ Done | E1.1, E1.2, E1.3 | 10 |
+| Sprint 2 | Week 2 | Child Auth & Basic Features | ✅ Done | E1.4, E1.5, E1.6, E1.7 | 9 |
+| Sprint 3 | Week 3 | Parent Dashboard | ✅ Done | E2.1, E2.2 | 10 |
+| Sprint 4 | Week 4 | Child Dashboard & Monitoring | ✅ Done | E2.3, E2.4, E2.5 | 9 |
+| Sprint 5 | Week 5 | Smart Lock Core | ✅ Done | E3.1, E3.2, E3.6 | 16 |
+| Sprint 6 | Week 6 | Smart Lock Advanced | ✅ Done | E3.3, E3.4, E3.5, E3.7, E3.8 | 21 |
+| Sprint 7 | Week 7 | Alerts & Interaction | 🏃 In Progress | E4.1-E4.5, E5.1-E5.3 | 32 |
+| Sprint 8 | Week 8 | Polish & Extras | ⏳ To Do | E1.8, E2.6, E5.4-E5.6, E6.1-E6.4, E7.1-E7.3 | 43 |
 
 ---
 
@@ -43,42 +43,42 @@
 | Story | Task | Assignee | Status |
 |-------|------|----------|--------|
 | | **Project Setup** | | |
-| | Create Flutter project | AI | ⬜ |
-| | Configure Firebase (Android) | AI | ⬜ |
-| | Setup folder structure | AI | ⬜ |
-| | Configure dependencies | AI | ⬜ |
+| | Create Flutter project | AI | ✅ |
+| | Configure Firebase (Android) | AI | ✅ |
+| | Setup folder structure | AI | ✅ |
+| | Configure dependencies | AI | ✅ |
 | E1.1 | **Parent Registration** | | |
-| | Create registration UI | AI | ⬜ |
-| | Implement Firebase Auth | AI | ⬜ |
-| | Create user model | AI | ⬜ |
-| | Implement validation | AI | ⬜ |
+| | Create registration UI | AI | ✅ |
+| | Implement Firebase Auth | AI | ✅ |
+| | Create user model | AI | ✅ |
+| | Implement validation | AI | ✅ |
 | E1.2 | **Parent Login** | | |
-| | Create login UI | AI | ⬜ |
-| | Implement login logic | AI | ⬜ |
-| | Handle errors | AI | ⬜ |
+| | Create login UI | AI | ✅ |
+| | Implement login logic | AI | ✅ |
+| | Handle errors | AI | ✅ |
 | E1.3 | **Create Child Account** | | |
-| | Create child setup UI | AI | ⬜ |
-| | Implement linking code generation | AI | ⬜ |
-| | Create child account in Firestore | AI | ⬜ |
+| | Create child setup UI | AI | ✅ |
+| | Implement linking code generation | AI | ✅ |
+| | Create child account in Firestore | AI | ✅ |
 
 ### Technical Tasks
 
-- [ ] Initialize Flutter project
-- [ ] Add Firebase dependencies
-- [ ] Configure Firebase for Android
-- [ ] Setup BLoC architecture
-- [ ] Create base models
-- [ ] Implement Firebase Auth service
-- [ ] Create navigation structure
+- [x] Initialize Flutter project
+- [x] Add Firebase dependencies
+- [x] Configure Firebase for Android
+- [x] Setup BLoC architecture
+- [x] Create base models
+- [x] Implement Firebase Auth service
+- [x] Create navigation structure
 
 ### Definition of Done
 
-- [ ] Flutter project builds successfully
-- [ ] Firebase connected and working
-- [ ] Parent can register with email/password
-- [ ] Parent can login
-- [ ] Child account can be created
-- [ ] Unit tests pass
+- [x] Flutter project builds successfully
+- [x] Firebase connected and working
+- [x] Parent can register with email/password
+- [x] Parent can login
+- [x] Child account can be created
+- [x] Unit tests pass
 
 ### Risks & Mitigations
 
@@ -99,35 +99,35 @@
 | Story | Task | Assignee | Status |
 |-------|------|----------|--------|
 | E1.4 | **Child Account Setup** | | |
-| | Create linking code input UI | AI | ⬜ |
-| | Implement code validation | AI | ⬜ |
-| | Link child to family | AI | ⬜ |
+| | Create linking code input UI | AI | ✅ |
+| | Implement code validation | AI | ✅ |
+| | Link child to family | AI | ✅ |
 | E1.5 | **Child Login** | | |
-| | Implement child login flow | AI | ⬜ |
-| | Create child home screen | AI | ⬜ |
+| | Implement child login flow | AI | ✅ |
+| | Create child home screen | AI | ✅ |
 | E1.6 | **Logout** | | |
-| | Implement logout functionality | AI | ⬜ |
-| | Clear local data on logout | AI | ⬜ |
+| | Implement logout functionality | AI | ✅ |
+| | Clear local data on logout | AI | ✅ |
 | E1.7 | **Password Reset** | | |
-| | Add forgot password flow | AI | ⬜ |
-| | Implement Firebase password reset | AI | ⬜ |
+| | Add forgot password flow | AI | ✅ |
+| | Implement Firebase password reset | AI | ✅ |
 
 ### Technical Tasks
 
-- [ ] Implement child authentication flow
-- [ ] Create role-based navigation
-- [ ] Setup local storage (Hive)
-- [ ] Implement linking code system
-- [ ] Create basic UI components
-- [ ] Add form validation
+- [x] Implement child authentication flow
+- [x] Create role-based navigation
+- [x] Setup local storage (Hive)
+- [x] Implement linking code system
+- [x] Create basic UI components
+- [x] Add form validation
 
 ### Definition of Done
 
-- [ ] Child can setup account with linking code
-- [ ] Child can login
-- [ ] Logout works correctly
-- [ ] Password reset works
-- [ ] Role-based navigation works
+- [x] Child can setup account with linking code
+- [x] Child can login
+- [x] Logout works correctly
+- [x] Password reset works
+- [x] Role-based navigation works
 
 ---
 
@@ -141,30 +141,30 @@
 | Story | Task | Assignee | Status |
 |-------|------|----------|--------|
 | E2.1 | **Parent Dashboard Overview** | | |
-| | Create dashboard UI | AI | ⬜ |
-| | Implement usage data fetching | AI | ⬜ |
-| | Create summary cards | AI | ⬜ |
-| | Add real-time updates | AI | ⬜ |
+| | Create dashboard UI | AI | ✅ |
+| | Implement usage data fetching | AI | ✅ |
+| | Create summary cards | AI | ✅ |
+| | Add real-time updates | AI | ✅ |
 | E2.2 | **Usage Chart** | | |
-| | Integrate fl_chart package | AI | ⬜ |
-| | Create bar chart widget | AI | ⬜ |
-| | Create line chart widget | AI | ⬜ |
-| | Implement date range selector | AI | ⬜ |
+| | Integrate fl_chart package | AI | ✅ |
+| | Create bar chart widget | AI | ✅ |
+| | Create line chart widget | AI | ✅ |
+| | Implement date range selector | AI | ✅ |
 
 ### Technical Tasks
 
-- [ ] Setup Firestore queries
-- [ ] Implement usage tracking service
-- [ ] Create chart widgets
-- [ ] Add data aggregation logic
-- [ ] Implement caching strategy
+- [x] Setup Firestore queries
+- [x] Implement usage tracking service
+- [x] Create chart widgets
+- [x] Add data aggregation logic
+- [x] Implement caching strategy
 
 ### Definition of Done
 
-- [ ] Dashboard shows usage summary
-- [ ] Charts display correctly
-- [ ] Data updates in real-time
-- [ ] Performance is acceptable
+- [x] Dashboard shows usage summary
+- [x] Charts display correctly
+- [x] Data updates in real-time
+- [x] Performance is acceptable
 
 ---
 
@@ -178,31 +178,31 @@
 | Story | Task | Assignee | Status |
 |-------|------|----------|--------|
 | E2.3 | **App Usage List** | | |
-| | Create app list UI | AI | ⬜ |
-| | Implement app info fetching | AI | ⬜ |
-| | Add sorting and filtering | AI | ⬜ |
+| | Create app list UI | AI | ✅ |
+| | Implement app info fetching | AI | ✅ |
+| | Add sorting and filtering | AI | ✅ |
 | E2.4 | **Child Dashboard** | | |
-| | Create child dashboard UI | AI | ⬜ |
-| | Show remaining time | AI | ⬜ |
-| | Show usage breakdown | AI | ⬜ |
+| | Create child dashboard UI | AI | ✅ |
+| | Show remaining time | AI | ✅ |
+| | Show usage breakdown | AI | ✅ |
 | E2.5 | **Daily Summary** | | |
-| | Create summary generation logic | AI | ⬜ |
-| | Implement notification scheduling | AI | ⬜ |
+| | Create summary generation logic | AI | ✅ |
+| | Implement notification scheduling | AI | ✅ |
 
 ### Technical Tasks
 
-- [ ] Implement installed apps detection
-- [ ] Create usage statistics service
-- [ ] Build child-specific UI
-- [ ] Implement daily summary logic
-- [ ] Add notification scheduling
+- [x] Implement installed apps detection
+- [x] Create usage statistics service
+- [x] Build child-specific UI
+- [x] Implement daily summary logic
+- [x] Add notification scheduling
 
 ### Definition of Done
 
-- [ ] App list shows installed social media apps
-- [ ] Child dashboard shows usage data
-- [ ] Daily summary is generated
-- [ ] UI is child-friendly
+- [x] App list shows installed social media apps
+- [x] Child dashboard shows usage data
+- [x] Daily summary is generated
+- [x] UI is child-friendly
 
 ---
 

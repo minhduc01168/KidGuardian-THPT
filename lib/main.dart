@@ -27,6 +27,7 @@ import 'presentation/features/summary/bloc/summary_bloc.dart';
 import 'presentation/blocs/smart_lock/app_monitor_bloc.dart';
 import 'presentation/screens/smart_lock/lock_screen.dart';
 import 'data/repositories/smart_lock_repository.dart';
+import 'domain/repositories/alert_repository.dart';
 import 'domain/entities/user.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -65,6 +66,9 @@ class KidGuardianApp extends StatelessWidget {
         ),
         RepositoryProvider<SmartLockRepository>(
           create: (_) => SmartLockRepository(),
+        ),
+        RepositoryProvider<AlertRepository>(
+          create: (_) => AlertRepositoryImpl(),
         ),
       ],
       child: MultiBlocProvider(
@@ -107,39 +111,57 @@ class KidGuardianApp extends StatelessWidget {
               usageRepository: context.read<UsageRepository>(),
               smartLockRepository: context.read<SmartLockRepository>(),
               scheduleChecker: ScheduleChecker(),
+              alertRepository: context.read<AlertRepository>(),
             ),
           ),
         ],
-        child: BlocListener<AppMonitorBloc, AppMonitorState>(
-          listenWhen: (previous, current) => current is AppBlockedState,
-          listener: (context, state) {
-            if (state is AppBlockedState) {
-              // D1: Push lock screen and ensure only one lock screen at a time
-              final navigator = navigatorKey.currentState;
-              if (navigator != null) {
-                // Pop any existing lock screens first
-                navigator.popUntil((route) {
-                  return route.settings.name != 'lock_screen';
-                });
-                navigator.push(
-                  MaterialPageRoute(
-                    settings: const RouteSettings(name: 'lock_screen'),
-                    builder: (_) => LockScreen(
-                      appPackageName: state.appPackageName,
-                      appName: state.appName,
-                      iconUrl: state.iconUrl,
-                      limitMinutes: state.limitMinutes,
-                      usedMinutes: state.usedMinutes,
-                      resetTime: state.resetTime,
-                      familyId: state.familyId,
-                      childUid: state.childUid,
-                      parentUid: state.parentUid,
+        child: MultiBlocListener(
+          listeners: [
+            BlocListener<AppMonitorBloc, AppMonitorState>(
+              listenWhen: (previous, current) => current is AppBlockedState,
+              listener: (context, state) {
+                if (state is AppBlockedState) {
+                  final navigator = navigatorKey.currentState;
+                  if (navigator != null) {
+                    navigator.popUntil((route) {
+                      return route.settings.name != 'lock_screen';
+                    });
+                    navigator.push(
+                      MaterialPageRoute(
+                        settings: const RouteSettings(name: 'lock_screen'),
+                        builder: (_) => LockScreen(
+                          appPackageName: state.appPackageName,
+                          appName: state.appName,
+                          iconUrl: state.iconUrl,
+                          limitMinutes: state.limitMinutes,
+                          usedMinutes: state.usedMinutes,
+                          resetTime: state.resetTime,
+                          familyId: state.familyId,
+                          childUid: state.childUid,
+                          parentUid: state.parentUid,
+                        ),
+                      ),
+                    );
+                  }
+                }
+              },
+            ),
+            BlocListener<AppMonitorBloc, AppMonitorState>(
+              listenWhen: (previous, current) => current is KeywordAlertEmitted,
+              listener: (context, state) {
+                if (state is KeywordAlertEmitted) {
+                  final messenger = ScaffoldMessenger.of(context);
+                  messenger.showSnackBar(
+                    SnackBar(
+                      content: Text('Phát hiện từ khóa: "${state.keyword}" trong ứng dụng'),
+                      backgroundColor: Colors.red.shade700,
+                      duration: const Duration(seconds: 3),
                     ),
-                  ),
-                );
-              }
-            }
-          },
+                  );
+                }
+              },
+            ),
+          ],
           child: MaterialApp(
             navigatorKey: navigatorKey,
             title: 'KidGuardian',
