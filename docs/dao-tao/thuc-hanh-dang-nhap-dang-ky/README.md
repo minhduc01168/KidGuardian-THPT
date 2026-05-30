@@ -6,7 +6,21 @@ Xây dựng tính năng **đăng ký** và **đăng nhập** bằng Email/Passwo
 
 ---
 
-## Phần 0: Cài đặt môi trường
+## Hướng dẫn nhanh theo hệ điều hành
+
+> Đã copy thư mục về máy? Chọn đúng hệ điều hành của bạn:
+
+| Hệ điều hành | File hướng dẫn |
+|---------------|---------------|
+| **Windows** | [HUONG-DAN-WINDOWS.md](HUONG-DAN-WINDOWS.md) |
+| **macOS** | [HUONG-DAN-MACOS.md](HUONG-DAN-MACOS.md) |
+| **Ubuntu / Linux** | [HUONG-DAN-UBUNTU.md](HUONG-DAN-UBUNTU.md) |
+
+Các file hướng dẫn nhanh trên **đơn giản hóa từng bước**, phù hợp cho người chưa từng cài Flutter.
+
+---
+
+## Phần 0: Cài đặt môi trường (chi tiết)
 
 > Nếu máy bạn **đã cài Flutter rồi**, bỏ qua phần này, chạy `flutter doctor` để kiểm tra rồi qua Phần 1.
 
