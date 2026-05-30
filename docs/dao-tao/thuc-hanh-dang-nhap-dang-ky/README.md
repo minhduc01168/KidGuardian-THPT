@@ -6,47 +6,262 @@ Xây dựng tính năng **đăng ký** và **đăng nhập** bằng Email/Passwo
 
 ---
 
-## Phần 0: Kiểm tra môi trường
+## Phần 0: Cài đặt môi trường
 
-Trước khi bắt đầu, hãy đảm bảo máy bạn đã cài đặt Flutter. Mở Terminal (Mac/Linux) hoặc Command Prompt / PowerShell (Windows) chạy:
+> Nếu máy bạn **đã cài Flutter rồi**, bỏ qua phần này, chạy `flutter doctor` để kiểm tra rồi qua Phần 1.
+
+### Windows
+
+**Bước 0.1: Cài Flutter SDK**
+
+1. Tải Flutter SDK tại: https://docs.flutter.dev/get-started/install/windows
+2. Giải nén vào thư mục, ví dụ: `C:\flutter`
+3. Thêm Flutter vào PATH:
+   - Mở Start → tìm "Environment Variables" → click "Edit the system environment variables"
+   - Click **Environment Variables**
+   - Ở mục **User variables**, chọn **Path** → click **Edit** → **New**
+   - Nhập: `C:\flutter\bin`
+   - Click **OK** ở tất cả cửa sổ
+4. **Đóng và mở lại** Command Prompt / PowerShell
+5. Kiểm tra: `flutter --version`
+
+**Bước 0.2: Cài Android Studio**
+
+1. Tải Android Studio tại: https://developer.android.com/studio
+2. Chạy file cài đặt, để mặc định, click Next cho đến khi xong
+3. Mở Android Studio → chọn **Standard** installation
+4. Đợi Android Studio tải xong Android SDK
+
+**Bước 0.3: Cấu hình Android SDK**
+
+1. Mở Android Studio → menu **More Actions** (hoặc Tools) → **SDK Manager**
+2. Tab **SDK Platforms**: tick chọn **Android 14 (API 34)**
+3. Tab **SDK Tools**: tick chọn:
+   - Android SDK Build-Tools
+   - Android SDK Command-line Tools
+   - Android Emulator
+   - Android SDK Platform-Tools
+4. Click **Apply** → đợi tải xong
+
+**Bước 0.4: Tạo Android Emulator**
+
+1. Mở Android Studio → **More Actions** → **Device Manager**
+2. Click **Create Virtual Device**
+3. Chọn **Pixel 7** → click **Next**
+4. Chọn **API 34** (nếu chưa có, click "Download" bên cạnh) → click **Next**
+5. Để mặc định → click **Finish**
+6. Click nút ▶ (Play) để chạy emulator
+
+**Bước 0.5: Kiểm tra**
+
+Mở Command Prompt / PowerShell, chạy:
+
+```powershell
+flutter doctor
+```
+
+Kết quả mong đợi:
+```
+[✓] Flutter (Channel stable, 3.x.x)
+[✓] Windows Version (Installed version of Windows is version 10 or higher)
+[✓] Android toolchain - develop for Android devices
+[✓] Android Studio
+[✓] VS Code (nếu dùng)
+```
+
+> Nếu có dấu [✗], đọc dòng hướng dẫn phía dưới nó và làm theo.
+
+---
+
+### macOS
+
+**Bước 0.1: Cài Homebrew** (nếu chưa có)
+
+Mở Terminal, chạy:
+
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+Sau khi cài xong:
+```bash
+echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
+eval "$(/opt/homebrew/bin/brew shellenv)"
+```
+
+**Bước 0.2: Cài Flutter SDK**
+
+```bash
+brew install --cask flutter
+```
+
+Hoặc tải tại: https://docs.flutter.dev/get-started/install/macos
+
+**Bước 0.3: Cài Android Studio**
+
+```bash
+brew install --cask android-studio
+```
+
+1. Mở Android Studio → chọn **Standard** installation
+2. Đợi tải Android SDK xong
+
+**Bước 0.4: Cấu hình Android SDK**
+
+1. Mở Android Studio → menu **Android Studio** → **Settings** → **Languages & Frameworks** → **Android SDK**
+2. Tab **SDK Platforms**: tick chọn **Android 14 (API 34)**
+3. Tab **SDK Tools**: tick chọn:
+   - Android SDK Build-Tools
+   - Android SDK Command-line Tools
+   - Android Emulator
+   - Android SDK Platform-Tools
+4. Click **Apply** → đợi tải xong
+
+**Bước 0.5: Tạo Android Emulator**
+
+1. Mở Android Studio → **More Actions** → **Device Manager**
+2. Click **Create Virtual Device**
+3. Chọn **Pixel 7** → click **Next**
+4. Chọn **API 34** (nếu chưa có, click "Download" bên cạnh) → click **Next**
+5. Để mặc định → click **Finish**
+6. Click nút ▶ (Play) để chạy emulator
+
+**Bước 0.6: Cài Xcode** (chỉ cần khi muốn chạy iOS)
+
+1. Mở App Store → tìm **Xcode** → cài đặt
+2. Sau khi cài, mở Terminal chạy:
+```bash
+sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
+sudo xcodebuild -runFirstLaunch
+```
+
+**Bước 0.7: Kiểm tra**
 
 ```bash
 flutter doctor
 ```
 
-Kết quả mong đợi - các mục quan trọng phải có dấu tích [✓]:
-
+Kết quả mong đợi:
 ```
 [✓] Flutter (Channel stable, 3.x.x)
+[✓] macOS (Version xx.x)
+[✓] Xcode - develop for iOS and macOS (nếu cài Xcode)
 [✓] Android toolchain - develop for Android devices
 [✓] Android Studio
-[✓] VS Code (nếu dùng VS Code)
+[✓] VS Code (nếu dùng)
 ```
 
-> **Nếu có dấu [✗]:** Hãy cài đặt theo hướng dẫn tại https://docs.flutter.dev/get-started/install
+---
 
-### Mở emulator Android
+### Ubuntu / Linux
 
-**Cách 1: Dùng Android Studio**
-1. Mở Android Studio
-2. Menu: Tools → Device Manager
-3. Click nút ▶ (Play) trên một emulator đã tạo
-4. Nếu chưa có emulator: click "Create Device" → chọn Pixel 7 → chọn API 34 → Finish → ▶
+**Bước 0.1: Cài các gói phụ thuộc**
 
-**Cách 2: Dùng command line**
+Mở Terminal:
+
 ```bash
-# Liệt kê emulator đã tạo
-emulator -list-avds
-
-# Chạy emulator (thay ten_emulator bằng tên thật)
-emulator -avd ten_emulator
+sudo apt-get update
+sudo apt-get install -y curl git unzip xz-utils zip libglu1-mesa
 ```
 
-**Cách 3: Dùng điện thoại thật**
-1. Bật Developer Options trên điện thoại (Settings → About → tap 7 lần vào Build Number)
-2. Bật USB Debugging (Settings → Developer Options → USB Debugging)
-3. Cắm cáp USB vào máy tính
-4. Chạy `flutter devices` để kiểm tra điện thoại đã nhận
+**Bước 0.2: Cài Flutter SDK**
+
+```bash
+# Tải Flutter
+cd ~
+git clone https://github.com/flutter/flutter.git -b stable
+
+# Thêm Flutter vào PATH
+echo 'export PATH="$HOME/flutter/bin:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+Kiểm tra:
+```bash
+flutter --version
+```
+
+**Bước 0.3: Cài Android Studio**
+
+```bash
+sudo snap install android-studio --classic
+```
+
+Nếu không có `snap`:
+```bash
+sudo apt-get install -y snapd
+sudo snap install android-studio --classic
+```
+
+Hoặc tải tại: https://developer.android.com/studio (file `.tar.gz`)
+
+1. Mở Android Studio → chọn **Standard** installation
+2. Đợi tải Android SDK xong
+
+**Bước 0.4: Cấu hình Android SDK**
+
+1. Mở Android Studio → menu **Android Studio** → **Settings** → **Languages & Frameworks** → **Android SDK**
+2. Tab **SDK Platforms**: tick chọn **Android 14 (API 34)**
+3. Tab **SDK Tools**: tick chọn:
+   - Android SDK Build-Tools
+   - Android SDK Command-line Tools
+   - Android Emulator
+   - Android SDK Platform-Tools
+4. Click **Apply** → đợi tải xong
+
+**Bước 0.5: Thêm Android SDK vào PATH**
+
+```bash
+echo 'export ANDROID_HOME="$HOME/Android/Sdk"' >> ~/.bashrc
+echo 'export PATH="$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+**Bước 0.6: Tạo Android Emulator**
+
+1. Mở Android Studio → **More Actions** → **Device Manager**
+2. Click **Create Virtual Device**
+3. Chọn **Pixel 7** → click **Next**
+4. Chọn **API 34** (nếu chưa có, click "Download" bên cạnh) → click **Next**
+5. Để mặc định → click **Finish**
+6. Click nút ▶ (Play) để chạy emulator
+
+> Nếu emulator báo lỗi KVM: `sudo apt-get install qemu-kvm && sudo adduser $USER kvm`
+> Sau đó **đăng xuất và đăng nhập lại**.
+
+**Bước 0.7: Kiểm tra**
+
+```bash
+flutter doctor
+```
+
+Kết quả mong đợi:
+```
+[✓] Flutter (Channel stable, 3.x.x)
+[✓] Linux Version (Ubuntu xx.xx)
+[✓] Android toolchain - develop for Android devices
+[✓] Android Studio
+[✓] VS Code (nếu dùng)
+```
+
+---
+
+### Dùng điện thoại thật thay vì emulator (tất cả OS)
+
+1. Vào **Settings** → **About phone** → tap 7 lần vào **Build Number** để bật Developer Options
+2. Vào **Settings** → **Developer Options** → bật **USB Debugging**
+3. Cắm cáp USB từ điện thoại vào máy tính
+4. Trên điện thoại, nhấn **Allow** khi hiện thông báo "Allow USB debugging?"
+5. Kiểm tra máy tính đã nhận điện thoại:
+
+```bash
+flutter devices
+```
+
+Kết quả mong đợi:
+```
+SM G990B (mobile) • RFXXXXXXXX • android-arm64 • Android 14 (API 34)
+```
 
 ---
 
@@ -54,8 +269,14 @@ emulator -avd ten_emulator
 
 ### Bước 1: Tạo Flutter Project mới
 
+Mở Terminal (macOS/Linux) hoặc Command Prompt / PowerShell (Windows):
+
 ```bash
-# Chọn nơi bạn muốn lưu, ví dụ Desktop
+# Ví dụ: tạo project trên Desktop
+# Windows: cd %USERPROFILE%\Desktop
+# macOS:   cd ~/Desktop
+# Ubuntu:  cd ~/Desktop
+
 flutter create auth_practice --org com.example
 cd auth_practice
 ```
@@ -64,41 +285,53 @@ Sau lệnh này, một thư mục `auth_practice` sẽ được tạo với cấ
 
 ### Bước 2: Copy code thực hành vào project
 
-**Trên macOS / Linux:**
+**Windows (Command Prompt):**
 
-```bash
-# Quay lại thư mục chứa repo (nếu cần)
-# Ví dụ: cd ~/Desktop nếu bạn tạo project ở Desktop
+```cmd
+:: Copy pubspec.yaml (ghi đè file mặc định)
+copy /Y "..\docs\dao-tao\thuc-hanh-dang-nhap-dang-ky\pubspec.yaml" "pubspec.yaml"
 
-# Copy pubspec.yaml (ghi đè file mặc định)
-cp docs/dao-tao/thuc-hanh-dang-nhap-dang-ky/pubspec.yaml auth_practice/pubspec.yaml
-
-# Copy thư mục lib (ghi đè file mặc định)
-rm -rf auth_practice/lib
-cp -r docs/dao-tao/thuc-hanh-dang-nhap-dang-ky/lib auth_practice/lib
+:: Copy thư mục lib (ghi đè file mặc định)
+rmdir /S /Q lib
+xcopy /E /I /Y "..\docs\dao-tao\thuc-hanh-dang-nhap-dang-ky\lib" "lib"
 ```
 
-**Trên Windows (PowerShell):**
+**Windows (PowerShell):**
 
 ```powershell
-# Copy pubspec.yaml (ghi đè file mặc định)
-Copy-Item "docs\dao-tao\thuc-hanh-dang-nhap-dang-ky\pubspec.yaml" "auth_practice\pubspec.yaml" -Force
-
-# Copy thư mục lib (ghi đè file mặc định)
-Remove-Item -Recurse -Force "auth_practice\lib"
-Copy-Item -Recurse "docs\dao-tao\thuc-hanh-dang-nhap-dang-ky\lib" "auth_practice\lib"
+Copy-Item "..\docs\dao-tao\thuc-hanh-dang-nhap-dang-ky\pubspec.yaml" "pubspec.yaml" -Force
+Remove-Item -Recurse -Force "lib"
+Copy-Item -Recurse "..\docs\dao-tao\thuc-hanh-dang-nhap-dang-ky\lib" "lib"
 ```
 
-**Hoặc copy thủ công (Windows/Mac/Linux):**
-1. Mở File Explorer (Windows) hoặc Finder (Mac)
-2. Đến thư mục `thuc-hanh-dang-nhap-dang-ky`
+**macOS / Ubuntu (Terminal):**
+
+```bash
+# Copy pubspec.yaml (ghi đè file mặc định)
+cp ../docs/dao-tao/thuc-hanh-dang-nhap-dang-ky/pubspec.yaml pubspec.yaml
+
+# Copy thư mục lib (ghi đè file mặc định)
+rm -rf lib
+cp -r ../docs/dao-tao/thuc-hanh-dang-nhap-dang-ky/lib lib
+```
+
+**Hoặc copy thủ công (tất cả OS):**
+1. Mở File Explorer (Windows) / Finder (macOS) / Nautilus (Ubuntu)
+2. Đến thư mục `thuc-hanh-dang-nhap-dang-ky` trong repo
 3. Copy file `pubspec.yaml` → Dán vào thư mục `auth_practice` (ghi đè khi được hỏi)
 4. Copy thư mục `lib/` → Dán vào thư mục `auth_practice` (ghi đè khi được hỏi)
 
 ### Bước 3: Kiểm tra copy thành công
 
+**Windows (Command Prompt):**
+
+```cmd
+dir lib\screens
+```
+
+**Windows (PowerShell) / macOS / Ubuntu:**
+
 ```bash
-# Đảm bảo đang ở thư mục auth_practice
 ls lib/screens/
 ```
 
@@ -150,22 +383,36 @@ Changed X dependencies!
 1. Quay lại trang chủ Firebase Console (click logo Firebase góc trái)
 2. Click biểu tượng **Android** (hình robot)
 3. **Android package name**: nhập `com.example.authpractice`
-   > ⚠️ Chữ `P` trong `authpractice` phải viết HOA: `authPractice` không đúng, phải là `authpractice`
-   > Hoặc kiểm tra tên thật: mở file `android/app/build.gradle.kts`, tìm `namespace`
+   > ⚠️ Chữ `p` trong `authpractice` phải viết **thường**: `authPractice` SAI, phải là `authpractice`
+   >
+   > Hoặc kiểm tra tên thật: mở file `android/app/build.gradle.kts`, tìm dòng `namespace`
 4. **App nickname**: để trống hoặc nhập `Auth Practice`
 5. Click **"Register app"**
 6. Tải file **google-services.json** (click nút "Download google-services.json")
-7. Copy file `google-services.json` vừa tải vào thư mục `android/app/` trong project
+7. Copy file `google-services.json` vừa tải vào thư mục `android/app/` trong project:
 
-**Trên macOS / Linux:**
+**Windows (Command Prompt):**
+
+```cmd
+copy /Y "%USERPROFILE%\Downloads\google-services.json" "android\app\google-services.json"
+```
+
+**Windows (PowerShell):**
+
+```powershell
+Copy-Item "$env:USERPROFILE\Downloads\google-services.json" "android\app\google-services.json"
+```
+
+**macOS:**
+
 ```bash
-# Ví dụ file tải về nằm trong Downloads
 cp ~/Downloads/google-services.json android/app/google-services.json
 ```
 
-**Trên Windows (PowerShell):**
-```powershell
-Copy-Item "$env:USERPROFILE\Downloads\google-services.json" "android\app\google-services.json"
+**Ubuntu:**
+
+```bash
+cp ~/Downloads/google-services.json android/app/google-services.json
 ```
 
 8. Click **"Next"** → **"Next"** → **"Continue to console"**
@@ -177,33 +424,46 @@ dart pub global activate flutterfire_cli
 ```
 
 Sau khi chạy xong, kiểm tra:
+
 ```bash
 flutterfire --version
 ```
 
-**Nếu báo lỗi "command not found":**
+**Nếu báo lỗi "command not found" hoặc "flutterfire is not recognized":**
 
-Bạn cần thêm Dart vào PATH. Chạy lệnh sau:
+Bạn cần thêm Dart vào PATH:
 
-**Trên macOS / Linux:**
-```bash
-# Thêm vào file ~/.zshrc (macOS) hoặc ~/.bashrc (Linux)
-export PATH="$PATH":"$HOME/.pub-cache/bin"
+**Windows (Command Prompt):**
+
+```cmd
+setx PATH "%PATH%;%USERPROFILE%\AppData\Local\Pub\Cache\bin"
 ```
 
-Sau đó reload:
-```bash
-source ~/.zshrc    # macOS
-source ~/.bashrc   # Linux
-```
+Sau đó **đóng và mở lại** Command Prompt.
 
-**Trên Windows (PowerShell):**
+**Windows (PowerShell):**
+
 ```powershell
-# Thêm vào PATH (chạy 1 lần)
 [Environment]::SetEnvironmentVariable("Path", $env:Path + ";$env:USERPROFILE\AppData\Local\Pub\Cache\bin", "User")
 ```
 
-Sau đó **đóng và mở lại** Terminal/PowerShell, rồi chạy lại `flutterfire --version`.
+Sau đó **đóng và mở lại** PowerShell.
+
+**macOS:**
+
+```bash
+echo 'export PATH="$PATH":"$HOME/.pub-cache/bin"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+**Ubuntu:**
+
+```bash
+echo 'export PATH="$PATH":"$HOME/.pub-cache/bin"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+Sau khi sửa PATH, chạy lại `flutterfire --version` để kiểm tra.
 
 ### Bước 9: Cấu hình Firebase cho project
 
@@ -214,7 +474,7 @@ flutterfire configure
 
 Lệnh này sẽ hỏi bạn:
 1. **Select a Firebase project** → dùng mũi tên lên/xuống chọn `AuthPractice`, nhấn Enter
-2. **Which platforms?** → chọn **android** (dùng Space để chọn, Enter để xác nhận)
+2. **Which platforms?** → dùng phím Space để chọn **android**, nhấn Enter
 
 Kết quả mong đợi:
 ```
@@ -228,6 +488,8 @@ File `lib/firebase_options.dart` sẽ được tạo lại với đúng thông t
 ```bash
 flutter run
 ```
+
+> Nếu có nhiều thiết bị, Flutter sẽ hỏi chạy trên thiết bị nào. Chọn emulator hoặc điện thoại đang kết nối.
 
 Kết quả mong đợi:
 - Ứng dụng hiện trên emulator/điện thoại
@@ -355,18 +617,19 @@ Thêm các tính năng sau vào ứng dụng:
 | Lỗi | Nguyên nhân | Cách khắc phục |
 |-----|-------------|----------------|
 | `flutter doctor` có dấu ✗ | Thiếu cài đặt | Làm theo hướng dẫn của `flutter doctor` |
-| `flutter: command not found` | Flutter chưa cài hoặc chưa vào PATH | Cài lại Flutter, restart Terminal |
-| `emulator: command not found` | Android Studio chưa cài hoặc chưa vào PATH | Mở Android Studio → Tools → SDK Manager |
+| `flutter: command not found` / `'flutter' is not recognized` | Flutter chưa cài hoặc chưa vào PATH | Cài lại Flutter, sửa PATH, restart Terminal |
+| `emulator: command not found` | Android SDK chưa vào PATH | Xem lại Bước 0.5 (Ubuntu) / Bước 0.3 (Windows) |
+| `flutterfire: command not found` / `'flutterfire' is not recognized` | Chưa thêm PATH | Xem Bước 8 - hướng dẫn sửa PATH theo OS |
 | `firebase_options.dart not found` | Chưa chạy `flutterfire configure` | Chạy `flutterfire configure` trong thư mục project |
 | `google-services.json not found` | Chưa copy file từ Firebase | Copy file vào `android/app/` |
 | `API key not valid` | Sai cấu hình Firebase | Chạy lại `flutterfire configure` |
-| `flutterfire: command not found` | Chưa thêm PATH | Xem Bước 8 - hướng dẫn sửa PATH |
 | `user-not-found` | Email chưa đăng ký | Đăng ký tài khoản trước |
 | `wrong-password` | Sai mật khẩu | Nhập lại mật khẩu đúng |
 | `email-already-in-use` | Email đã được đăng ký | Dùng email khác hoặc đăng nhập |
 | `weak-password` | Mật khẩu quá yếu | Dùng mật khẩu >= 6 ký tự |
-| `The argument 'com.example.authPractice' isn't a valid Android package name` | Sai package name | Phải là `com.example.authpractice` (chữ p thường) |
+| Package name không hợp lệ | Sai package name | Phải là `com.example.authpractice` (chữ p thường) |
 | Build Android lỗi | Thiếu Java/Android SDK | Kiểm tra `flutter doctor` |
+| Emulator không khởi động (Ubuntu) | Thiếu KVM | `sudo apt-get install qemu-kvm && sudo adduser $USER kvm`, đăng xuất rồi đăng nhập lại |
 
 ---
 
@@ -398,7 +661,9 @@ print('User hiện tại: ${user?.email ?? "Chưa đăng nhập"}');
 
 ## Tài liệu tham khảo
 
-- [Cài đặt Flutter](https://docs.flutter.dev/get-started/install)
+- [Cài đặt Flutter - Windows](https://docs.flutter.dev/get-started/install/windows)
+- [Cài đặt Flutter - macOS](https://docs.flutter.dev/get-started/install/macos)
+- [Cài đặt Flutter - Linux](https://docs.flutter.dev/get-started/install/linux)
 - [Flutter Documentation](https://docs.flutter.dev)
 - [Firebase Auth Flutter](https://firebase.google.com/docs/auth/flutter/start)
 - [Firebase Console](https://console.firebase.google.com)
