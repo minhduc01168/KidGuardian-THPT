@@ -65,6 +65,7 @@ abstract class TimeRequestRepository {
   Future<void> submitRequest(TimeRequest request);
   Stream<List<TimeRequest>> watchRequests({required String familyId, required String childUid});
   Stream<List<TimeRequest>> watchPendingRequests({required String familyId});
+  Stream<List<TimeRequest>> watchAllRequests({required String familyId});
   Future<void> approveRequest({required String familyId, required String childUid, required String requestId, String? response});
   Future<void> rejectRequest({required String familyId, required String childUid, required String requestId, String? response});
 }
@@ -114,6 +115,18 @@ class TimeRequestRepositoryImpl implements TimeRequestRepository {
         .collectionGroup('timeRequests')
         .where('familyId', isEqualTo: familyId)
         .where('status', isEqualTo: 'pending')
+        .orderBy('timestamp', descending: true)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) => TimeRequest.fromFirestore(doc)).toList();
+    });
+  }
+
+  @override
+  Stream<List<TimeRequest>> watchAllRequests({required String familyId}) {
+    return _firestore
+        .collectionGroup('timeRequests')
+        .where('familyId', isEqualTo: familyId)
         .orderBy('timestamp', descending: true)
         .snapshots()
         .map((snapshot) {

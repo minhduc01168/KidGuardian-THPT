@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/painting.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:kidguardian/domain/repositories/alert_repository.dart';
+import 'package:kidguardian/domain/repositories/time_request_repository.dart';
 
 // Events
 abstract class NotificationEvent extends Equatable {
@@ -41,6 +43,32 @@ class MarkAlertReviewed extends NotificationEvent {
   List<Object?> get props => [alertId];
 }
 
+class QuickApproveRequest extends NotificationEvent {
+  final String familyId;
+  final String childUid;
+  final String requestId;
+  const QuickApproveRequest({
+    required this.familyId,
+    required this.childUid,
+    required this.requestId,
+  });
+  @override
+  List<Object?> get props => [requestId];
+}
+
+class QuickRejectRequest extends NotificationEvent {
+  final String familyId;
+  final String childUid;
+  final String requestId;
+  const QuickRejectRequest({
+    required this.familyId,
+    required this.childUid,
+    required this.requestId,
+  });
+  @override
+  List<Object?> get props => [requestId];
+}
+
 // States
 abstract class NotificationState extends Equatable {
   const NotificationState();
@@ -64,6 +92,7 @@ class NotificationError extends NotificationState {
 
 class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
   final AlertRepository alertRepository;
+  final TimeRequestRepository timeRequestRepository;
   final FlutterLocalNotificationsPlugin _notificationsPlugin;
   
   StreamSubscription? _alertSubscription;
@@ -73,6 +102,7 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
 
   NotificationBloc({
     required this.alertRepository,
+    required this.timeRequestRepository,
     FlutterLocalNotificationsPlugin? notificationsPlugin,
   })  : _notificationsPlugin = notificationsPlugin ?? FlutterLocalNotificationsPlugin(),
         super(NotificationInitial()) {
@@ -80,6 +110,8 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     on<StopAlertListening>(_onStopListening);
     on<AlertReceived>(_onAlertReceived);
     on<MarkAlertReviewed>(_onMarkReviewed);
+    on<QuickApproveRequest>(_onQuickApprove);
+    on<QuickRejectRequest>(_onQuickReject);
   }
 
   Future<void> initializeNotifications() async {
@@ -163,6 +195,78 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
       debugPrint('Error marking alert as reviewed: $e');
       emit(NotificationError('Failed to mark alert as reviewed'));
     }
+  }
+
+  Future<void> _onQuickApprove(QuickApproveRequest event, Emitter<NotificationState> emit) async {
+    try {
+      await timeRequestRepository.approveRequest(
+        familyId: event.familyId,
+        childUid: event.childUid,
+        requestId: event.requestId,
+        response: 'Đã duyệt nhanh từ thông báo',
+      );
+      await _showConfirmationNotification(
+        title: 'Đã duyệt yêu cầu',
+        body: 'Bạn đã duyệt yêu cầu thêm thời gian',
+        isApproved: true,
+      );
+      emit(NotificationListening(pendingAlertCount: _notifiedAlertIds.length));
+    } catch (e) {
+      debugPrint('Error quick approving request: $e');
+      emit(NotificationError('Failed to approve request'));
+    }
+  }
+
+  Future<void> _onQuickReject(QuickRejectRequest event, Emitter<NotificationState> emit) async {
+    try {
+      await timeRequestRepository.rejectRequest(
+        familyId: event.familyId,
+        childUid: event.childUid,
+        requestId: event.requestId,
+        response: 'Đã từ chối nhanh từ thông báo',
+      );
+      await _showConfirmationNotification(
+        title: 'Đã từ chối yêu cầu',
+        body: 'Bạn đã từ chối yêu cầu thêm thời gian',
+        isApproved: false,
+      );
+      emit(NotificationListening(pendingAlertCount: _notifiedAlertIds.length));
+    } catch (e) {
+      debugPrint('Error quick rejecting request: $e');
+      emit(NotificationError('Failed to reject request'));
+    }
+  }
+
+  Future<void> _showConfirmationNotification({
+    required String title,
+    required String body,
+    required bool isApproved,
+  }) async {
+    final androidDetails = AndroidNotificationDetails(
+      'kidguardian_alerts',
+      'Safety Alerts',
+      channelDescription: 'Notifications for safety keyword alerts',
+      importance: Importance.defaultImportance,
+      priority: Priority.defaultPriority,
+      showWhen: true,
+      autoCancel: true,
+      color: isApproved ? const Color(0xFF4CAF50) : const Color(0xFFF44336),
+    );
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+    final details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+    await _notificationsPlugin.show(
+      id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      title: title,
+      body: body,
+      notificationDetails: details,
+    );
   }
 
   Future<void> _showNotification({

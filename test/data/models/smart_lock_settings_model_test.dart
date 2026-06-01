@@ -11,6 +11,10 @@ void main() {
         'notifyOnAppBlocked': true,
         'notifyOnLimitReached': false,
         'notifyOnScheduleViolation': true,
+        'quietHoursEnabled': true,
+        'quietHoursStart': 23,
+        'quietHoursEnd': 6,
+        'notificationSound': 'gentle',
         'updatedAt': '2026-05-16T10:00:00.000',
       };
 
@@ -22,6 +26,10 @@ void main() {
       expect(model.notifyOnAppBlocked, true);
       expect(model.notifyOnLimitReached, false);
       expect(model.notifyOnScheduleViolation, true);
+      expect(model.quietHoursEnabled, true);
+      expect(model.quietHoursStart, 23);
+      expect(model.quietHoursEnd, 6);
+      expect(model.notificationSound, 'gentle');
       expect(model.updatedAt, isNotNull);
     });
 
@@ -35,6 +43,10 @@ void main() {
       expect(model.notifyOnAppBlocked, true);
       expect(model.notifyOnLimitReached, true);
       expect(model.notifyOnScheduleViolation, true);
+      expect(model.quietHoursEnabled, false);
+      expect(model.quietHoursStart, 22);
+      expect(model.quietHoursEnd, 7);
+      expect(model.notificationSound, 'default');
       expect(model.updatedAt, isNull);
     });
 
@@ -54,6 +66,10 @@ void main() {
         notifyOnAppBlocked: false,
         notifyOnLimitReached: false,
         notifyOnScheduleViolation: false,
+        quietHoursEnabled: true,
+        quietHoursStart: 23,
+        quietHoursEnd: 6,
+        notificationSound: 'urgent',
       );
 
       final json = model.toJson();
@@ -64,6 +80,10 @@ void main() {
       expect(json['notifyOnAppBlocked'], false);
       expect(json['notifyOnLimitReached'], false);
       expect(json['notifyOnScheduleViolation'], false);
+      expect(json['quietHoursEnabled'], true);
+      expect(json['quietHoursStart'], 23);
+      expect(json['quietHoursEnd'], 6);
+      expect(json['notificationSound'], 'urgent');
     });
 
     test('copyWith creates new instance with updated fields', () {
@@ -71,11 +91,15 @@ void main() {
       final updated = model.copyWith(
         isEnabled: false,
         defaultTimeLimitMinutes: 120,
+        quietHoursEnabled: true,
+        quietHoursStart: 23,
       );
 
       expect(updated.isEnabled, false);
       expect(updated.defaultTimeLimitMinutes, 120);
       expect(updated.notifyOnTimeRequest, true);
+      expect(updated.quietHoursEnabled, true);
+      expect(updated.quietHoursStart, 23);
     });
 
     test('default constructor has correct defaults', () {
@@ -86,6 +110,10 @@ void main() {
       expect(model.notifyOnAppBlocked, true);
       expect(model.notifyOnLimitReached, true);
       expect(model.notifyOnScheduleViolation, true);
+      expect(model.quietHoursEnabled, false);
+      expect(model.quietHoursStart, 22);
+      expect(model.quietHoursEnd, 7);
+      expect(model.notificationSound, 'default');
       expect(model.updatedAt, isNull);
     });
 

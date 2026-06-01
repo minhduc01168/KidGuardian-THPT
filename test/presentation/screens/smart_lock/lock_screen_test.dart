@@ -3,7 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kidguardian/presentation/screens/smart_lock/lock_screen.dart';
 
 void main() {
-  final resetTime = DateTime(2026, 5, 17, 0, 0, 0);
+  // Use a reset time in the future to ensure countdown is displayed
+  final resetTime = DateTime.now().add(const Duration(hours: 2));
 
   Widget buildLockScreen({
     String appName = 'TikTok',

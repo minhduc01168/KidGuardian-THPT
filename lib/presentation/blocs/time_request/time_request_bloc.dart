@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:kidguardian/domain/repositories/time_request_repository.dart';
+import 'package:kidguardian/domain/repositories/rules_repository.dart';
 
 // Events
 abstract class TimeRequestEvent extends Equatable {
@@ -45,6 +46,20 @@ class LoadPendingRequests extends TimeRequestEvent {
   List<Object?> get props => [familyId];
 }
 
+class LoadAllRequests extends TimeRequestEvent {
+  final String familyId;
+  const LoadAllRequests(this.familyId);
+  @override
+  List<Object?> get props => [familyId];
+}
+
+class FilterRequestsByStatus extends TimeRequestEvent {
+  final TimeRequestFilterStatus status;
+  const FilterRequestsByStatus(this.status);
+  @override
+  List<Object?> get props => [status];
+}
+
 class ApproveTimeRequest extends TimeRequestEvent {
   final String familyId;
   final String childUid;
@@ -82,6 +97,9 @@ class _RequestsUpdated extends TimeRequestEvent {
   List<Object?> get props => [requests.map((r) => r.id).toList()];
 }
 
+// Enums
+enum TimeRequestFilterStatus { all, pending, approved, rejected }
+
 // States
 abstract class TimeRequestState extends Equatable {
   const TimeRequestState();
@@ -111,14 +129,34 @@ class TimeRequestError extends TimeRequestState {
   List<Object?> get props => [message];
 }
 
+class TimeRequestHistoryLoaded extends TimeRequestState {
+  final List<TimeRequest> allRequests;
+  final List<TimeRequest> filteredRequests;
+  final TimeRequestFilterStatus filterStatus;
+
+  const TimeRequestHistoryLoaded({
+    required this.allRequests,
+    required this.filteredRequests,
+    this.filterStatus = TimeRequestFilterStatus.all,
+  });
+
+  @override
+  List<Object?> get props => [filteredRequests.map((r) => r.id).toList(), filterStatus];
+}
+
 class TimeRequestBloc extends Bloc<TimeRequestEvent, TimeRequestState> {
   final TimeRequestRepository repository;
+  final RulesRepository? rulesRepository;
   StreamSubscription? _requestSubscription;
+  List<TimeRequest> _allRequests = [];
+  TimeRequestFilterStatus _filterStatus = TimeRequestFilterStatus.all;
 
-  TimeRequestBloc({required this.repository}) : super(TimeRequestInitial()) {
+  TimeRequestBloc({required this.repository, this.rulesRepository}) : super(TimeRequestInitial()) {
     on<SubmitTimeRequest>(_onSubmitRequest);
     on<LoadTimeRequests>(_onLoadRequests);
     on<LoadPendingRequests>(_onLoadPendingRequests);
+    on<LoadAllRequests>(_onLoadAllRequests);
+    on<FilterRequestsByStatus>(_onFilterByStatus);
     on<ApproveTimeRequest>(_onApproveRequest);
     on<RejectTimeRequest>(_onRejectRequest);
     on<_RequestsUpdated>(_onRequestsUpdated);
@@ -138,8 +176,43 @@ class TimeRequestBloc extends Bloc<TimeRequestEvent, TimeRequestState> {
         status: TimeRequestStatus.pending,
         timestamp: DateTime.now(),
       );
-      await repository.submitRequest(request);
-      emit(const TimeRequestSubmitted('Yêu cầu đã được gửi đến phụ huynh'));
+
+      bool autoApproved = false;
+      if (rulesRepository != null) {
+        final shouldAutoApprove = await rulesRepository!.shouldAutoApprove(
+          familyId: event.familyId,
+          appPackageName: event.appPackageName,
+          requestedMinutes: event.requestedMinutes,
+        );
+
+        if (shouldAutoApprove) {
+          await repository.submitRequest(request);
+          final submittedRequests = await repository
+              .watchRequests(familyId: event.familyId, childUid: event.childUid)
+              .first;
+          if (submittedRequests.isNotEmpty) {
+            final submittedRequest = submittedRequests.first;
+            await repository.approveRequest(
+              familyId: event.familyId,
+              childUid: event.childUid,
+              requestId: submittedRequest.id,
+              response: 'Tự động duyệt',
+            );
+            await rulesRepository!.logAutoApprovedRequest(submittedRequest);
+            autoApproved = true;
+          }
+        }
+      }
+
+      if (!autoApproved) {
+        await repository.submitRequest(request);
+      }
+
+      emit(TimeRequestSubmitted(
+        autoApproved
+            ? 'Yêu cầu đã được tự động duyệt'
+            : 'Yêu cầu đã được gửi đến phụ huynh',
+      ));
     } catch (e) {
       debugPrint('Error submitting time request: $e');
       emit(TimeRequestError('Failed to submit request: $e'));
@@ -175,7 +248,13 @@ class TimeRequestBloc extends Bloc<TimeRequestEvent, TimeRequestState> {
   }
 
   void _onRequestsUpdated(_RequestsUpdated event, Emitter<TimeRequestState> emit) {
-    emit(TimeRequestsLoaded(event.requests));
+    _allRequests = event.requests;
+    if (_filterStatus != TimeRequestFilterStatus.all ||
+        state is TimeRequestHistoryLoaded) {
+      _emitFilteredHistory(emit);
+    } else {
+      emit(TimeRequestsLoaded(event.requests));
+    }
   }
 
   Future<void> _onApproveRequest(ApproveTimeRequest event, Emitter<TimeRequestState> emit) async {
@@ -204,6 +283,44 @@ class TimeRequestBloc extends Bloc<TimeRequestEvent, TimeRequestState> {
       debugPrint('Error rejecting request: $e');
       emit(TimeRequestError('Failed to reject request: $e'));
     }
+  }
+
+  void _onLoadAllRequests(LoadAllRequests event, Emitter<TimeRequestState> emit) {
+    _requestSubscription?.cancel();
+    _filterStatus = TimeRequestFilterStatus.all;
+    _requestSubscription = repository
+        .watchAllRequests(familyId: event.familyId)
+        .listen(
+      (requests) {
+        add(_RequestsUpdated(requests));
+      },
+      onError: (error) {
+        debugPrint('All requests stream error: $error');
+      },
+    );
+  }
+
+  void _onFilterByStatus(FilterRequestsByStatus event, Emitter<TimeRequestState> emit) {
+    _filterStatus = event.status;
+    _emitFilteredHistory(emit);
+  }
+
+  void _emitFilteredHistory(Emitter<TimeRequestState> emit) {
+    var filtered = List<TimeRequest>.from(_allRequests);
+
+    if (_filterStatus == TimeRequestFilterStatus.pending) {
+      filtered = filtered.where((r) => r.status == TimeRequestStatus.pending).toList();
+    } else if (_filterStatus == TimeRequestFilterStatus.approved) {
+      filtered = filtered.where((r) => r.status == TimeRequestStatus.approved).toList();
+    } else if (_filterStatus == TimeRequestFilterStatus.rejected) {
+      filtered = filtered.where((r) => r.status == TimeRequestStatus.rejected).toList();
+    }
+
+    emit(TimeRequestHistoryLoaded(
+      allRequests: _allRequests,
+      filteredRequests: filtered,
+      filterStatus: _filterStatus,
+    ));
   }
 
   @override

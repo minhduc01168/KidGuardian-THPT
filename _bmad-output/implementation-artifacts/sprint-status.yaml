@@ -15,4 +15,17 @@ development_status:
   5-1-request-more-time: done
   5-2-parent-approval: done
   5-3-request-status: done
+  1-8-profile-management: done
+  2-6-weekly-report: done
+  5-4-request-history: done
+  5-5-quick-approval: done
+  5-6-auto-approval-rules: done
+  6-1-push-notifications-setup: done
+  6-2-notification-preferences: done
+  6-3-notification-history: done
+  6-4-in-app-notifications: done
+  7-1-app-settings: done
+  7-2-family-management: done
+  7-3-help-support: done
 last_updated: '2026-05-17'
+

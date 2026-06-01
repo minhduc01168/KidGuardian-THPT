@@ -59,6 +59,7 @@ class AlertModel {
   final bool isReviewed;
   final bool isDismissed;
   final String notes;
+  final String childUid;
 
   AlertModel({
     required this.id,
@@ -70,10 +71,20 @@ class AlertModel {
     required this.isReviewed,
     this.isDismissed = false,
     this.notes = '',
+    this.childUid = '',
   });
 
   factory AlertModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>? ?? {};
+    
+    // Extract childUid from document path
+    // Path format: families/{familyId}/children/{childUid}/alerts/{alertId}
+    String childUid = '';
+    final pathSegments = doc.reference.path.split('/');
+    if (pathSegments.length >= 4 && pathSegments[2] == 'children') {
+      childUid = pathSegments[3];
+    }
+    
     return AlertModel(
       id: doc.id,
       type: data['type'] ?? '',
@@ -84,6 +95,7 @@ class AlertModel {
       isReviewed: data['isReviewed'] ?? false,
       isDismissed: data['isDismissed'] ?? false,
       notes: data['notes'] ?? '',
+      childUid: childUid,
     );
   }
 }

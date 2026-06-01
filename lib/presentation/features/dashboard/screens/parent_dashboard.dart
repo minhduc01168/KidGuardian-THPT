@@ -11,9 +11,19 @@ import '../../auth/bloc/auth_state.dart';
 import '../../auth/screens/create_child_screen.dart';
 import '../../auth/screens/profile_screen.dart';
 import '../../report/screens/weekly_report_screen.dart';
+import '../../settings/screens/app_settings_screen.dart';
 import '../../summary/screens/daily_summary_screen.dart';
 import '../../../screens/smart_lock/blocked_apps_screen.dart';
 import '../../usage_statistics/screens/usage_statistics_screen.dart';
+import '../../../screens/settings/auto_approval_rules_screen.dart';
+import '../../../screens/notifications/notification_center_screen.dart';
+import '../../../widgets/notifications/notification_badge.dart';
+import '../../help/screens/help_support_screen.dart';
+import '../../help/bloc/help_bloc.dart';
+import '../../family/screens/family_management_screen.dart';
+import '../../../screens/smart_lock/time_limit_screen.dart';
+import '../../../screens/smart_lock/smart_lock_settings_screen.dart';
+import '../../../blocs/in_app_notification/in_app_notification_bloc.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../bloc/dashboard_event.dart';
 import '../bloc/dashboard_state.dart';
@@ -43,6 +53,9 @@ class _ParentDashboardState extends State<ParentDashboard> {
       context.read<DashboardBloc>().add(
             LoadDashboard(familyId: authState.user.familyId!),
           );
+      context.read<InAppNotificationBloc>().add(
+            LoadInAppNotifications(familyId: authState.user.familyId!),
+          );
     }
   }
 
@@ -58,23 +71,72 @@ class _ParentDashboardState extends State<ParentDashboard> {
 
         return Scaffold(
           appBar: AppBar(
-            title: Text(AppStrings.appName),
+            title: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.shield_rounded,
+                    size: 20,
+                    color: AppColors.primary,
+                  ),
+                ),
+                SizedBox(width: 8),
+                Text(
+                  AppStrings.appName,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
+            ),
             automaticallyImplyLeading: false,
             actions: [
+              NotificationBadge(
+                onTap: () {
+                  if (user.familyId != null) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => NotificationCenterScreen(
+                          familyId: user.familyId!,
+                        ),
+                      ),
+                    );
+                  }
+                },
+              ),
               IconButton(
                 icon: Icon(Icons.refresh),
                 onPressed: _loadDashboard,
+                tooltip: 'Làm mới',
               ),
-              IconButton(
-                icon: Icon(Icons.person),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ProfileScreen(user: user),
+              Container(
+                margin: EdgeInsets.only(right: 8),
+                child: IconButton(
+                  icon: Container(
+                    padding: EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.1),
+                      shape: BoxShape.circle,
                     ),
-                  );
-                },
+                    child: Icon(Icons.person, size: 20),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ProfileScreen(user: user),
+                      ),
+                    );
+                  },
+                ),
               ),
             ],
           ),
@@ -336,9 +398,18 @@ class _ParentDashboardState extends State<ParentDashboard> {
                     title: 'Khóa ứng dụng',
                     color: AppColors.warning,
                     onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Tính năng đang phát triển')),
-                      );
+                      if (user.familyId != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => SmartLockSettingsScreen(
+                              familyId: user.familyId!,
+                              childId: user.uid,
+                              childName: user.displayName,
+                            ),
+                          ),
+                        );
+                      }
                     },
                   ),
                 ),
@@ -369,9 +440,16 @@ class _ParentDashboardState extends State<ParentDashboard> {
                     title: 'Cảnh báo',
                     color: AppColors.error,
                     onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Tính năng đang phát triển')),
-                      );
+                      if (user.familyId != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => NotificationCenterScreen(
+                              familyId: user.familyId!,
+                            ),
+                          ),
+                        );
+                      }
                     },
                   ),
                 ),
@@ -382,9 +460,18 @@ class _ParentDashboardState extends State<ParentDashboard> {
                     title: 'Khóa ứng dụng',
                     color: AppColors.warning,
                     onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Tính năng đang phát triển')),
-                      );
+                      if (user.familyId != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => SmartLockSettingsScreen(
+                              familyId: user.familyId!,
+                              childId: user.uid,
+                              childName: user.displayName,
+                            ),
+                          ),
+                        );
+                      }
                     },
                   ),
                 ),
@@ -505,9 +592,22 @@ class _ParentDashboardState extends State<ParentDashboard> {
                 subtitle: Text('Đặt giới hạn sử dụng theo ứng dụng'),
                 trailing: Icon(Icons.chevron_right),
                 onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Tính năng đang phát triển')),
-                  );
+                  if (user.familyId != null) {
+                    final childUids = context.read<DashboardBloc>().state is DashboardLoaded
+                        ? (context.read<DashboardBloc>().state as DashboardLoaded).childUids
+                        : <String>[];
+                    if (childUids.isNotEmpty) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => TimeLimitScreen(
+                            familyId: user.familyId!,
+                            childId: childUids.first,
+                          ),
+                        ),
+                      );
+                    }
+                  }
                 },
               ),
             ),
@@ -518,8 +618,41 @@ class _ParentDashboardState extends State<ParentDashboard> {
                 subtitle: Text('Khóa ngay lập tức các ứng dụng'),
                 trailing: Icon(Icons.chevron_right),
                 onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Tính năng đang phát triển')),
+                  if (user.familyId != null) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => SmartLockSettingsScreen(
+                          familyId: user.familyId!,
+                          childId: user.uid,
+                          childName: user.displayName,
+                        ),
+                      ),
+                    );
+                  }
+                },
+              ),
+            ),
+            Card(
+              child: ListTile(
+                leading: Icon(Icons.auto_awesome, color: Colors.green),
+                title: Text('Tự động duyệt yêu cầu'),
+                subtitle: Text('Cài đặt quy tắc tự động duyệt'),
+                trailing: Icon(Icons.chevron_right),
+                onTap: () {
+                  if (user.familyId == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Vui lòng thêm tài khoản con trước')),
+                    );
+                    return;
+                  }
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => AutoApprovalRulesScreen(
+                        familyId: user.familyId!,
+                      ),
+                    ),
                   );
                 },
               ),
@@ -577,24 +710,31 @@ class _ParentDashboardState extends State<ParentDashboard> {
         ),
         Card(
           child: ListTile(
-            leading: Icon(Icons.family_restroom),
-            title: Text('Quản lý gia đình'),
+            leading: Icon(Icons.tune),
+            title: Text('Cài đặt ứng dụng'),
+            subtitle: Text('Giao diện, ngôn ngữ, thông báo'),
             trailing: Icon(Icons.chevron_right),
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Tính năng đang phát triển')),
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AppSettingsScreen(),
+                ),
               );
             },
           ),
         ),
         Card(
           child: ListTile(
-            leading: Icon(Icons.notifications),
-            title: Text('Cài đặt thông báo'),
+            leading: Icon(Icons.family_restroom),
+            title: Text('Quản lý gia đình'),
             trailing: Icon(Icons.chevron_right),
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Tính năng đang phát triển')),
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => FamilyManagementScreen(user: user),
+                ),
               );
             },
           ),
@@ -605,8 +745,14 @@ class _ParentDashboardState extends State<ParentDashboard> {
             title: Text('Trợ giúp & Hỗ trợ'),
             trailing: Icon(Icons.chevron_right),
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Tính năng đang phát triển')),
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => BlocProvider.value(
+                    value: context.read<HelpBloc>(),
+                    child: HelpSupportScreen(),
+                  ),
+                ),
               );
             },
           ),
@@ -725,9 +871,18 @@ class _ParentDashboardState extends State<ParentDashboard> {
                   title: 'Khóa ứng dụng',
                   color: AppColors.warning,
                   onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Tính năng đang phát triển')),
-                    );
+                    if (user.familyId != null) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => SmartLockSettingsScreen(
+                            familyId: user.familyId!,
+                            childId: user.uid,
+                            childName: user.displayName,
+                          ),
+                        ),
+                      );
+                    }
                   },
                 ),
               ),

@@ -7,6 +7,10 @@ class SmartLockSettingsModel extends Equatable {
   final bool notifyOnAppBlocked;
   final bool notifyOnLimitReached;
   final bool notifyOnScheduleViolation;
+  final bool quietHoursEnabled;
+  final int quietHoursStart;
+  final int quietHoursEnd;
+  final String notificationSound;
   final DateTime? updatedAt;
 
   const SmartLockSettingsModel({
@@ -16,6 +20,10 @@ class SmartLockSettingsModel extends Equatable {
     this.notifyOnAppBlocked = true,
     this.notifyOnLimitReached = true,
     this.notifyOnScheduleViolation = true,
+    this.quietHoursEnabled = false,
+    this.quietHoursStart = 22,
+    this.quietHoursEnd = 7,
+    this.notificationSound = 'default',
     this.updatedAt,
   });
 
@@ -26,6 +34,10 @@ class SmartLockSettingsModel extends Equatable {
     bool? notifyOnAppBlocked,
     bool? notifyOnLimitReached,
     bool? notifyOnScheduleViolation,
+    bool? quietHoursEnabled,
+    int? quietHoursStart,
+    int? quietHoursEnd,
+    String? notificationSound,
     DateTime? updatedAt,
   }) {
     return SmartLockSettingsModel(
@@ -37,6 +49,10 @@ class SmartLockSettingsModel extends Equatable {
       notifyOnLimitReached: notifyOnLimitReached ?? this.notifyOnLimitReached,
       notifyOnScheduleViolation:
           notifyOnScheduleViolation ?? this.notifyOnScheduleViolation,
+      quietHoursEnabled: quietHoursEnabled ?? this.quietHoursEnabled,
+      quietHoursStart: quietHoursStart ?? this.quietHoursStart,
+      quietHoursEnd: quietHoursEnd ?? this.quietHoursEnd,
+      notificationSound: notificationSound ?? this.notificationSound,
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
@@ -51,6 +67,10 @@ class SmartLockSettingsModel extends Equatable {
       notifyOnLimitReached: json['notifyOnLimitReached'] as bool? ?? true,
       notifyOnScheduleViolation:
           json['notifyOnScheduleViolation'] as bool? ?? true,
+      quietHoursEnabled: json['quietHoursEnabled'] as bool? ?? false,
+      quietHoursStart: (json['quietHoursStart'] as num?)?.toInt() ?? 22,
+      quietHoursEnd: (json['quietHoursEnd'] as num?)?.toInt() ?? 7,
+      notificationSound: json['notificationSound'] as String? ?? 'default',
       updatedAt: json['updatedAt'] != null
           ? (json['updatedAt'] is DateTime
               ? json['updatedAt'] as DateTime
@@ -67,6 +87,10 @@ class SmartLockSettingsModel extends Equatable {
       'notifyOnAppBlocked': notifyOnAppBlocked,
       'notifyOnLimitReached': notifyOnLimitReached,
       'notifyOnScheduleViolation': notifyOnScheduleViolation,
+      'quietHoursEnabled': quietHoursEnabled,
+      'quietHoursStart': quietHoursStart,
+      'quietHoursEnd': quietHoursEnd,
+      'notificationSound': notificationSound,
       'updatedAt': updatedAt?.toIso8601String(),
     };
   }
@@ -79,6 +103,10 @@ class SmartLockSettingsModel extends Equatable {
         notifyOnAppBlocked,
         notifyOnLimitReached,
         notifyOnScheduleViolation,
+        quietHoursEnabled,
+        quietHoursStart,
+        quietHoursEnd,
+        notificationSound,
         updatedAt,
       ];
 }

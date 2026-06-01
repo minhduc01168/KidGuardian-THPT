@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import '../../../data/models/emergency_log_model.dart';
 
 class EmergencyLogSource {
   final FirebaseFirestore? _firestoreInstance;
@@ -56,6 +57,60 @@ class EmergencyLogSource {
     }
   }
 
+  Future<List<EmergencyLogModel>> getEmergencyHistory({
+    required String familyId,
+    int limit = 50,
+  }) async {
+    try {
+      final query = await _firestore
+          .collection('emergency_logs')
+          .where('familyId', isEqualTo: familyId)
+          .orderBy('timestamp', descending: true)
+          .limit(limit)
+          .get();
+
+      return query.docs
+          .map((doc) => EmergencyLogModel.fromFirestore(doc))
+          .toList();
+    } catch (e) {
+      debugPrint('EmergencyLogSource.getEmergencyHistory error: $e');
+      return [];
+    }
+  }
+
+  Stream<List<EmergencyLogModel>> getEmergencyHistoryStream({
+    required String familyId,
+    int limit = 50,
+  }) {
+    return _firestore
+        .collection('emergency_logs')
+        .where('familyId', isEqualTo: familyId)
+        .orderBy('timestamp', descending: true)
+        .limit(limit)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => EmergencyLogModel.fromFirestore(doc))
+            .toList());
+  }
+
+  Future<int> getEmergencyCount({
+    required String familyId,
+    required String childUid,
+  }) async {
+    try {
+      final query = await _firestore
+          .collection('emergency_logs')
+          .where('familyId', isEqualTo: familyId)
+          .where('childUid', isEqualTo: childUid)
+          .count()
+          .get();
+      return query.count ?? 0;
+    } catch (e) {
+      debugPrint('EmergencyLogSource.getEmergencyCount error: $e');
+      return 0;
+    }
+  }
+
   Future<String?> getParentPhoneNumber(String parentUid) async {
     try {
       final doc = await _firestore.collection('users').doc(parentUid).get();
@@ -77,6 +132,20 @@ class EmergencyLogSource {
     } catch (e) {
       debugPrint('EmergencyLogSource.getParentName error: $e');
       return null;
+    }
+  }
+
+  Future<void> updateParentPhoneNumber({
+    required String parentUid,
+    required String phoneNumber,
+  }) async {
+    try {
+      await _firestore.collection('users').doc(parentUid).update({
+        'phoneNumber': phoneNumber,
+      });
+    } catch (e) {
+      debugPrint('EmergencyLogSource.updateParentPhoneNumber error: $e');
+      rethrow;
     }
   }
 }

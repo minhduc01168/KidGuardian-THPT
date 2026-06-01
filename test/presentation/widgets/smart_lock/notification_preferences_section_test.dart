@@ -69,5 +69,33 @@ void main() {
         findsOneWidget,
       );
     });
+
+    testWidgets('displays quiet hours section', (tester) async {
+      await tester.pumpWidget(buildTestWidget(const SmartLockSettingsModel()));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Giờ yên lặng'), findsOneWidget);
+      expect(find.text('Tắt thông báo trong khoảng thời gian này'),
+          findsOneWidget);
+    });
+
+    testWidgets('displays quiet hours time pickers when enabled',
+        (tester) async {
+      const settings = SmartLockSettingsModel(quietHoursEnabled: true);
+
+      await tester.pumpWidget(buildTestWidget(settings));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Bắt đầu'), findsOneWidget);
+      expect(find.text('Kết thúc'), findsOneWidget);
+    });
+
+    testWidgets('displays notification sound section', (tester) async {
+      await tester.pumpWidget(buildTestWidget(const SmartLockSettingsModel()));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Âm thanh thông báo'), findsOneWidget);
+      expect(find.text('Mặc định'), findsOneWidget);
+    });
   });
 }

@@ -5,14 +5,19 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/utils/app_utils.dart';
 import '../../../../domain/entities/user.dart';
+import '../../../../domain/repositories/family_repository.dart';
 import '../../auth/bloc/auth_bloc.dart';
 import '../../auth/bloc/auth_event.dart';
 import '../../auth/bloc/auth_state.dart';
 import '../../auth/screens/profile_screen.dart';
 import '../../auth/screens/link_child_screen.dart';
+import '../../settings/screens/app_settings_screen.dart';
+import '../../help/screens/help_support_screen.dart';
+import '../../help/bloc/help_bloc.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../bloc/dashboard_event.dart';
 import '../bloc/dashboard_state.dart';
+import '../../../blocs/emergency_access/emergency_access_screen.dart';
 
 class ChildDashboard extends StatefulWidget {
   const ChildDashboard({super.key});
@@ -90,6 +95,37 @@ class _ChildDashboardState extends State<ChildDashboard> {
                   ],
                 )
               : _buildLinkAccountPrompt(),
+          floatingActionButton: isLinked
+              ? FloatingActionButton(
+                  onPressed: () async {
+                    if (user.familyId != null) {
+                      final familyRepo = context.read<FamilyRepository>();
+                      final family = await familyRepo.getFamily(user.familyId!);
+                      if (family != null && mounted) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => EmergencyAccessScreen(
+                              familyId: user.familyId!,
+                              childUid: user.uid,
+                              parentUid: family.parentUid,
+                            ),
+                          ),
+                        );
+                      } else if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Không tìm thấy thông tin gia đình'),
+                          ),
+                        );
+                      }
+                    }
+                  },
+                  backgroundColor: Colors.red.shade600,
+                  tooltip: 'Truy cập khẩn cấp',
+                  child: const Icon(Icons.emergency, color: Colors.white),
+                )
+              : null,
           bottomNavigationBar: isLinked
               ? BottomNavigationBar(
                   currentIndex: _currentIndex,
@@ -714,6 +750,22 @@ class _ChildDashboardState extends State<ChildDashboard> {
         ),
         Card(
           child: ListTile(
+            leading: Icon(Icons.tune),
+            title: Text('Cài đặt ứng dụng'),
+            subtitle: Text('Giao diện, ngôn ngữ, thông báo'),
+            trailing: Icon(Icons.chevron_right),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AppSettingsScreen(),
+                ),
+              );
+            },
+          ),
+        ),
+        Card(
+          child: ListTile(
             leading: Icon(Icons.link),
             title: Text('Liên kết tài khoản'),
             subtitle:
@@ -737,8 +789,14 @@ class _ChildDashboardState extends State<ChildDashboard> {
             title: Text('Trợ giúp'),
             trailing: Icon(Icons.chevron_right),
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Tính năng đang phát triển')),
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => BlocProvider.value(
+                    value: context.read<HelpBloc>(),
+                    child: HelpSupportScreen(),
+                  ),
+                ),
               );
             },
           ),

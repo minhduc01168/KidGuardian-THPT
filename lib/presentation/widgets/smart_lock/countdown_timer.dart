@@ -35,7 +35,12 @@ class _CountdownTimerState extends State<CountdownTimer> {
   @override
   void initState() {
     super.initState();
-    _updateRemaining();
+    // Calculate initial remaining without calling setState
+    final now = DateTime.now();
+    final remaining = widget.resetTime.difference(now);
+    _remaining = remaining.isNegative ? Duration.zero : remaining;
+    
+    // Start timer after the first frame is built
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       _updateRemaining();
     });

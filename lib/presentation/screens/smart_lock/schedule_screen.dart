@@ -5,6 +5,7 @@ import 'package:kidguardian/data/repositories/smart_lock_repository.dart';
 import 'package:kidguardian/presentation/blocs/smart_lock/smart_lock_bloc.dart';
 import 'package:kidguardian/presentation/blocs/smart_lock/smart_lock_event.dart';
 import 'package:kidguardian/presentation/blocs/smart_lock/smart_lock_state.dart';
+import 'package:kidguardian/presentation/screens/smart_lock/schedule_form_screen.dart';
 
 class ScheduleScreen extends StatelessWidget {
   final String familyId;
@@ -139,7 +140,17 @@ class _ScheduleView extends StatelessWidget {
                     const SizedBox(height: 24),
                     ElevatedButton.icon(
                       onPressed: () {
-                        // TODO: Navigate to ScheduleFormScreen
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => BlocProvider.value(
+                              value: context.read<SmartLockBloc>(),
+                              child: ScheduleFormScreen(
+                                familyId: familyId,
+                                childId: childId,
+                              ),
+                            ),
+                          ),
+                        );
                       },
                       icon: const Icon(Icons.add),
                       label: const Text('Thêm lịch trình'),
@@ -209,7 +220,18 @@ class _ScheduleView extends StatelessWidget {
                       ],
                     ),
                     onTap: () {
-                      // TODO: Navigate to ScheduleFormScreen for editing
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => BlocProvider.value(
+                            value: context.read<SmartLockBloc>(),
+                            child: ScheduleFormScreen(
+                              familyId: familyId,
+                              childId: childId,
+                              existingSchedule: schedule,
+                            ),
+                          ),
+                        ),
+                      );
                     },
                   ),
                 );
@@ -222,7 +244,17 @@ class _ScheduleView extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // TODO: Navigate to ScheduleFormScreen
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => BlocProvider.value(
+                value: context.read<SmartLockBloc>(),
+                child: ScheduleFormScreen(
+                  familyId: familyId,
+                  childId: childId,
+                ),
+              ),
+            ),
+          );
         },
         child: const Icon(Icons.add),
       ),

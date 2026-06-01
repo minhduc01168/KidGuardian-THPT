@@ -4,7 +4,7 @@
 **Version:** 1.0  
 **Date:** 2026-05-12  
 **Status:** In Progress  
-**Last Updated:** 2026-05-16  
+**Last Updated:** 2026-05-17  
 
 ---
 
@@ -28,8 +28,8 @@
 | Sprint 4 | Week 4 | Child Dashboard & Monitoring | ✅ Done | E2.3, E2.4, E2.5 | 9 |
 | Sprint 5 | Week 5 | Smart Lock Core | ✅ Done | E3.1, E3.2, E3.6 | 16 |
 | Sprint 6 | Week 6 | Smart Lock Advanced | ✅ Done | E3.3, E3.4, E3.5, E3.7, E3.8 | 21 |
-| Sprint 7 | Week 7 | Alerts & Interaction | 🏃 In Progress | E4.1-E4.5, E5.1-E5.3 | 32 |
-| Sprint 8 | Week 8 | Polish & Extras | ⏳ To Do | E1.8, E2.6, E5.4-E5.6, E6.1-E6.4, E7.1-E7.3 | 43 |
+| Sprint 7 | Week 7 | Alerts & Interaction | ✅ Done | E4.1-E4.5, E5.1-E5.3 | 32 |
+| Sprint 8 | Week 8 | Polish & Extras | ✅ Done | E1.8, E2.6, E5.4-E5.6, E6.1-E6.4, E7.1-E7.3 | 43 |
 
 ---
 
@@ -357,65 +357,81 @@
 ## Sprint 8: Polish & Extras
 
 **Duration:** Week 8  
-**Goal:** Complete remaining features and polish the app
+**Goal:** Complete remaining features and polish the app  
+**Status:** ✅ Done
 
 ### Sprint Backlog
 
 | Story | Task | Assignee | Status |
 |-------|------|----------|--------|
 | E1.8 | **Profile Management** | | |
-| | Create profile UI | AI | ⬜ |
-| | Implement edit functionality | AI | ⬜ |
+| | Create profile UI | AI | ✅ |
+| | Implement edit functionality | AI | ✅ |
+| | View linked family members | AI | ✅ |
 | E2.6 | **Weekly Report** | | |
-| | Create report generation | AI | ⬜ |
-| | Implement report UI | AI | ⬜ |
+| | Create report generation | AI | ✅ |
+| | Implement report UI | AI | ✅ |
+| | Add email functionality | AI | ✅ |
 | E5.4 | **Request History** | | |
-| | Create history UI | AI | ⬜ |
-| | Implement filtering | AI | ⬜ |
+| | Create history UI | AI | ✅ |
+| | Implement filtering | AI | ✅ |
 | E5.5 | **Quick Approval** | | |
-| | Implement notification actions | AI | ⬜ |
-| | Add quick approve/reject | AI | ⬜ |
+| | Implement notification actions | AI | ✅ |
+| | Add quick approve/reject | AI | ✅ |
 | E5.6 | **Auto-Approval Rules** | | |
-| | Create rules UI | AI | ⬜ |
-| | Implement auto-approval logic | AI | ⬜ |
+| | Create rules UI | AI | ✅ |
+| | Implement auto-approval logic | AI | ✅ |
 | E6.1 | **Push Notifications Setup** | | |
-| | Finalize FCM integration | AI | ⬜ |
-| | Test notification delivery | AI | ⬜ |
+| | Finalize FCM integration | AI | ✅ |
+| | Test notification delivery | AI | ✅ |
 | E6.2 | **Notification Preferences** | | |
-| | Create preferences UI | AI | ⬜ |
-| | Implement settings logic | AI | ⬜ |
+| | Create preferences UI | AI | ✅ |
+| | Implement settings logic | AI | ✅ |
 | E6.3 | **Notification History** | | |
-| | Create history UI | AI | ⬜ |
-| | Implement storage | AI | ⬜ |
+| | Create history UI | AI | ✅ |
+| | Implement storage | AI | ✅ |
 | E6.4 | **In-App Notifications** | | |
-| | Create notification center | AI | ⬜ |
-| | Add badge count | AI | ⬜ |
+| | Create notification center | AI | ✅ |
+| | Add badge count | AI | ✅ |
 | E7.1 | **App Settings** | | |
-| | Create settings UI | AI | ⬜ |
-| | Implement theme switching | AI | ⬜ |
+| | Create settings UI | AI | ✅ |
+| | Implement theme switching | AI | ✅ |
+| | Add language support | AI | ✅ |
 | E7.2 | **Family Management** | | |
-| | Create family management UI | AI | ⬜ |
-| | Implement add/remove child | AI | ⬜ |
+| | Create family management UI | AI | ✅ |
+| | Implement add/remove child | AI | ✅ |
 | E7.3 | **Help & Support** | | |
-| | Create FAQ section | AI | ⬜ |
-| | Add support contact | AI | ⬜ |
+| | Create FAQ section | AI | ✅ |
+| | Add support contact | AI | ✅ |
+| | Add app info and legal | AI | ✅ |
 
 ### Technical Tasks
 
-- [ ] Polish UI/UX
-- [ ] Optimize performance
-- [ ] Fix bugs
-- [ ] Add error handling
-- [ ] Write documentation
-- [ ] Prepare for release
+- [x] Polish UI/UX
+- [x] Optimize performance
+- [x] Fix bugs
+- [x] Add error handling
+- [x] Write documentation
+- [x] Prepare for release
 
 ### Definition of Done
 
-- [ ] All features implemented
-- [ ] No critical bugs
-- [ ] Performance acceptable
-- [ ] UI polished
-- [ ] Ready for beta testing
+- [x] All features implemented
+- [x] No critical bugs
+- [x] Performance acceptable
+- [x] UI polished
+- [x] Ready for beta testing
+
+### Code Review Issues Fixed
+
+| Severity | Issue | Fix |
+|----------|-------|-----|
+| HIGH | Notification ID overflow | Added `.abs()` to hashCode |
+| MEDIUM | Email preference hardcoded | Added LoadEmailPreference event/state |
+| MEDIUM | Auto-approval default enabled | Changed default to false |
+| MEDIUM | childUid empty in notifications | Extract from document path |
+| MEDIUM | Token refresh race condition | Used `set(merge: true)` |
+| MEDIUM | Missing composite index | Created firestore.indexes.json |
 
 ---
 
@@ -511,20 +527,20 @@
 
 ### Sprint Success
 
-- [ ] All planned stories completed
-- [ ] No critical bugs
-- [ ] Tests passing
-- [ ] Code reviewed
+- [x] All planned stories completed
+- [x] No critical bugs
+- [x] Tests passing
+- [x] Code reviewed
 
 ### Project Success
 
-- [ ] MVP features complete
-- [ ] App stable and performant
-- [ ] Ready for beta testing
-- [ ] Documentation complete
+- [x] MVP features complete
+- [x] App stable and performant
+- [x] Ready for beta testing
+- [x] Documentation complete
 
 ---
 
 **Document Owner:** Scrum Master  
-**Last Updated:** 2026-05-16  
-**Next Review:** End of Sprint 5
+**Last Updated:** 2026-05-17  
+**Next Review:** Project Complete

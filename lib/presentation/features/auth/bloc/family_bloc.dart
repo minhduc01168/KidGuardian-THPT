@@ -19,6 +19,7 @@ class FamilyBloc extends Bloc<FamilyEvent, FamilyState> {
     on<GenerateLinkingCodeRequested>(_onGenerateLinkingCodeRequested);
     on<CreateChildAccountRequested>(_onCreateChildAccountRequested);
     on<LinkChildToFamilyRequested>(_onLinkChildToFamilyRequested);
+    on<RemoveChildFromFamilyRequested>(_onRemoveChildFromFamilyRequested);
   }
 
   Future<void> _onCreateFamilyRequested(
@@ -117,6 +118,24 @@ class FamilyBloc extends Bloc<FamilyEvent, FamilyState> {
         emit(ChildLinkedToFamily(family: updatedFamily));
       } else {
         emit(const FamilyError(message: 'Không thể liên kết tài khoản'));
+      }
+    } catch (e) {
+      emit(FamilyError(message: e.toString().replaceAll('Exception: ', '')));
+    }
+  }
+
+  Future<void> _onRemoveChildFromFamilyRequested(
+    RemoveChildFromFamilyRequested event,
+    Emitter<FamilyState> emit,
+  ) async {
+    emit(FamilyLoading());
+    try {
+      await _familyRepository.removeChildFromFamily(event.familyId, event.childUid);
+      final updatedFamily = await _familyRepository.getFamily(event.familyId);
+      if (updatedFamily != null) {
+        emit(ChildRemovedFromFamily(family: updatedFamily));
+      } else {
+        emit(const FamilyError(message: 'Không thể cập nhật gia đình'));
       }
     } catch (e) {
       emit(FamilyError(message: e.toString().replaceAll('Exception: ', '')));
