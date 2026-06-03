@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -137,32 +138,43 @@ class AuthRepositoryImpl implements AuthRepository {
       final childEmail = '${name.toLowerCase().replaceAll(' ', '')}_$timestamp@kidguardian.local';
       final childPassword = 'KG_${random.toRadixString(16).padLeft(8, '0')}_$timestamp';
 
-      final credential = await _firebaseAuth.createUserWithEmailAndPassword(
-        email: childEmail,
-        password: childPassword,
+      // Create a secondary app instance to avoid signing out the parent
+      final secondaryApp = await Firebase.initializeApp(
+        name: 'SecondaryApp_$timestamp', // unique name
+        options: Firebase.app().options,
       );
 
-      if (credential.user == null) {
-        throw Exception('Tạo tài khoản thất bại');
+      try {
+        final secondaryAuth = firebase.FirebaseAuth.instanceFor(app: secondaryApp);
+        final credential = await secondaryAuth.createUserWithEmailAndPassword(
+          email: childEmail,
+          password: childPassword,
+        );
+
+        if (credential.user == null) {
+          throw Exception('Tạo tài khoản thất bại');
+        }
+
+        await credential.user!.updateDisplayName(name);
+
+        final userModel = UserModel(
+          uid: credential.user!.uid,
+          email: childEmail,
+          displayName: name,
+          role: UserRole.child,
+          familyId: familyId,
+          createdAt: DateTime.now(),
+        );
+
+        await _firestore
+            .collection('users')
+            .doc(credential.user!.uid)
+            .set(userModel.toMap());
+
+        return userModel;
+      } finally {
+        await secondaryApp.delete();
       }
-
-      await credential.user!.updateDisplayName(name);
-
-      final userModel = UserModel(
-        uid: credential.user!.uid,
-        email: childEmail,
-        displayName: name,
-        role: UserRole.child,
-        familyId: familyId,
-        createdAt: DateTime.now(),
-      );
-
-      await _firestore
-          .collection('users')
-          .doc(credential.user!.uid)
-          .set(userModel.toMap());
-
-      return userModel;
     } on firebase.FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
     }
