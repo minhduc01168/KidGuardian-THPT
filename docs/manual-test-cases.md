@@ -317,23 +317,26 @@ Tài liệu này cung cấp hướng dẫn kiểm thử thủ công chi tiết c
 
 ## 4. Test Cases - Quản lý gia đình
 
-### TC-010: Tạo gia đình mới
+### TC-010: Khởi tạo gia đình và thêm con
 | Thông tin | Chi tiết |
 |-----------|----------|
 | **ID** | TC-010 |
-| **Mô tả** | Kiểm tra tạo gia đình (cho phụ huynh mới) |
+| **Mô tả** | Kiểm tra tính năng tạo gia đình ngầm và thêm con (cho phụ huynh mới) |
 | **Priority** | P0 |
 | **Precondition** | Đăng nhập tài khoản phụ huynh, chưa có gia đình |
 
 **Steps:**
 1. Đăng nhập tài khoản phụ huynh mới
-2. Vào "Quản lý gia đình"
-3. Nhấn "Tạo gia đình"
+2. Tại màn hình chính nhấn "Thêm con" hoặc vào Cài đặt > Quản lý gia đình > "Thêm tài khoản con"
+3. Nhập tên con: "Bé An"
+4. Nhập tuổi: 10
+5. Nhấn "Tạo tài khoản"
 
 **Expected Result:**
-- [ ] Tạo gia đình thành công
-- [ ] Hiển thị mã liên kết (linking code)
-- [ ] Mã liên kết có thể copy
+- [ ] Hệ thống tự động khởi tạo gia đình (nếu phụ huynh chưa có)
+- [ ] Tạo tài khoản con thành công
+- [ ] Hiển thị mã liên kết (linking code) 6 ký tự
+- [ ] Tài khoản con xuất hiện trong danh sách quản lý gia đình
 
 **Actual Result:** _______________  
 **Status:** ☐ Pass ☐ Fail  
@@ -341,26 +344,23 @@ Tài liệu này cung cấp hướng dẫn kiểm thử thủ công chi tiết c
 
 ---
 
-### TC-011: Tạo tài khoản con
+### TC-011: Quản lý mã liên kết và thêm thành viên khác
 | Thông tin | Chi tiết |
 |-----------|----------|
 | **ID** | TC-011 |
-| **Mô tả** | Kiểm tra tạo tài khoản con từ phụ huynh |
-| **Priority** | P0 |
-| **Precondition** | Đã có gia đình |
+| **Mô tả** | Kiểm tra sao chép mã liên kết và tiếp tục tạo tài khoản con |
+| **Priority** | P1 |
+| **Precondition** | Đã tạo thành công tài khoản con ở TC-010 |
 
 **Steps:**
-1. Vào "Quản lý gia đình"
-2. Nhấn "Thêm con"
-3. Nhập tên con: "Bé An"
-4. Nhập email: "child3@test.com"
-5. Nhập password: "Test1234"
-6. Nhấn "Tạo tài khoản"
+1. Ở màn hình tạo thành công, nhấn "Sao chép mã"
+2. Nhấn "Tạo tài khoản khác"
+3. Nhập tên con và tuổi mới, nhấn "Tạo tài khoản"
 
 **Expected Result:**
-- [ ] Tạo tài khoản thành công
-- [ ] Tài khoản con xuất hiện trong danh sách
-- [ ] Tự động liên kết với gia đình
+- [ ] Hiển thị thông báo "Đã sao chép mã liên kết"
+- [ ] Form được làm trống để nhập thành viên mới
+- [ ] Tạo thành công và hiển thị mã liên kết mới cho bé thứ 2
 
 **Actual Result:** _______________  
 **Status:** ☐ Pass ☐ Fail  

@@ -104,23 +104,22 @@ Chuẩn bị 2 email test:
 
 ## 3. Test Flow 2: Quản lý gia đình
 
-### TC-FAMILY-001: Tạo gia đình (Parent)
+### TC-FAMILY-001: Khởi tạo gia đình và thêm con (Parent)
 | Bước | Hành động | Kết quả mong đợi | Pass/Fail |
 |------|-----------|------------------|-----------|
-| 1 | Đăng nhập bằng tài khoản Parent | Vào trang chính | ☐ |
-| 2 | Vào Family Management | Hiển thị tùy chọn tạo gia đình | ☐ |
-| 3 | Nhấn "Tạo gia đình" | Hiển thị form nhập tên gia đình | ☐ |
-| 4 | Nhập tên gia đình → Tạo | Tạo thành công, hiển thị mã liên kết | ☐ |
-
-### TC-FAMILY-002: Tạo tài khoản Child
-| Bước | Hành động | Kết quả mong đợi | Pass/Fail |
-|------|-----------|------------------|-----------|
-| 1 | Vào Family Management | Hiển thị danh sách thành viên | ☐ |
-| 2 | Nhấn "Thêm con" | Hiển thị form tạo tài khoản con | ☐ |
+| 1 | Đăng nhập bằng tài khoản Parent | Vào trang chính (Dashboard) | ☐ |
+| 2 | Tại màn hình chính nhấn "Thêm con" hoặc vào Cài đặt > "Quản lý gia đình" > "Thêm tài khoản con" | Hiển thị form tạo tài khoản con | ☐ |
 | 3 | Nhập tên con | Không lỗi | ☐ |
 | 4 | Nhập tuổi (3-18) | Không lỗi | ☐ |
 | 5 | Nhập tuổi < 3 hoặc > 18 | Hiển thị lỗi | ☐ |
-| 6 | Nhấn "Tạo" | Tạo thành công, hiển thị trong danh sách | ☐ |
+| 6 | Nhấn "Tạo tài khoản" | Hệ thống tự khởi tạo gia đình (nếu chưa có), tạo thành công tài khoản con và hiển thị mã liên kết | ☐ |
+
+### TC-FAMILY-002: Quản lý mã liên kết
+| Bước | Hành động | Kết quả mong đợi | Pass/Fail |
+|------|-----------|------------------|-----------|
+| 1 | Ở màn hình báo tạo tài khoản con thành công | Hiển thị mã liên kết 6 ký tự | ☐ |
+| 2 | Nhấn "Sao chép mã" | Hiển thị thông báo "Đã sao chép mã liên kết" | ☐ |
+| 3 | Nhấn "Tạo tài khoản khác" | Trở lại form trống để tạo thêm thành viên | ☐ |
 
 ### TC-FAMILY-003: Liên kết Child với Parent
 | Bước | Hành động | Kết quả mong đợi | Pass/Fail |
