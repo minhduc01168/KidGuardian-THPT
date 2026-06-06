@@ -88,17 +88,6 @@ class AppMonitorService : AccessibilityService() {
     private var currentPackageName: String? = null
     private var lastExtractedText = ""
 
-    override fun onServiceConnected() {
-        super.onServiceConnected()
-        val info = AccessibilityServiceInfo()
-        info.eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or
-                AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED or
-                AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED
-        info.feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC
-        info.flags = AccessibilityServiceInfo.DEFAULT
-        this.serviceInfo = info
-        Log.d(TAG, "Accessibility Service Connected")
-    }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (event?.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
