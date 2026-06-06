@@ -37,14 +37,35 @@
 1. Copy file app-debug.apk vào điện thoại
 2. Vào Settings > Security > Unknown Sources → Bật
 3. Mở file APK → Install
-4. Cấp quyền: Notification, Storage, Accessibility (nếu có)
+4. Cấp quyền: Notification, Storage
 ```
 
-### 1.3 Tài khoản test
+### ⚠️ 1.3 Bật Accessibility Service (BẮT BUỘC cho FIX C2)
+
+> **Quan trọng:** App dùng Accessibility Service để block app ở mức hardware.
+> Nếu không bật, tính năng Smart Lock sẽ KHÔNG hoạt động.
+
+```
+1. Vào Settings (Cài đặt) trên điện thoại
+2. Tìm "Accessibility" (Trợ năng / Hỗ trợ)
+3. Chọn "Installed Services" hoặc "Downloaded apps"
+4. Tìm "KidGuardian" → Bật ON
+5. Xác nhận cấp quyền khi có dialog
+6. Kiểm tra: Mở app KidGuardian → vào Smart Lock Settings → "Accessibility Status: Enabled"
+```
+
+### 1.4 Tài khoản test
 Chuẩn bị 2 email test:
 - **Email Parent:** `parent_test@gmail.com`
 - **Email Child:** `child_test@gmail.com`
 - **Mật khẩu:** `Test@123456`
+
+### 1.5 Kiến trúc mới cần test đặc biệt (từ 06/06/2026)
+| Fix | Mô tả | Section test |
+|-----|--------|-------------|
+| **FIX C1** | Foreground Service — monitoring không bị kill khi background | [Test Flow 12](#13-test-flow-12-foreground-service-fix-c1) |
+| **FIX C2** | Native block app bằng `GLOBAL_ACTION_HOME` (Accessibility) | [Test Flow 13](#14-test-flow-13-native-app-blocking---accessibility-fix-c2) |
+| **FIX C3** | Realtime notification cho phụ huynh khi con xin thêm giờ | [Test Flow 14](#15-test-flow-14-realtime-time-request-notification-fix-c3) |
 
 ---
 
@@ -398,7 +419,118 @@ Chuẩn bị 2 email test:
 
 ---
 
-## 13. Bug Report Template
+## 13. [MỚI] Test Flow 12: Foreground Service (FIX C1)
+
+> **Mục tiêu:** Xác nhận monitoring service chạy liên tục ngay cả khi app bị đưa ra background / bị swipe.
+
+### TC-C1-001: Service khởi động khi mở app
+| Bước | Hành động | Kết quả mong đợi | Pass/Fail |
+|------|-----------|------------------|-----------| 
+| 1 | Mở app KidGuardian (tài khoản Child) | App khởi động | ☐ |
+| 2 | Kéo notification bar xuống | Hiển thị thông báo **"KidGuardian đang giám sát"** (persistent) | ☐ |
+| 3 | Kiểm tra thông báo | Có icon app, không thể dismiss (swipe away) | ☐ |
+
+### TC-C1-002: Service sống sót khi swipe app
+| Bước | Hành động | Kết quả mong đợi | Pass/Fail |
+|------|-----------|------------------|-----------| 
+| 1 | Mở app Child → App đang chạy bình thường | Thấy notification "đang giám sát" | ☐ |
+| 2 | Swipe app ra khỏi Recent Apps (kill app) | — | ☐ |
+| 3 | Kéo notification bar xuống | Vẫn còn thông báo "KidGuardian đang giám sát" | ☐ |
+| 4 | Mở TikTok/YouTube và dùng ~1 phút | — | ☐ |
+| 5 | Mở lại app KidGuardian | Thời gian sử dụng đã được ghi nhận | ☐ |
+
+### TC-C1-003: Service tự khởi động lại sau khi bị kill bởi hệ thống
+| Bước | Hành động | Kết quả mong đợi | Pass/Fail |
+|------|-----------|------------------|-----------| 
+| 1 | Vào Settings > Apps > KidGuardian > Force Stop | App bị kill hoàn toàn | ☐ |
+| 2 | Đợi 30 giây | Service tự restart (START_STICKY) | ☐ |
+| 3 | Kéo notification bar | Thông báo giám sát xuất hiện lại | ☐ |
+
+---
+
+## 14. [MỚI] Test Flow 13: Native App Blocking - Accessibility (FIX C2)
+
+> **Mục tiêu:** Xác nhận app bị chặn ở mức hardware bằng `GLOBAL_ACTION_HOME` thay vì `moveTaskToBack` cũ (vốn không hiệu quả).
+>
+> **Điều kiện bắt buộc:** Đã bật Accessibility Service (xem mục 1.3)
+
+### TC-C2-001: Xác nhận Accessibility Service đang bật
+| Bước | Hành động | Kết quả mong đợi | Pass/Fail |
+|------|-----------|------------------|-----------| 
+| 1 | Vào KidGuardian > Smart Lock > Settings | Hiển thị cài đặt Smart Lock | ☐ |
+| 2 | Kiểm tra trạng thái Accessibility | Hiển thị "✅ Accessibility Service: Đã bật" | ☐ |
+| 3 | Nếu chưa bật, nhấn "Bật Accessibility" | Chuyển đến màn hình Accessibility của hệ thống | ☐ |
+
+### TC-C2-002: App bị block → Văng về màn hình Home (không phải về Recent Apps)
+| Bước | Hành động | Kết quả mong đợi | Pass/Fail |
+|------|-----------|------------------|-----------| 
+| 1 | Đặt giới hạn TikTok = 1 phút (để test nhanh) | Lưu thành công | ☐ |
+| 2 | Mở TikTok trên máy Child, dùng đủ 1 phút | — | ☐ |
+| 3 | Quan sát khi hết thời gian | Màn hình **tức thời trở về Home** (không phải Recent Apps, không phải Lock Screen của app) | ☐ |
+| 4 | Thử mở lại TikTok | Lại bị văng về Home ngay lập tức | ☐ |
+| 5 | Kiểm tra app KidGuardian | Màn hình "Ứng dụng đã bị khóa" của KidGuardian hiển thị | ☐ |
+
+### TC-C2-003: Block app hoạt động ngay cả khi app KidGuardian bị swipe (C1+C2 phối hợp)
+| Bước | Hành động | Kết quả mong đợi | Pass/Fail |
+|------|-----------|------------------|-----------| 
+| 1 | Swipe KidGuardian ra khỏi Recent Apps | App bị kill nhưng Foreground Service vẫn chạy | ☐ |
+| 2 | Mở TikTok, đợi hết giới hạn thời gian | — | ☐ |
+| 3 | Quan sát | TikTok vẫn bị văng về Home (Accessibility Service vẫn hoạt động) | ☐ |
+
+### TC-C2-004: Kiểm tra danh sách app bị block được cập nhật realtime
+| Bước | Hành động | Kết quả mong đợi | Pass/Fail |
+|------|-----------|------------------|-----------| 
+| 1 | Phụ huynh thêm Instagram vào danh sách block | Lưu thành công | ☐ |
+| 2 | Trên máy Child, mở Instagram ngay | Bị văng về Home trong vòng 2 giây | ☐ |
+| 3 | Phụ huynh bỏ block Instagram | — | ☐ |
+| 4 | Mở Instagram lại | Vào được bình thường | ☐ |
+
+---
+
+## 15. [MỚI] Test Flow 14: Realtime Time Request Notification (FIX C3)
+
+> **Mục tiêu:** Xác nhận phụ huynh nhận notification **realtime** (không cần refresh) khi con gửi yêu cầu xin thêm thời gian. Dùng Firestore stream listener.
+
+### TC-C3-001: Child gửi yêu cầu → Parent nhận notification ngay
+| Bước | Hành động | Kết quả mong đợi | Pass/Fail |
+|------|-----------|------------------|-----------| 
+| 1 | Máy Parent: đăng nhập, app đang mở | Parent Dashboard hiển thị | ☐ |
+| 2 | Máy Child: nhấn "Xin thêm thời gian" cho TikTok | Form hiển thị | ☐ |
+| 3 | Máy Child: nhập 15 phút, lý do "Con cần thêm giờ", nhấn Gửi | Thành công | ☐ |
+| 4 | Máy Parent: **trong vòng 5 giây** | Nhận notification: "📱 Con xin thêm thời gian — TikTok: xin thêm 15 phút" | ☐ |
+| 5 | Máy Parent: nhấn vào notification | Mở thẳng màn hình xem yêu cầu | ☐ |
+
+### TC-C3-002: Child gửi yêu cầu khi Parent đang ở background
+| Bước | Hành động | Kết quả mong đợi | Pass/Fail |
+|------|-----------|------------------|-----------| 
+| 1 | Máy Parent: swipe app về background | App chạy ngầm | ☐ |
+| 2 | Máy Child: gửi yêu cầu xin thêm 30 phút | — | ☐ |
+| 3 | Máy Parent: kéo notification bar | Thấy notification từ KidGuardian trong vòng 5 giây | ☐ |
+
+### TC-C3-003: Deduplication — cùng yêu cầu không gửi notification 2 lần
+| Bước | Hành động | Kết quả mong đợi | Pass/Fail |
+|------|-----------|------------------|-----------| 
+| 1 | Child gửi yêu cầu 1 lần | Parent nhận 1 notification | ☐ |
+| 2 | Kiểm tra Parent có nhận 2 notification cho cùng yêu cầu không | **Chỉ nhận đúng 1 notification** (không duplicate) | ☐ |
+
+### TC-C3-004: Parent duyệt nhanh từ notification
+| Bước | Hành động | Kết quả mong đợi | Pass/Fail |
+|------|-----------|------------------|-----------| 
+| 1 | Parent nhận notification time request | — | ☐ |
+| 2 | Nhấn action "✅ Duyệt" trực tiếp trên notification (nếu có) | Yêu cầu được duyệt không cần mở app | ☐ |
+| 3 | Máy Child: kiểm tra trạng thái yêu cầu | Hiển thị "✅ Đã được duyệt — +15 phút" trong vòng 5 giây | ☐ |
+
+### TC-C3-005: TimeRequestStatusScreen realtime update (FIX H1)
+| Bước | Hành động | Kết quả mong đợi | Pass/Fail |
+|------|-----------|------------------|-----------| 
+| 1 | Child mở màn hình "Trạng thái yêu cầu" | Hiển thị danh sách yêu cầu đang chờ | ☐ |
+| 2 | **Không refresh, không thoát màn hình** | — | ☐ |
+| 3 | Parent duyệt yêu cầu từ máy Parent | — | ☐ |
+| 4 | Màn hình Child **tự động cập nhật** | Trạng thái chuyển từ "⏳ Chờ duyệt" → "✅ Đã duyệt" (realtime, không cần refresh) | ☐ |
+
+---
+
+## 16. Bug Report Template
 
 Khi phát hiện bug, ghi lại theo format sau:
 
@@ -493,6 +625,24 @@ Khi phát hiện bug, ghi lại theo format sau:
 - [ ] Cài đặt số khẩn cấp
 - [ ] Lịch sử khẩn cấp
 
+### ⭐ [MỚI] FIX C1 — Foreground Service
+- [ ] TC-C1-001: Service notification hiển thị khi mở app
+- [ ] TC-C1-002: Service sống sót sau khi swipe app
+- [ ] TC-C1-003: Service tự restart sau Force Stop
+
+### ⭐ [MỚI] FIX C2 — Native App Blocking (Accessibility)
+- [ ] TC-C2-001: Accessibility Service đang bật
+- [ ] TC-C2-002: App bị block → văng về Home ngay lập tức
+- [ ] TC-C2-003: Block hoạt động kể cả khi KidGuardian bị swipe
+- [ ] TC-C2-004: Danh sách block cập nhật realtime
+
+### ⭐ [MỚI] FIX C3 — Realtime Notification
+- [ ] TC-C3-001: Parent nhận notification trong 5 giây
+- [ ] TC-C3-002: Notification khi Parent đang background
+- [ ] TC-C3-003: Không duplicate notification
+- [ ] TC-C3-004: Duyệt nhanh từ notification
+- [ ] TC-C3-005: TimeRequestStatusScreen tự cập nhật (realtime)
+
 ---
 
 **Ghi chú cuối:**
@@ -501,8 +651,9 @@ Khi phát hiện bug, ghi lại theo format sau:
 - Test khi có cuộc gọi đến
 - Test khi mất kết nối internet
 - Test xoay màn hình (nếu có landscape mode)
+- **[MỚI]** Test với Accessibility Service TẮT → Smart Lock KHÔNG hoạt động (expected)
+- **[MỚI]** Test với Low RAM device để xác nhận Foreground Service không bị kill
 
 ---
 
-*Hướng dẫn này được tạo tự động bởi BMAD Party Mode*  
-*Ngày: 31/05/2026*
+*Cập nhật: 06/06/2026 — FIX C1 (Foreground Service) + C2 (Native Block) + C3 (Realtime Notification)*
