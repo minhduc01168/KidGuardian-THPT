@@ -5,11 +5,7 @@ import 'package:kidguardian/domain/repositories/family_repository.dart';
 import 'package:kidguardian/domain/entities/usage_log.dart';
 import 'package:kidguardian/domain/usecases/dashboard/load_dashboard_data_usecase.dart';
 
-abstract class _UsageRepositoryWithGetLogs implements UsageRepository {
-  Future<List<UsageLog>> getUsageLogs({required String childUid, required String date});
-}
-
-class MockUsageRepository extends Mock implements _UsageRepositoryWithGetLogs {}
+class MockUsageRepository extends Mock implements UsageRepository {}
 
 class MockFamilyRepository extends Mock implements FamilyRepository {}
 
@@ -42,15 +38,19 @@ void main() {
     );
   }
 
-  void stubGetUsageLogsForAllDates(List<UsageLog> todayLogs) {
-    when(() => mockUsageRepository.getUsageLogs(
-          childUid: any(named: 'childUid'),
-          date: any(named: 'date'),
-        )).thenAnswer((_) async => <UsageLog>[]);
-    when(() => mockUsageRepository.getUsageLogs(
-          childUid: 'child1',
-          date: any(named: 'date'),
-        )).thenAnswer((_) async => todayLogs);
+  // Helper: stub getUsageByChild(childUid, date) với any args trả về [] 
+  // ngoại trừ khi childUid='child1' + date khớp todayStr
+  void stubForAllDates({
+    required String childUid,
+    required String todayStr,
+    required List<UsageLog> todayLogs,
+  }) {
+    // Fallback: tất cả calls trả về []
+    when(() => mockUsageRepository.getUsageByChild(any(), any()))
+        .thenAnswer((_) async => <UsageLog>[]);
+    // Override cho ngày hôm nay
+    when(() => mockUsageRepository.getUsageByChild(childUid, todayStr))
+        .thenAnswer((_) async => todayLogs);
   }
 
   group('LoadDashboardDataUseCase', () {
@@ -60,18 +60,11 @@ void main() {
         _makeLog(appName: 'YouTube', durationMinutes: 45),
       ];
 
-      when(() => mockUsageRepository.getUsageLogs(
-            childUid: any(named: 'childUid'),
-            date: any(named: 'date'),
-          )).thenAnswer((_) async => <UsageLog>[]);
-
       final today = DateTime.now();
       final dateStr =
           '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
-      when(() => mockUsageRepository.getUsageLogs(
-            childUid: 'child1',
-            date: dateStr,
-          )).thenAnswer((_) async => logs);
+
+      stubForAllDates(childUid: 'child1', todayStr: dateStr, todayLogs: logs);
 
       final result = await useCase.execute(familyId: 'fam1', childUid: 'child1');
 
@@ -85,18 +78,11 @@ void main() {
         _makeLog(appName: 'YouTube', durationMinutes: 45),
       ];
 
-      when(() => mockUsageRepository.getUsageLogs(
-            childUid: any(named: 'childUid'),
-            date: any(named: 'date'),
-          )).thenAnswer((_) async => <UsageLog>[]);
-
       final today = DateTime.now();
       final dateStr =
           '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
-      when(() => mockUsageRepository.getUsageLogs(
-            childUid: 'child1',
-            date: dateStr,
-          )).thenAnswer((_) async => logs);
+
+      stubForAllDates(childUid: 'child1', todayStr: dateStr, todayLogs: logs);
 
       final result = await useCase.execute(familyId: 'fam1', childUid: 'child1');
 
@@ -104,10 +90,8 @@ void main() {
     });
 
     test('returns DashboardData with dailyTotals for 7 days', () async {
-      when(() => mockUsageRepository.getUsageLogs(
-            childUid: any(named: 'childUid'),
-            date: any(named: 'date'),
-          )).thenAnswer((_) async => <UsageLog>[]);
+      when(() => mockUsageRepository.getUsageByChild(any(), any()))
+          .thenAnswer((_) async => <UsageLog>[]);
 
       final result = await useCase.execute(familyId: 'fam1', childUid: 'child1');
 
@@ -115,10 +99,8 @@ void main() {
     });
 
     test('returns DashboardData with empty data when no logs', () async {
-      when(() => mockUsageRepository.getUsageLogs(
-            childUid: any(named: 'childUid'),
-            date: any(named: 'date'),
-          )).thenAnswer((_) async => <UsageLog>[]);
+      when(() => mockUsageRepository.getUsageByChild(any(), any()))
+          .thenAnswer((_) async => <UsageLog>[]);
 
       final result = await useCase.execute(familyId: 'fam1', childUid: 'child1');
 
@@ -130,18 +112,11 @@ void main() {
     test('returns recentLogs from today usage', () async {
       final logs = [_makeLog()];
 
-      when(() => mockUsageRepository.getUsageLogs(
-            childUid: any(named: 'childUid'),
-            date: any(named: 'date'),
-          )).thenAnswer((_) async => <UsageLog>[]);
-
       final today = DateTime.now();
       final dateStr =
           '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
-      when(() => mockUsageRepository.getUsageLogs(
-            childUid: 'child1',
-            date: dateStr,
-          )).thenAnswer((_) async => logs);
+
+      stubForAllDates(childUid: 'child1', todayStr: dateStr, todayLogs: logs);
 
       final result = await useCase.execute(familyId: 'fam1', childUid: 'child1');
 
@@ -149,10 +124,8 @@ void main() {
     });
 
     test('propagates exception from repository', () async {
-      when(() => mockUsageRepository.getUsageLogs(
-            childUid: any(named: 'childUid'),
-            date: any(named: 'date'),
-          )).thenThrow(Exception('Network error'));
+      when(() => mockUsageRepository.getUsageByChild(any(), any()))
+          .thenThrow(Exception('Network error'));
 
       expect(
         () => useCase.execute(familyId: 'fam1', childUid: 'child1'),

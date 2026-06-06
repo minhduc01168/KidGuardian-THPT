@@ -69,6 +69,29 @@ class QuickRejectRequest extends NotificationEvent {
   List<Object?> get props => [requestId];
 }
 
+/// FIX C3: Bắt đầu lắng nghe time requests theo realtime (Phương án B - không cần Cloud Functions)
+class StartTimeRequestListening extends NotificationEvent {
+  final String familyId;
+  final List<String> childUids;
+  const StartTimeRequestListening({
+    required this.familyId,
+    required this.childUids,
+  });
+  @override
+  List<Object?> get props => [familyId, childUids];
+}
+
+class StopTimeRequestListening extends NotificationEvent {}
+
+/// Internal event khi phát hiện time request mới
+class _TimeRequestReceived extends NotificationEvent {
+  final TimeRequest request;
+  final String childUid;
+  const _TimeRequestReceived(this.request, this.childUid);
+  @override
+  List<Object?> get props => [request.id];
+}
+
 // States
 abstract class NotificationState extends Equatable {
   const NotificationState();
@@ -79,9 +102,13 @@ abstract class NotificationState extends Equatable {
 class NotificationInitial extends NotificationState {}
 class NotificationListening extends NotificationState {
   final int pendingAlertCount;
-  const NotificationListening({this.pendingAlertCount = 0});
+  final int pendingTimeRequestCount;
+  const NotificationListening({
+    this.pendingAlertCount = 0,
+    this.pendingTimeRequestCount = 0,
+  });
   @override
-  List<Object?> get props => [pendingAlertCount];
+  List<Object?> get props => [pendingAlertCount, pendingTimeRequestCount];
 }
 class NotificationError extends NotificationState {
   final String message;
@@ -96,9 +123,11 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
   final FlutterLocalNotificationsPlugin _notificationsPlugin;
   
   StreamSubscription? _alertSubscription;
+  StreamSubscription? _timeRequestSubscription; // FIX C3
   String? _familyId;
   String? _childUid;
   Set<String> _notifiedAlertIds = {};
+  Set<String> _notifiedRequestIds = {}; // FIX C3: track để tránh notify trung lắp
 
   NotificationBloc({
     required this.alertRepository,
@@ -112,6 +141,10 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     on<MarkAlertReviewed>(_onMarkReviewed);
     on<QuickApproveRequest>(_onQuickApprove);
     on<QuickRejectRequest>(_onQuickReject);
+    // FIX C3
+    on<StartTimeRequestListening>(_onStartTimeRequestListening);
+    on<StopTimeRequestListening>(_onStopTimeRequestListening);
+    on<_TimeRequestReceived>(_onTimeRequestReceived);
   }
 
   Future<void> initializeNotifications() async {
@@ -167,6 +200,59 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     _childUid = null;
     _notifiedAlertIds = {};
     emit(NotificationInitial());
+  }
+
+  // ─── FIX C3: Firestore realtime stream cho Time Requests ─────────────────
+
+  void _onStartTimeRequestListening(
+    StartTimeRequestListening event,
+    Emitter<NotificationState> emit,
+  ) {
+    _timeRequestSubscription?.cancel();
+    _notifiedRequestIds = {};
+
+    // watchPendingRequests dùng collectionGroup — tự filter theo familyId
+    _timeRequestSubscription = timeRequestRepository
+        .watchPendingRequests(familyId: event.familyId)
+        .listen(
+      (requests) {
+        for (final req in requests) {
+          if (!_notifiedRequestIds.contains(req.id)) {
+            _notifiedRequestIds.add(req.id);
+            add(_TimeRequestReceived(req, req.childUid));
+          }
+        }
+      },
+      onError: (error) => debugPrint('TimeRequest stream error: $error'),
+    );
+
+    emit(const NotificationListening()); // Emit initial listening state
+  }
+
+  void _onStopTimeRequestListening(
+    StopTimeRequestListening event,
+    Emitter<NotificationState> emit,
+  ) {
+    _timeRequestSubscription?.cancel();
+    _timeRequestSubscription = null;
+    _notifiedRequestIds = {};
+  }
+
+  Future<void> _onTimeRequestReceived(
+    _TimeRequestReceived event,
+    Emitter<NotificationState> emit,
+  ) async {
+    final req = event.request;
+    await _showNotification(
+      id: req.id.hashCode,
+      title: '📱 Con xin thêm thời gian',
+      body: '${req.appName}: xin thêm ${req.requestedMinutes} phút. Lý do: ${req.reason.isNotEmpty ? req.reason : "Không có"}',
+      payload: 'time_request:${req.id}:${event.childUid}',
+    );
+    emit(NotificationListening(
+      pendingAlertCount: _notifiedAlertIds.length,
+      pendingTimeRequestCount: _notifiedRequestIds.length,
+    ));
   }
 
   Future<void> _onAlertReceived(AlertReceived event, Emitter<NotificationState> emit) async {
@@ -304,6 +390,7 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
   @override
   Future<void> close() {
     _alertSubscription?.cancel();
+    _timeRequestSubscription?.cancel(); // FIX C3
     return super.close();
   }
 }

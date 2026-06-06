@@ -1,10 +1,15 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:kidguardian/domain/repositories/time_request_repository.dart';
 import 'package:kidguardian/presentation/blocs/time_request/time_request_bloc.dart';
 
-class TimeRequestStatusScreen extends StatelessWidget {
+/// TimeRequestStatusScreen — FIX H1
+///
+/// Thay vì load một lần (static), màn hình này dùng StreamBuilder để
+/// tự động cập nhật khi phụ huynh duyệt/từ chối yêu cầu (realtime).
+class TimeRequestStatusScreen extends StatefulWidget {
   final String familyId;
   final String childUid;
 
@@ -15,55 +20,85 @@ class TimeRequestStatusScreen extends StatelessWidget {
   });
 
   @override
+  State<TimeRequestStatusScreen> createState() => _TimeRequestStatusScreenState();
+}
+
+class _TimeRequestStatusScreenState extends State<TimeRequestStatusScreen> {
+  Stream<List<TimeRequest>>? _requestStream;
+
+  @override
+  void initState() {
+    super.initState();
+    // FIX H1: Khởi động Firestore realtime stream ngay khi màn hình mở
+    _requestStream = context.read<TimeRequestRepository>().watchRequests(
+          familyId: widget.familyId,
+          childUid: widget.childUid,
+        );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => TimeRequestBloc(
-        repository: context.read<TimeRequestRepository>(),
-      )..add(LoadTimeRequests(familyId: familyId, childUid: childUid)),
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Yêu cầu của tôi'),
-        ),
-        body: BlocBuilder<TimeRequestBloc, TimeRequestState>(
-          builder: (context, state) {
-            if (state is TimeRequestLoading) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (state is TimeRequestError) {
-              return Center(child: Text('Lỗi: ${state.message}'));
-            }
-            if (state is TimeRequestsLoaded) {
-              if (state.requests.isEmpty) {
-                return const Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.inbox, size: 64, color: Colors.grey),
-                      SizedBox(height: 16),
-                      Text(
-                        'Bạn chưa gửi yêu cầu nào',
-                        style: TextStyle(fontSize: 16, color: Colors.grey),
-                      ),
-                    ],
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Yêu cầu của tôi'),
+      ),
+      body: StreamBuilder<List<TimeRequest>>(
+        stream: _requestStream,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text('Lỗi: ${snapshot.error}'));
+          }
+          final requests = snapshot.data ?? [];
+          if (requests.isEmpty) {
+            return const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.inbox, size: 64, color: Colors.grey),
+                  SizedBox(height: 16),
+                  Text(
+                    'Bạn chưa gửi yêu cầu nào',
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
+                ],
+              ),
+            );
+          }
+          // FIX H1: Tự động pop khi yêu cầu mới nhất được duyệt
+          final latest = requests.first;
+          if (latest.status == TimeRequestStatus.approved) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('✅ Yêu cầu đã được duyệt! Bạn có thêm thời gian.'),
+                    backgroundColor: Colors.green,
+                    duration: Duration(seconds: 2),
                   ),
                 );
+                Future.delayed(const Duration(seconds: 2), () {
+                  if (mounted) Navigator.of(context).pop(true); // true = approved
+                });
               }
-              return ListView.builder(
-                padding: const EdgeInsets.all(8),
-                itemCount: state.requests.length,
-                itemBuilder: (context, index) {
-                  final request = state.requests[index];
-                  return _RequestStatusCard(request: request);
-                },
-              );
-            }
-            return const SizedBox.shrink();
-          },
-        ),
+            });
+          }
+          return ListView.builder(
+            padding: const EdgeInsets.all(8),
+            itemCount: requests.length,
+            itemBuilder: (context, index) {
+              return _RequestStatusCard(request: requests[index]);
+            },
+          );
+        },
       ),
     );
   }
 }
+
+
 
 class _RequestStatusCard extends StatelessWidget {
   final TimeRequest request;

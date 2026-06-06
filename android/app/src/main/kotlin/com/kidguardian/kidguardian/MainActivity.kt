@@ -1,142 +1,116 @@
 package com.kidguardian.kidguardian
 
-import android.content.BroadcastReceiver
-import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.os.Build
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
 import com.kidguardian.kidguardian.accessibility.AppMonitorService
+import com.kidguardian.kidguardian.service.MonitorForegroundService
 
-class MainActivity: FlutterActivity() {
+/**
+ * MainActivity — Flutter host activity (ĐÃ SỬA lỗi C1)
+ *
+ * THAY ĐỔI CHÍNH:
+ * - Gỡ bỏ BroadcastReceiver khỏi onStart/onStop (nguyên nhân gốc của lỗi C1)
+ * - BroadcastReceiver nay nằm trong MonitorForegroundService (chạy ngầm bền vững)
+ * - EventSink được chia sẻ qua MonitorForegroundService.eventSink (singleton)
+ * - Thêm MethodChannel handler: startMonitorService / stopMonitorService
+ */
+class MainActivity : FlutterActivity() {
     private val METHOD_CHANNEL = "com.kidguardian/accessibility"
     private val EVENT_CHANNEL = "com.kidguardian/accessibility_events"
-    private var eventSink: EventChannel.EventSink? = null
-    private var isReceiverRegistered = false
-    private var isLocalReceiverRegistered = false
-
-    private val receiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            if (intent?.action == AppMonitorService.ACTION_APP_BLOCKED) {
-                val packageName = intent.getStringExtra(AppMonitorService.EXTRA_PACKAGE_NAME)
-                eventSink?.success(mapOf("type" to "app_blocked", "packageName" to packageName))
-            } else if (intent?.action == AppMonitorService.ACTION_APP_EVENT) {
-                val packageName = intent.getStringExtra(AppMonitorService.EXTRA_PACKAGE_NAME)
-                val eventType = intent.getStringExtra(AppMonitorService.EXTRA_EVENT_TYPE)
-                eventSink?.success(mapOf("type" to "app_event", "event_type" to eventType, "packageName" to packageName))
-            }
-        }
-    }
-
-    private val keywordReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            if (intent?.action == AppMonitorService.ACTION_KEYWORD_DETECTED) {
-                val keyword = intent.getStringExtra(AppMonitorService.EXTRA_KEYWORD) ?: return
-                val packageName = intent.getStringExtra(AppMonitorService.EXTRA_PACKAGE_NAME) ?: return
-                val textContext = intent.getStringExtra(AppMonitorService.EXTRA_TEXT_CONTEXT) ?: ""
-                eventSink?.success(mapOf(
-                    "type" to "keyword_detected",
-                    "keyword" to keyword,
-                    "packageName" to packageName,
-                    "textContext" to textContext,
-                ))
-            }
-        }
-    }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, METHOD_CHANNEL).setMethodCallHandler { call, result ->
-            when (call.method) {
-                "updateBlockedApps" -> {
-                    val apps = call.argument<List<String>>("apps")
-                    if (apps != null) {
-                        AppMonitorService.blockedApps.clear()
-                        AppMonitorService.blockedApps.addAll(apps)
-                        result.success(true)
-                    } else {
-                        result.error("INVALID_ARGS", "Apps list is null", null)
+        // ── Method Channel: Flutter → Native commands ──────────────────────
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, METHOD_CHANNEL)
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "updateBlockedApps" -> {
+                        val apps = call.argument<List<String>>("apps")
+                        if (apps != null) {
+                            AppMonitorService.blockedApps.clear()
+                            AppMonitorService.blockedApps.addAll(apps)
+                            result.success(true)
+                        } else {
+                            result.error("INVALID_ARGS", "Apps list is null", null)
+                        }
                     }
-                }
-                "updateAppLimits" -> {
-                    val limits = call.argument<Map<String, Int>>("limits")
-                    if (limits != null) {
-                        AppMonitorService.appLimits.clear()
-                        AppMonitorService.appLimits.putAll(limits)
-                        result.success(true)
-                    } else {
-                        result.error("INVALID_ARGS", "Limits map is null", null)
+                    "updateAppLimits" -> {
+                        val limits = call.argument<Map<String, Int>>("limits")
+                        if (limits != null) {
+                            AppMonitorService.appLimits.clear()
+                            AppMonitorService.appLimits.putAll(limits)
+                            result.success(true)
+                        } else {
+                            result.error("INVALID_ARGS", "Limits map is null", null)
+                        }
                     }
-                }
-                "updateKeywords" -> {
-                    val keywords = call.argument<List<String>>("keywords")
-                    if (keywords != null) {
-                        val filtered = keywords.filter { it.isNotBlank() }
-                        AppMonitorService.monitoredKeywords = filtered.toSet()
-                        result.success(true)
-                    } else {
-                        result.error("INVALID_ARGS", "Keywords list is null", null)
+                    "updateKeywords" -> {
+                        val keywords = call.argument<List<String>>("keywords")
+                        if (keywords != null) {
+                            val filtered = keywords.filter { it.isNotBlank() }
+                            AppMonitorService.monitoredKeywords = filtered.toSet()
+                            result.success(true)
+                        } else {
+                            result.error("INVALID_ARGS", "Keywords list is null", null)
+                        }
                     }
+                    // FIX C2: Thay moveTaskToBack bằng lệnh trực tiếp qua AppMonitorService
+                    "moveToHome" -> {
+                        AppMonitorService.instance?.forceGoHome()
+                        result.success(true)
+                    }
+                    // C1: Khởi động / dừng ForegroundService từ Flutter
+                    "startMonitorService" -> {
+                        startMonitorForegroundService()
+                        result.success(true)
+                    }
+                    "stopMonitorService" -> {
+                        stopMonitorForegroundService()
+                        result.success(true)
+                    }
+                    // Giữ lại để không break code cũ
+                    "moveTaskToBack" -> {
+                        moveTaskToBack(true)
+                        result.success(true)
+                    }
+                    else -> result.notImplemented()
                 }
-                "moveTaskToBack" -> {
-                    moveTaskToBack(true)
-                    result.success(true)
-                }
-
-                else -> result.notImplemented()
             }
-        }
 
-        EventChannel(flutterEngine.dartExecutor.binaryMessenger, EVENT_CHANNEL).setStreamHandler(
-            object : EventChannel.StreamHandler {
+        // ── Event Channel: Native → Flutter events ─────────────────────────
+        // EventSink được gán vào MonitorForegroundService.eventSink để
+        // ForegroundService có thể gửi events kể cả khi Activity ở nền
+        EventChannel(flutterEngine.dartExecutor.binaryMessenger, EVENT_CHANNEL)
+            .setStreamHandler(object : EventChannel.StreamHandler {
                 override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
-                    eventSink = events
+                    MonitorForegroundService.eventSink = events
                 }
-
                 override fun onCancel(arguments: Any?) {
-                    eventSink = null
+                    MonitorForegroundService.eventSink = null
                 }
-            }
-        )
+            })
     }
 
-    override fun onStart() {
-        super.onStart()
-        if (!isReceiverRegistered) {
-            val filter = IntentFilter().apply {
-                addAction(AppMonitorService.ACTION_APP_BLOCKED)
-                addAction(AppMonitorService.ACTION_APP_EVENT)
-            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED)
-            } else {
-                registerReceiver(receiver, filter)
-            }
-            isReceiverRegistered = true
+    private fun startMonitorForegroundService() {
+        val intent = Intent(this, MonitorForegroundService::class.java).apply {
+            action = MonitorForegroundService.ACTION_START
         }
-        if (!isLocalReceiverRegistered) {
-            val localFilter = IntentFilter(AppMonitorService.ACTION_KEYWORD_DETECTED)
-            LocalBroadcastManager.getInstance(this).registerReceiver(keywordReceiver, localFilter)
-            isLocalReceiverRegistered = true
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(intent)
+        } else {
+            startService(intent)
         }
     }
 
-    override fun onStop() {
-        super.onStop()
-        if (isReceiverRegistered) {
-            try {
-                unregisterReceiver(receiver)
-            } catch (_: IllegalArgumentException) {}
-            isReceiverRegistered = false
+    private fun stopMonitorForegroundService() {
+        val intent = Intent(this, MonitorForegroundService::class.java).apply {
+            action = MonitorForegroundService.ACTION_STOP
         }
-        if (isLocalReceiverRegistered) {
-            LocalBroadcastManager.getInstance(this).unregisterReceiver(keywordReceiver)
-            isLocalReceiverRegistered = false
-        }
+        startService(intent)
     }
 }
