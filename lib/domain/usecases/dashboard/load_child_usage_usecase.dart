@@ -16,10 +16,7 @@ class LoadChildUsageUseCase {
       throw Exception('Ngày không hợp lệ');
     }
 
-    final usageLogs = await _repository.getUsageLogs(
-      childUid: childUid,
-      date: date,
-    );
+    final usageLogs = await _repository.getUsageByChild(childUid, date);
 
     final totalMinutes = usageLogs.fold<int>(
       0,

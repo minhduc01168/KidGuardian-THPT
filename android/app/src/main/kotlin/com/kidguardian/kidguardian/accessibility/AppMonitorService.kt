@@ -12,15 +12,22 @@ import kotlin.math.min
 
 class AppMonitorService : AccessibilityService() {
 
+    // Singleton instance để MainActivity có thể gọi forceGoHome() trực tiếp
     companion object {
+
         private const val TAG = "AppMonitorService"
         const val ACTION_APP_BLOCKED = "com.kidguardian.kidguardian.ACTION_APP_BLOCKED"
         const val ACTION_APP_EVENT = "com.kidguardian.kidguardian.ACTION_APP_EVENT"
         const val EXTRA_PACKAGE_NAME = "package_name"
+        const val EXTRA_APP_NAME = "app_name"
         const val EXTRA_EVENT_TYPE = "event_type"
         const val ACTION_KEYWORD_DETECTED = "com.kidguardian.kidguardian.ACTION_KEYWORD_DETECTED"
         const val EXTRA_KEYWORD = "keyword"
         const val EXTRA_TEXT_CONTEXT = "text_context"
+
+        // Singleton để gọi forceGoHome() từ MainActivity
+        @Volatile
+        var instance: AppMonitorService? = null
 
         private const val MAX_TREE_DEPTH = 20
         private const val KEYWORD_COOLDOWN_MS = 60_000L
@@ -201,22 +208,58 @@ class AppMonitorService : AccessibilityService() {
     }
 
     private fun sendAppEvent(packageName: String, eventType: String) {
-        val broadcastIntent = Intent(ACTION_APP_EVENT).apply {
+        // Dùng LocalBroadcastManager để MonitorForegroundService nhận được
+        val broadcastIntent = Intent(com.kidguardian.kidguardian.service.MonitorForegroundService.ACTION_APP_EVENT).apply {
             putExtra(EXTRA_PACKAGE_NAME, packageName)
             putExtra(EXTRA_EVENT_TYPE, eventType)
         }
-        sendBroadcast(broadcastIntent)
+        LocalBroadcastManager.getInstance(this).sendBroadcast(broadcastIntent)
     }
 
+    /**
+     * FIX C2: Khoá app bằng cách ép về Home Screen thực sự.
+     * Trước đây dùng sendBroadcast() → KidGuardian chỉ hiện LockScreen nhưng TikTok vẫn chạy.
+     * Bây giờ: performGlobalAction(HOME) → hệ điều hành ép về màn hình chính ngay lập tức.
+     */
     private fun blockApp(packageName: String) {
-        Log.d(TAG, "Blocking app: $packageName")
-        val broadcastIntent = Intent(ACTION_APP_BLOCKED).apply {
+        Log.d(TAG, "Blocking app (FIX C2): $packageName → forcing HOME")
+        // 1. Ép về Home ngay lập tức
+        performGlobalAction(GLOBAL_ACTION_HOME)
+        // 2. Báo cho Flutter cập nhật UI (hiện LockScreen)
+        val broadcastIntent = Intent(com.kidguardian.kidguardian.service.MonitorForegroundService.ACTION_APP_EVENT).apply {
             putExtra(EXTRA_PACKAGE_NAME, packageName)
+            putExtra(EXTRA_EVENT_TYPE, "blocked")
         }
-        sendBroadcast(broadcastIntent)
+        LocalBroadcastManager.getInstance(this).sendBroadcast(broadcastIntent)
+    }
+
+    /**
+     * Cho phép MainActivity gọi trực tiếp khi nhận lệnh moveToHome từ Flutter.
+     */
+    fun forceGoHome() {
+        Log.d(TAG, "forceGoHome() called from MethodChannel")
+        performGlobalAction(GLOBAL_ACTION_HOME)
+    }
+
+    override fun onServiceConnected() {
+        super.onServiceConnected()
+        instance = this
+        val info = AccessibilityServiceInfo()
+        info.eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or
+                AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED or
+                AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED
+        info.feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC
+        info.flags = AccessibilityServiceInfo.DEFAULT
+        this.serviceInfo = info
+        Log.d(TAG, "Accessibility Service Connected ✅")
     }
 
     override fun onInterrupt() {
         Log.d(TAG, "Accessibility Service Interrupted")
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (instance == this) instance = null
     }
 }

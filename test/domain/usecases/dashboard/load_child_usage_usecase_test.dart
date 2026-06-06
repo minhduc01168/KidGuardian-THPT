@@ -4,11 +4,7 @@ import 'package:kidguardian/domain/repositories/usage_repository.dart';
 import 'package:kidguardian/domain/entities/usage_log.dart';
 import 'package:kidguardian/domain/usecases/dashboard/load_child_usage_usecase.dart';
 
-abstract class _UsageRepositoryWithGetLogs implements UsageRepository {
-  Future<List<UsageLog>> getUsageLogs({required String childUid, required String date});
-}
-
-class MockUsageRepository extends Mock implements _UsageRepositoryWithGetLogs {}
+class MockUsageRepository extends Mock implements UsageRepository {}
 
 void main() {
   late LoadChildUsageUseCase useCase;
@@ -60,10 +56,8 @@ void main() {
         _makeLog(durationMinutes: 45),
       ];
 
-      when(() => mockRepository.getUsageLogs(
-            childUid: 'child1',
-            date: '2026-05-31',
-          )).thenAnswer((_) async => logs);
+      when(() => mockRepository.getUsageByChild('child1', '2026-05-31'))
+          .thenAnswer((_) async => logs);
 
       final result = await useCase.execute(childUid: 'child1', date: '2026-05-31');
 
@@ -77,10 +71,8 @@ void main() {
         _makeLog(appName: 'YouTube', durationMinutes: 45),
       ];
 
-      when(() => mockRepository.getUsageLogs(
-            childUid: 'child1',
-            date: '2026-05-31',
-          )).thenAnswer((_) async => logs);
+      when(() => mockRepository.getUsageByChild('child1', '2026-05-31'))
+          .thenAnswer((_) async => logs);
 
       final result = await useCase.execute(childUid: 'child1', date: '2026-05-31');
 
@@ -90,10 +82,8 @@ void main() {
     test('returns ChildUsageData with logs list', () async {
       final logs = [_makeLog()];
 
-      when(() => mockRepository.getUsageLogs(
-            childUid: 'child1',
-            date: '2026-05-31',
-          )).thenAnswer((_) async => logs);
+      when(() => mockRepository.getUsageByChild('child1', '2026-05-31'))
+          .thenAnswer((_) async => logs);
 
       final result = await useCase.execute(childUid: 'child1', date: '2026-05-31');
 
@@ -101,10 +91,8 @@ void main() {
     });
 
     test('returns empty data when no logs found', () async {
-      when(() => mockRepository.getUsageLogs(
-            childUid: 'child1',
-            date: '2026-05-31',
-          )).thenAnswer((_) async => <UsageLog>[]);
+      when(() => mockRepository.getUsageByChild('child1', '2026-05-31'))
+          .thenAnswer((_) async => <UsageLog>[]);
 
       final result = await useCase.execute(childUid: 'child1', date: '2026-05-31');
 
@@ -114,10 +102,8 @@ void main() {
     });
 
     test('propagates exception from repository', () async {
-      when(() => mockRepository.getUsageLogs(
-            childUid: 'child1',
-            date: '2026-05-31',
-          )).thenThrow(Exception('Network error'));
+      when(() => mockRepository.getUsageByChild('child1', '2026-05-31'))
+          .thenThrow(Exception('Network error'));
 
       expect(
         () => useCase.execute(childUid: 'child1', date: '2026-05-31'),

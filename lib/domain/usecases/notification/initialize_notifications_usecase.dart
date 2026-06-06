@@ -15,10 +15,10 @@ class InitializeNotificationsUseCase {
       throw Exception('Family ID không hợp lệ');
     }
 
-    // Start listening to alerts
-    _alertRepository.getAlertsStream(familyId);
+    // Start listening to alerts via watchAllFamilyAlerts
+    _alertRepository.watchAllFamilyAlerts(familyId: familyId);
 
-    // Start listening to time requests
-    _timeRequestRepository.getRequestsStream(familyId);
+    // Start listening to time requests via watchPendingRequests
+    _timeRequestRepository.watchPendingRequests(familyId: familyId);
   }
 }
