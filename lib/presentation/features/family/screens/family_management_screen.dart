@@ -8,7 +8,7 @@ import '../../../../domain/repositories/family_repository.dart';
 import '../../auth/bloc/family_bloc.dart';
 import '../../auth/bloc/family_event.dart';
 import '../../auth/bloc/family_state.dart';
-import '../../auth/screens/create_child_screen.dart';
+
 
 class FamilyManagementScreen extends StatefulWidget {
   final User user;
@@ -385,5 +385,4 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> {
       ),
     );
   }
-
-
+}

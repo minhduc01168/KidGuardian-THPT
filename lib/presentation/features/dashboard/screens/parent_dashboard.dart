@@ -8,7 +8,7 @@ import '../../../../domain/repositories/family_repository.dart';
 import '../../auth/bloc/auth_bloc.dart';
 import '../../auth/bloc/auth_event.dart';
 import '../../auth/bloc/auth_state.dart';
-import '../../auth/screens/create_child_screen.dart';
+
 import '../../auth/screens/profile_screen.dart';
 import '../../report/screens/weekly_report_screen.dart';
 import '../../settings/screens/app_settings_screen.dart';
@@ -372,7 +372,7 @@ class _ParentDashboardState extends State<ParentDashboard> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const FamilyManagementScreen(),
+                          builder: (context) => FamilyManagementScreen(user: user),
                         ),
                       );
                     },
@@ -838,10 +838,17 @@ class _ParentDashboardState extends State<ParentDashboard> {
             children: [
               Expanded(
                 child: _QuickActionCard(
-                  icon: Icons.person_add,
-                  title: 'Thêm con',
+                  icon: Icons.qr_code,
+                  title: 'Mã liên kết',
                   color: AppColors.childPrimary,
-                  onTap: () => _navigateToCreateChild(context, user),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => FamilyManagementScreen(user: user),
+                      ),
+                    );
+                  },
                 ),
               ),
               SizedBox(width: 16),
