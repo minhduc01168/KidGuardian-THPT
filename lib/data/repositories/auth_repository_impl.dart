@@ -129,60 +129,6 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
   
-  @override
-  Future<User> createChildAccount(String name, int age, String familyId) async {
-    try {
-      // Generate a more secure random password
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final random = (timestamp * 2654435761) & 0xFFFFFFFF; // Knuth hash
-      final childEmail = '${name.toLowerCase().replaceAll(' ', '')}_$timestamp@kidguardian.local';
-      final childPassword = 'KG_${random.toRadixString(16).padLeft(8, '0')}_$timestamp';
-
-      // Create a secondary app instance to avoid signing out the parent
-      // Note: On some Android devices, this can hang indefinitely without throwing.
-      // We wrap it in a timeout to fail gracefully instead of spinning forever.
-      final secondaryApp = await Firebase.initializeApp(
-        name: 'SecondaryApp_$timestamp', // unique name
-        options: Firebase.app().options,
-      ).timeout(const Duration(seconds: 5), onTimeout: () {
-        throw Exception('Thiết bị không hỗ trợ tạo tài khoản phụ. Vui lòng lấy "Mã liên kết" trong Quản lý gia đình, sau đó dùng máy của con để tự Đăng ký và Liên kết.');
-      });
-
-      try {
-        final secondaryAuth = firebase.FirebaseAuth.instanceFor(app: secondaryApp);
-        final credential = await secondaryAuth.createUserWithEmailAndPassword(
-          email: childEmail,
-          password: childPassword,
-        );
-
-        if (credential.user == null) {
-          throw Exception('Tạo tài khoản thất bại');
-        }
-
-        await credential.user!.updateDisplayName(name);
-
-        final userModel = UserModel(
-          uid: credential.user!.uid,
-          email: childEmail,
-          displayName: name,
-          role: UserRole.child,
-          familyId: familyId,
-          createdAt: DateTime.now(),
-        );
-
-        await _firestore
-            .collection('users')
-            .doc(credential.user!.uid)
-            .set(userModel.toMap());
-
-        return userModel;
-      } finally {
-        await secondaryApp.delete();
-      }
-    } on firebase.FirebaseAuthException catch (e) {
-      throw _handleAuthException(e);
-    }
-  }
 
   @override
   Future<void> linkChildToFamily(String childUid, String familyId) async {

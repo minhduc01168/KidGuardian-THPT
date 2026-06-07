@@ -365,10 +365,17 @@ class _ParentDashboardState extends State<ParentDashboard> {
               children: [
                 Expanded(
                   child: _QuickActionCard(
-                    icon: Icons.person_add,
-                    title: 'Thêm con',
+                    icon: Icons.qr_code,
+                    title: 'Mã liên kết',
                     color: AppColors.childPrimary,
-                    onTap: () => _navigateToCreateChild(context, user),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const FamilyManagementScreen(),
+                        ),
+                      );
+                    },
                   ),
                 ),
                 SizedBox(width: 16),
@@ -777,33 +784,6 @@ class _ParentDashboardState extends State<ParentDashboard> {
         ),
       ],
     );
-  }
-
-  void _navigateToCreateChild(BuildContext context, User user) async {
-    final familyRepo = context.read<FamilyRepository>();
-    final family = await familyRepo.getFamilyByParent(user.uid);
-
-    if (context.mounted) {
-      if (family != null) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => CreateChildScreen(familyId: family.familyId),
-          ),
-        );
-      } else {
-        final newFamily = await familyRepo.createFamily(user.uid);
-        if (context.mounted) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) =>
-                  CreateChildScreen(familyId: newFamily.familyId),
-            ),
-          );
-        }
-      }
-    }
   }
 
   Widget _buildEmptyDashboard(User user) {

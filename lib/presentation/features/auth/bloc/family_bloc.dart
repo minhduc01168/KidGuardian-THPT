@@ -17,7 +17,7 @@ class FamilyBloc extends Bloc<FamilyEvent, FamilyState> {
     on<CreateFamilyRequested>(_onCreateFamilyRequested);
     on<LoadFamilyRequested>(_onLoadFamilyRequested);
     on<GenerateLinkingCodeRequested>(_onGenerateLinkingCodeRequested);
-    on<CreateChildAccountRequested>(_onCreateChildAccountRequested);
+
     on<LinkChildToFamilyRequested>(_onLinkChildToFamilyRequested);
     on<RemoveChildFromFamilyRequested>(_onRemoveChildFromFamilyRequested);
   }
@@ -65,28 +65,6 @@ class FamilyBloc extends Bloc<FamilyEvent, FamilyState> {
     }
   }
 
-  Future<void> _onCreateChildAccountRequested(
-    CreateChildAccountRequested event,
-    Emitter<FamilyState> emit,
-  ) async {
-    emit(FamilyLoading());
-    try {
-      final child = await _authRepository.createChildAccount(
-        event.name,
-        event.age,
-        event.familyId,
-      );
-
-      await _familyRepository.addChildToFamily(event.familyId, child.uid);
-
-      final family = await _familyRepository.getFamily(event.familyId);
-      final linkingCode = family?.linkingCode ?? '';
-
-      emit(ChildAccountCreated(child: child, linkingCode: linkingCode));
-    } catch (e) {
-      emit(FamilyError(message: e.toString().replaceAll('Exception: ', '')));
-    }
-  }
 
   Future<void> _onLinkChildToFamilyRequested(
     LinkChildToFamilyRequested event,

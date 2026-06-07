@@ -83,22 +83,20 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                 backgroundColor: AppColors.error,
               ),
             );
-          } else if (state is AuthAuthenticated) {
-            // Fix Bug 1: Đã xóa Navigator.pop(context) ở đây để tránh race condition
-            // với LoginScreen và main.dart (AppRouter).
-            // main.dart sẽ tự động rebuild root home thành Dashboard.
+          } else if (state is AuthRegistrationSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Row(
                   children: [
                     Icon(Icons.check_circle_outline, color: Colors.white),
                     SizedBox(width: 12),
-                    Expanded(child: Text('Đăng ký thành công!')),
+                    Expanded(child: Text('Đăng ký thành công! Vui lòng đăng nhập.')),
                   ],
                 ),
                 backgroundColor: AppColors.success,
               ),
             );
+            Navigator.pop(context); // Trở về màn hình Login
           }
         },
         child: Container(

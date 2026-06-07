@@ -73,12 +73,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       );
       print('Registration successful for user: ${user.uid}');
       
-      // Register notification token (non-blocking)
-      _notificationService.registerToken(user.uid).catchError((e) {
-        print('Failed to register notification token: $e');
-      });
+      // Đăng xuất ngay để tránh auto-login của Firebase
+      await _authRepository.logout();
       
-      emit(AuthAuthenticated(user: user));
+      emit(AuthRegistrationSuccess());
     } catch (e) {
       final errorMessage = e.toString().replaceAll('Exception: ', '');
       print('Registration error: $errorMessage');

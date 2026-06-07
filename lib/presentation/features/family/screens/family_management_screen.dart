@@ -86,19 +86,6 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> {
     }
   }
 
-  void _navigateToAddChild() {
-    if (_family == null) return;
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => BlocProvider.value(
-          value: context.read<FamilyBloc>(),
-          child: CreateChildScreen(familyId: _family!.familyId),
-        ),
-      ),
-    ).then((_) => _loadFamilyData());
-  }
-
   void _confirmRemoveChild(User child) {
     showDialog(
       context: context,
@@ -159,8 +146,6 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> {
               ),
             );
             _loadFamilyData();
-          } else if (state is ChildAccountCreated) {
-            _loadFamilyData();
           }
         },
         child: _isLoading
@@ -179,8 +164,6 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> {
           _buildFamilyHeader(),
           SizedBox(height: 24),
           _buildChildrenSection(),
-          SizedBox(height: 24),
-          _buildAddChildButton(),
         ],
       ),
     );
@@ -245,6 +228,31 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> {
                       letterSpacing: 2,
                       color: Colors.white,
                     ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 16),
+            Container(
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.white.withOpacity(0.3)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Hướng dẫn kết nối:',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    '1. Cài đặt KidGuardian trên máy của con.\n'
+                    '2. Chọn đăng ký tài khoản với vai trò "Con".\n'
+                    '3. Đăng nhập và nhập Mã liên kết ở trên.',
+                    style: TextStyle(color: Colors.white.withOpacity(0.9), height: 1.5, fontSize: 13),
                   ),
                 ],
               ),
@@ -378,19 +386,4 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> {
     );
   }
 
-  Widget _buildAddChildButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 50,
-      child: ElevatedButton.icon(
-        onPressed: _family != null ? _navigateToAddChild : null,
-        icon: Icon(Icons.person_add),
-        label: Text('Thêm tài khoản con'),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.childPrimary,
-          foregroundColor: Colors.white,
-        ),
-      ),
-    );
-  }
-}
+
