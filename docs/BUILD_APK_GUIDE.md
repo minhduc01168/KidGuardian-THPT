@@ -28,7 +28,13 @@ git pull origin develop
 
 ## Bước 4: Chạy lệnh Build APK
 
-Sử dụng cờ `--split-per-abi` để giảm dung lượng file APK (tạo ra các file APK riêng biệt cho từng loại chip điện thoại):
+Đầu tiên, bạn nên dọn dẹp các tệp build cũ và tải lại thư viện để đảm bảo app được build từ code mới nhất và không bị lưu cache:
+```bash
+flutter clean
+flutter pub get
+```
+
+Sau đó, sử dụng cờ `--split-per-abi` để giảm dung lượng file APK (tạo ra các file APK riêng biệt cho từng loại chip điện thoại):
 ```bash
 flutter build apk --release --split-per-abi
 ```

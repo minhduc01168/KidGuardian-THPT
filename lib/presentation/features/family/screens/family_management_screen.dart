@@ -222,7 +222,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> {
               color: Colors.white70,
             ),
           ),
-          if (_family != null && _family!.linkingCode.isNotEmpty) ...[
+          if (_family != null && _family!.linkingCode != null && _family!.linkingCode!.isNotEmpty) ...[
             SizedBox(height: 16),
             Container(
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -238,7 +238,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> {
                     style: TextStyle(color: Colors.white),
                   ),
                   Text(
-                    _family!.linkingCode,
+                    _family!.linkingCode!,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
