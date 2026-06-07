@@ -40,24 +40,37 @@
 4. Cấp quyền: Notification, Storage
 ```
 
-### ⚠️ 1.3 Bật Accessibility Service (BẮT BUỘC cho FIX C2)
+### ⚠️ 1.3 Bật Accessibility Service (BẮT BUỘC cho máy Child)
 
-> **Quan trọng:** App dùng Accessibility Service để block app ở mức hardware.
-> Nếu không bật, tính năng Smart Lock sẽ KHÔNG hoạt động.
+> **Quan trọng:** App dùng Accessibility Service để block app ở mức hardware (FIX C2).
+> Nếu không bật, tính năng Smart Lock sẽ KHÔNG hoạt động trên máy Child.
 
-```
-1. Vào Settings (Cài đặt) trên điện thoại
-2. Tìm "Accessibility" (Trợ năng / Hỗ trợ)
-3. Chọn "Installed Services" hoặc "Downloaded apps"
-4. Tìm "KidGuardian" → Bật ON
-5. Xác nhận cấp quyền khi có dialog
-6. Kiểm tra: Mở app KidGuardian → vào Smart Lock Settings → "Accessibility Status: Enabled"
-```
+**Cách bật chung (Android Gốc/Pixel):**
+1. Vào **Cài đặt (Settings)** > **Trợ năng (Accessibility)**.
+2. Tìm **KidGuardian** (hoặc nằm trong mục **Ứng dụng đã tải xuống / Downloaded apps**).
+3. Bật ON > Bấm **Cho phép (Allow)**.
 
-### 1.4 Tài khoản test
-Chuẩn bị 2 email test:
-- **Email Parent:** `parent_test@gmail.com`
-- **Email Child:** `child_test@gmail.com`
+**📱 Đối với điện thoại Samsung:**
+1. Vào **Cài đặt** > **Hỗ trợ (Accessibility)**.
+2. Chọn **Ứng dụng đã cài đặt (Installed apps)**.
+3. Tìm **KidGuardian** > Bật công tắc **Tắt (Off)** thành **Bật (On)**.
+4. Chọn **Cho phép** khi có cảnh báo.
+
+**📱 Đối với Xiaomi / Redmi / POCO (MIUI/HyperOS):**
+1. Vào **Cài đặt** > **Cài đặt bổ sung (Additional settings)**.
+2. Chọn **Hỗ trợ tiếp cận (Accessibility)**.
+3. Chuyển sang tab **Đã tải xuống (Downloaded apps)**.
+4. Chọn **KidGuardian** > Bật **Sử dụng KidGuardian**.
+5. *Lưu ý trên Xiaomi:* Sẽ hiện ra màn hình cảnh báo nguy hiểm đếm ngược 10 giây. Bạn cần **Tích vào ô "Tôi nhận thức được..."**, chờ hết 10 giây rồi bấm **OK**.
+
+### 1.4 Tài khoản test (LƯU Ý QUAN TRỌNG)
+
+> **KHUYẾN NGHỊ:** Do ứng dụng vừa được nâng cấp cấu trúc Database trên Cloud (FIX C1, C2, C3), các tài khoản tạo từ trước có thể bị thiếu trường dữ liệu gây lỗi crash app.
+> **Hãy đăng ký một cặp tài khoản hoàn toàn mới để test.**
+
+Chuẩn bị 2 email (có thể là email ảo, chưa từng đăng ký app):
+- **Email Parent:** `parent_new01@gmail.com`
+- **Email Child:** `child_new01@gmail.com`
 - **Mật khẩu:** `Test@123456`
 
 ### 1.5 Kiến trúc mới cần test đặc biệt (từ 06/06/2026)
