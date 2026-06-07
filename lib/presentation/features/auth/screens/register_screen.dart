@@ -84,7 +84,9 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
               ),
             );
           } else if (state is AuthAuthenticated) {
-            Navigator.pop(context);
+            // Fix Bug 1: Đã xóa Navigator.pop(context) ở đây để tránh race condition
+            // với LoginScreen và main.dart (AppRouter).
+            // main.dart sẽ tự động rebuild root home thành Dashboard.
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Row(

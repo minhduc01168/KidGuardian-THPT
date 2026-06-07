@@ -139,10 +139,14 @@ class AuthRepositoryImpl implements AuthRepository {
       final childPassword = 'KG_${random.toRadixString(16).padLeft(8, '0')}_$timestamp';
 
       // Create a secondary app instance to avoid signing out the parent
+      // Note: On some Android devices, this can hang indefinitely without throwing.
+      // We wrap it in a timeout to fail gracefully instead of spinning forever.
       final secondaryApp = await Firebase.initializeApp(
         name: 'SecondaryApp_$timestamp', // unique name
         options: Firebase.app().options,
-      );
+      ).timeout(const Duration(seconds: 5), onTimeout: () {
+        throw Exception('Thiết bị không hỗ trợ tạo tài khoản phụ. Vui lòng lấy "Mã liên kết" trong Quản lý gia đình, sau đó dùng máy của con để tự Đăng ký và Liên kết.');
+      });
 
       try {
         final secondaryAuth = firebase.FirebaseAuth.instanceFor(app: secondaryApp);

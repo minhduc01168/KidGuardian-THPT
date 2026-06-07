@@ -138,6 +138,30 @@ Chuẩn bị 2 email (có thể là email ảo, chưa từng đăng ký app):
 
 ## 3. Test Flow 2: Quản lý gia đình
 
+### Sơ đồ luồng Liên kết tài khoản (Workaround Flow)
+Để tránh lỗi treo máy khi tạo tài khoản phụ trên một số dòng Android, bạn có thể áp dụng luồng liên kết chủ động từ máy Child như sau:
+
+```mermaid
+sequenceDiagram
+    participant Parent as Máy Phụ huynh
+    participant DB as Firebase
+    participant Child as Máy Con
+
+    Parent->>DB: 1. Đăng ký/Đăng nhập (Parent)
+    DB-->>Parent: Tự động tạo Family ID & Mã liên kết
+    Parent->>DB: Xem "Quản lý gia đình"
+    DB-->>Parent: Hiển thị Mã liên kết (VD: AB12XY)
+    
+    Child->>DB: 2. Đăng ký (Chọn Role: Con)
+    DB-->>Child: Đăng ký thành công
+    Child->>Child: 3. Mở tính năng Liên kết
+    Parent-->>Child: Đưa mã liên kết cho con
+    Child->>DB: 4. Nhập mã liên kết (AB12XY)
+    DB-->>Child: Xác nhận liên kết thành công
+    DB-->>Parent: Cập nhật danh sách con trên Dashboard
+    Note over Parent,Child: 5. Đã liên kết thành công! Sẵn sàng đồng bộ.
+```
+
 ### TC-FAMILY-001: Khởi tạo gia đình và thêm con (Parent)
 | Bước | Hành động | Kết quả mong đợi | Pass/Fail |
 |------|-----------|------------------|-----------|

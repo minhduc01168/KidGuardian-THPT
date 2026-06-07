@@ -222,6 +222,34 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> {
               color: Colors.white70,
             ),
           ),
+          if (_family != null && _family!.linkingCode.isNotEmpty) ...[
+            SizedBox(height: 16),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Mã liên kết: ',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  Text(
+                    _family!.linkingCode,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 2,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
