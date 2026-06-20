@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../domain/entities/family.dart';
 import '../../../../domain/entities/user.dart';
@@ -47,23 +46,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> {
       final family = await familyRepo.getFamily(widget.user.familyId!);
 
       if (family != null && mounted) {
-        final List<User> children = [];
-        final firestore = FirebaseFirestore.instance;
-
-        for (final childUid in family.childUids) {
-          final doc = await firestore.collection('users').doc(childUid).get();
-          if (doc.exists) {
-            children.add(User(
-              uid: doc.id,
-              email: doc['email'] ?? '',
-              displayName: doc['displayName'] ?? '',
-              role: UserRole.child,
-              familyId: doc['familyId'],
-              linkedTo: doc['linkedTo'],
-              createdAt: (doc['createdAt'] as Timestamp).toDate(),
-            ));
-          }
-        }
+        final children = await familyRepo.getChildrenByFamily(family.familyId);
 
         if (mounted) {
           setState(() {

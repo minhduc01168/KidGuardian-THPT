@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../data/services/notification_service.dart';
 import '../../../../domain/repositories/auth_repository.dart';
 import '../../../../domain/repositories/family_repository.dart';
+import '../../../../domain/entities/user.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
@@ -11,6 +12,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final FamilyRepository _familyRepository;
   final NotificationService _notificationService;
   StreamSubscription? _authSubscription;
+  
+  // Guard flag to prevent authStateChanges from overriding
+  // registration flow (Firebase auto-signs-in after createUser)
+  bool _isRegistering = false;
   
   AuthBloc({
     required AuthRepository authRepository,
@@ -42,8 +47,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     try {
       print('Attempting login for: ${event.email}');
-      final user = await _authRepository.login(event.email, event.password);
+      var user = await _authRepository.login(event.email, event.password);
       print('Login successful for user: ${user.uid}');
+      
+      // Auto-create family for parent on first login
+      if (user.role == UserRole.parent && user.familyId == null) {
+        print('Parent has no family, auto-creating...');
+        final family = await _familyRepository.createFamily(user.uid);
+        print('Family created: ${family.familyId}, linking code: ${family.linkingCode}');
+        // Re-fetch user to get updated familyId
+        final updatedUser = await _authRepository.getCurrentUser();
+        if (updatedUser != null) {
+          user = updatedUser;
+        }
+      }
       
       // Register notification token (non-blocking)
       _notificationService.registerToken(user.uid).catchError((e) {
@@ -63,6 +80,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(AuthLoading());
+    _isRegistering = true; // Guard: block authStateChanges
     try {
       print('Attempting registration for: ${event.email}');
       final user = await _authRepository.register(
@@ -76,8 +94,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       // Đăng xuất ngay để tránh auto-login của Firebase
       await _authRepository.logout();
       
+      _isRegistering = false; // Release guard
       emit(AuthRegistrationSuccess());
     } catch (e) {
+      _isRegistering = false; // Release guard on error too
       final errorMessage = e.toString().replaceAll('Exception: ', '');
       print('Registration error: $errorMessage');
       emit(AuthError(message: errorMessage));
@@ -109,6 +129,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthStateChanged event,
     Emitter<AuthState> emit,
   ) {
+    // Skip auth state changes during registration to prevent race condition:
+    // Firebase auto-signs-in after createUser, firing this before logout completes
+    if (_isRegistering) {
+      print('AuthStateChanged ignored (registration in progress)');
+      return;
+    }
+    
     if (event.user != null) {
       _notificationService.registerToken(event.user!.uid);
       emit(AuthAuthenticated(user: event.user!));

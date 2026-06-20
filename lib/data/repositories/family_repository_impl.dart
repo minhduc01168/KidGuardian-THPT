@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 import '../../domain/entities/family.dart';
+import '../../domain/entities/user.dart';
 import '../../domain/repositories/family_repository.dart';
 import '../models/family_model.dart';
 
@@ -132,6 +133,40 @@ class FamilyRepositoryImpl implements FamilyRepository {
       'familyId': FieldValue.delete(),
       'linkedTo': FieldValue.delete(),
     });
+  }
+
+  @override
+  Future<List<User>> getChildrenByFamily(String familyId) async {
+    try {
+      final familyDoc = await _firestore.collection('families').doc(familyId).get();
+      if (!familyDoc.exists) return [];
+
+      final family = FamilyModel.fromFirestore(familyDoc);
+      final List<User> children = [];
+
+      for (final childUid in family.childUids) {
+        final doc = await _firestore.collection('users').doc(childUid).get();
+        if (doc.exists) {
+          final data = doc.data()!;
+          children.add(User(
+            uid: doc.id,
+            email: data['email'] ?? '',
+            displayName: data['displayName'] ?? '',
+            role: UserRole.child,
+            familyId: data['familyId'],
+            linkedTo: data['linkedTo'],
+            createdAt: data['createdAt'] != null
+                ? (data['createdAt'] as Timestamp).toDate()
+                : DateTime.now(),
+          ));
+        }
+      }
+
+      return children;
+    } catch (e) {
+      print('Error getting children: $e');
+      return [];
+    }
   }
 
   String _generateLinkingCode() {

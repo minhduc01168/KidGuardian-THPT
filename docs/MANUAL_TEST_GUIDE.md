@@ -108,7 +108,7 @@ Chuẩn bị 2 email (có thể là email ảo, chưa từng đăng ký app):
 | 6 | Nhập password < 6 ký tự (123) | Hiển thị lỗi "Mật khẩu phải >= 6 ký tự" | ☐ |
 | 7 | Nhập password đúng (`Test@123456`) | Không lỗi | ☐ |
 | 8 | Nhập tên hiển thị | Không lỗi | ☐ |
-| 9 | Nhấn "Đăng ký" | Hiển thị loading → Chuyển đến trang chính | ☐ |
+| 9 | Nhấn "Đăng ký" | Hiển thị loading → Thông báo thành công và chuyển về trang Đăng nhập | ☐ |
 
 ### TC-AUTH-004: Đăng nhập
 | Bước | Hành động | Kết quả mong đợi | Pass/Fail |

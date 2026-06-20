@@ -416,6 +416,8 @@ class _ParentDashboardState extends State<ParentDashboard> {
                             ),
                           ),
                         );
+                      } else {
+                        _showSetupFamilyDialog(context);
                       }
                     },
                   ),
@@ -456,31 +458,15 @@ class _ParentDashboardState extends State<ParentDashboard> {
                             ),
                           ),
                         );
+                      } else {
+                        _showSetupFamilyDialog(context);
                       }
                     },
                   ),
                 ),
                 SizedBox(width: 16),
                 Expanded(
-                  child: _QuickActionCard(
-                    icon: Icons.lock,
-                    title: 'Khóa ứng dụng',
-                    color: AppColors.warning,
-                    onTap: () {
-                      if (user.familyId != null) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => SmartLockSettingsScreen(
-                              familyId: user.familyId!,
-                              childId: user.uid,
-                              childName: user.displayName,
-                            ),
-                          ),
-                        );
-                      }
-                    },
-                  ),
+                  child: SizedBox(), // Placeholder to balance row
                 ),
               ],
             ),
@@ -537,6 +523,41 @@ class _ParentDashboardState extends State<ParentDashboard> {
               'Đăng xuất',
               style: TextStyle(color: AppColors.error),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSetupFamilyDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        icon: Icon(Icons.family_restroom, size: 48, color: AppColors.primary),
+        title: Text('Chưa thiết lập gia đình'),
+        content: Text(
+          'Bạn cần liên kết tài khoản con để sử dụng tính năng này.\n\n'
+          'Vào "Quản lý gia đình" để lấy mã liên kết và chia sẻ cho con.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text('Đã hiểu'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              final authState = context.read<AuthBloc>().state;
+              if (authState is AuthAuthenticated) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => FamilyManagementScreen(user: authState.user),
+                  ),
+                );
+              }
+            },
+            child: Text('Quản lý gia đình'),
           ),
         ],
       ),
@@ -869,6 +890,8 @@ class _ParentDashboardState extends State<ParentDashboard> {
                           ),
                         ),
                       );
+                    } else {
+                      _showSetupFamilyDialog(context);
                     }
                   },
                 ),

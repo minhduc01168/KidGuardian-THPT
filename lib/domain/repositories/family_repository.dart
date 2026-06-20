@@ -1,4 +1,5 @@
 import '../entities/family.dart';
+import '../entities/user.dart';
 
 abstract class FamilyRepository {
   Future<Family> createFamily(String parentUid);
@@ -8,4 +9,5 @@ abstract class FamilyRepository {
   Future<Family> addChildToFamily(String familyId, String childUid);
   Future<Family?> getFamilyByLinkingCode(String linkingCode);
   Future<void> removeChildFromFamily(String familyId, String childUid);
+  Future<List<User>> getChildrenByFamily(String familyId);
 }

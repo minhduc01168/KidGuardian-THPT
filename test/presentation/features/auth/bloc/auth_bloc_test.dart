@@ -89,10 +89,26 @@ void main() {
 
     group('LoginRequested', () {
       blocTest<AuthBloc, AuthState>(
-        'emits [AuthLoading, AuthAuthenticated] when login succeeds',
+        'emits [AuthLoading, AuthAuthenticated] when login succeeds and auto-creates family if parent and familyId is null',
         build: () {
+          final parentNoFamily = User(
+            uid: 'uid123',
+            email: 'test@example.com',
+            displayName: 'Test User',
+            role: UserRole.parent,
+            familyId: null,
+            createdAt: DateTime(2024, 1, 1),
+          );
+          
           when(() => mockAuthRepository.login('test@example.com', 'password123'))
-              .thenAnswer((_) async => testUser);
+              .thenAnswer((_) async => parentNoFamily);
+              
+          when(() => mockFamilyRepository.createFamily('uid123'))
+              .thenAnswer((_) async => testFamily);
+              
+          when(() => mockAuthRepository.getCurrentUser())
+              .thenAnswer((_) async => testUser); // returns user with familyId now
+              
           return createBloc();
         },
         act: (bloc) => bloc.add(const LoginRequested(
@@ -107,6 +123,34 @@ void main() {
             testUser,
           ),
         ],
+        verify: (_) {
+          verify(() => mockFamilyRepository.createFamily('uid123')).called(1);
+          verify(() => mockAuthRepository.getCurrentUser()).called(1);
+        },
+      );
+
+      blocTest<AuthBloc, AuthState>(
+        'emits [AuthLoading, AuthAuthenticated] when login succeeds for child (no auto-create family)',
+        build: () {
+          when(() => mockAuthRepository.login('test@example.com', 'password123'))
+              .thenAnswer((_) async => testChild);
+          return createBloc();
+        },
+        act: (bloc) => bloc.add(const LoginRequested(
+          email: 'test@example.com',
+          password: 'password123',
+        )),
+        expect: () => [
+          isA<AuthLoading>(),
+          isA<AuthAuthenticated>().having(
+            (s) => s.user,
+            'user',
+            testChild,
+          ),
+        ],
+        verify: (_) {
+          verifyNever(() => mockFamilyRepository.createFamily(any()));
+        },
       );
 
       blocTest<AuthBloc, AuthState>(
@@ -170,7 +214,7 @@ void main() {
 
     group('RegisterRequested', () {
       blocTest<AuthBloc, AuthState>(
-        'emits [AuthLoading, AuthAuthenticated] when registration succeeds',
+        'emits [AuthLoading, AuthRegistrationSuccess] when registration succeeds and calls logout',
         build: () {
           when(() => mockAuthRepository.register(
                 'new@example.com',
@@ -178,6 +222,7 @@ void main() {
                 'New User',
                 UserRole.parent,
               )).thenAnswer((_) async => testUser);
+          when(() => mockAuthRepository.logout()).thenAnswer((_) async {});
           return createBloc();
         },
         act: (bloc) => bloc.add(const RegisterRequested(
@@ -188,12 +233,11 @@ void main() {
         )),
         expect: () => [
           isA<AuthLoading>(),
-          isA<AuthAuthenticated>().having(
-            (s) => s.user,
-            'user',
-            testUser,
-          ),
+          isA<AuthRegistrationSuccess>(),
         ],
+        verify: (_) {
+          verify(() => mockAuthRepository.logout()).called(1);
+        },
       );
 
       blocTest<AuthBloc, AuthState>(
@@ -224,7 +268,7 @@ void main() {
       );
 
       blocTest<AuthBloc, AuthState>(
-        'registers with child role correctly',
+        'registers with child role correctly and emits AuthRegistrationSuccess',
         build: () {
           when(() => mockAuthRepository.register(
                 'child@example.com',
@@ -232,6 +276,7 @@ void main() {
                 'Child',
                 UserRole.child,
               )).thenAnswer((_) async => testChild);
+          when(() => mockAuthRepository.logout()).thenAnswer((_) async {});
           return createBloc();
         },
         act: (bloc) => bloc.add(const RegisterRequested(
@@ -242,30 +287,10 @@ void main() {
         )),
         expect: () => [
           isA<AuthLoading>(),
-          isA<AuthAuthenticated>().having(
-            (s) => s.user.role,
-            'role',
-            UserRole.child,
-          ),
+          isA<AuthRegistrationSuccess>(),
         ],
-      );
-
-      blocTest<AuthBloc, AuthState>(
-        'calls registerToken on successful registration',
-        build: () {
-          when(() => mockAuthRepository.register(
-                any(), any(), any(), any(),
-              )).thenAnswer((_) async => testUser);
-          return createBloc();
-        },
-        act: (bloc) => bloc.add(const RegisterRequested(
-          email: 'new@example.com',
-          password: 'password123',
-          name: 'New User',
-          role: UserRole.parent,
-        )),
         verify: (_) {
-          verify(() => mockNotificationService.registerToken('uid123')).called(1);
+          verify(() => mockAuthRepository.logout()).called(1);
         },
       );
     });
@@ -339,6 +364,36 @@ void main() {
         build: () => createBloc(),
         act: (bloc) => bloc.add(const AuthStateChanged(user: null)),
         expect: () => [isA<AuthUnauthenticated>()],
+      );
+      
+      blocTest<AuthBloc, AuthState>(
+        'ignores AuthStateChanged when registering',
+        build: () {
+          when(() => mockAuthRepository.register(
+                'new@example.com',
+                'password123',
+                'New User',
+                UserRole.parent,
+              )).thenAnswer((_) async => testUser);
+          when(() => mockAuthRepository.logout()).thenAnswer((_) async {});
+          return createBloc();
+        },
+        act: (bloc) async {
+          // This will set _isRegistering to true, then await login
+          bloc.add(const RegisterRequested(
+            email: 'new@example.com',
+            password: 'password123',
+            name: 'New User',
+            role: UserRole.parent,
+          ));
+          
+          // Before registration completes, simulate the race condition
+          bloc.add(AuthStateChanged(user: testUser));
+        },
+        expect: () => [
+          isA<AuthLoading>(),
+          isA<AuthRegistrationSuccess>(), // Notice AuthAuthenticated is NOT emitted
+        ],
       );
 
       blocTest<AuthBloc, AuthState>(
