@@ -23,6 +23,8 @@ import '../../help/bloc/help_bloc.dart';
 import '../../family/screens/family_management_screen.dart';
 import '../../../screens/smart_lock/time_limit_screen.dart';
 import '../../../screens/smart_lock/smart_lock_settings_screen.dart';
+import '../../../screens/interaction/time_request_approval_screen.dart';
+import '../../../screens/settings/keyword_management_screen.dart';
 import '../../../blocs/in_app_notification/in_app_notification_bloc.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../bloc/dashboard_event.dart';
@@ -466,7 +468,25 @@ class _ParentDashboardState extends State<ParentDashboard> {
                 ),
                 SizedBox(width: 16),
                 Expanded(
-                  child: SizedBox(), // Placeholder to balance row
+                  child: _QuickActionCard(
+                    icon: Icons.timer,
+                    title: 'Yêu cầu',
+                    color: AppColors.accent,
+                    onTap: () {
+                      if (user.familyId != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => TimeRequestApprovalScreen(
+                              familyId: user.familyId!,
+                            ),
+                          ),
+                        );
+                      } else {
+                        _showSetupFamilyDialog(context);
+                      }
+                    },
+                  ),
                 ),
               ],
             ),
@@ -762,6 +782,28 @@ class _ParentDashboardState extends State<ParentDashboard> {
                 context,
                 MaterialPageRoute(
                   builder: (_) => FamilyManagementScreen(user: user),
+                ),
+              );
+            },
+          ),
+        ),
+        Card(
+          child: ListTile(
+            leading: Icon(Icons.security, color: AppColors.error),
+            title: Text('Quản lý từ khóa cấm'),
+            subtitle: Text('Thêm, sửa, xóa từ khóa cần theo dõi'),
+            trailing: Icon(Icons.chevron_right),
+            onTap: () {
+              if (user.familyId == null) {
+                _showSetupFamilyDialog(context);
+                return;
+              }
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => KeywordManagementScreen(
+                    familyId: user.familyId!,
+                  ),
                 ),
               );
             },

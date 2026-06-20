@@ -145,6 +145,7 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
   final AlertRepository alertRepository;
 
   StreamSubscription? _accessibilitySubscription;
+  StreamSubscription? _keywordsSubscription;
   // P2: Timer for continuous time checking
   Timer? _limitCheckTimer;
   String? _familyId;
@@ -188,6 +189,11 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
       } else {
         add(AppEventReceived(data));
       }
+    });
+
+    _keywordsSubscription?.cancel();
+    _keywordsSubscription = alertRepository.watchKeywords(_familyId!).listen((keywords) {
+      AccessibilityChannel.updateKeywords(keywords);
     });
 
     // P2: Start periodic limit check every 30 seconds
@@ -263,17 +269,15 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
 
     if (packageName == null) return;
 
-    if (type == 'app_blocked') {
-      // D1: Re-show lock screen when user returns to app
-      final blockedState = await _buildBlockedState(packageName);
-      emit(blockedState);
-      return;
-    }
-
     if (type == 'app_event') {
-      final eventType = event.event['event_type'];
+      final eventType = event.event['eventType'] ?? event.event['event_type'];
 
-      if (eventType == 'opened') {
+      if (eventType == 'blocked') {
+        // D1: Re-show lock screen when user returns to app
+        final blockedState = await _buildBlockedState(packageName);
+        emit(blockedState);
+        return;
+      } else if (eventType == 'opened') {
         // Log previous app if exists
         _logCurrentAppUsage();
 
@@ -457,6 +461,7 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
   Future<void> close() {
     _isMonitoring = false;
     _accessibilitySubscription?.cancel();
+    _keywordsSubscription?.cancel();
     _limitCheckTimer?.cancel();
     _logCurrentAppUsage();
     return super.close();

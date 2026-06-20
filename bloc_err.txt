@@ -1,0 +1,107 @@
+00:00 +0: loading /home/minh/CVS/kidguardian-thpt/test/presentation/features/auth/bloc/auth_bloc_test.dart
+00:00 +0: (setUpAll)
+00:00 +0: AuthBloc initial state is AuthInitial
+00:00 +1: AuthBloc LoginRequested emits [AuthLoading, AuthAuthenticated] when login succeeds and auto-creates family if parent and familyId is null
+Attempting login for: test@example.com
+Login successful for user: uid123
+Parent has no family, auto-creating...
+Family created: family1, linking code: ABC123
+00:00 +2: AuthBloc LoginRequested emits [AuthLoading, AuthAuthenticated] when login succeeds for child (no auto-create family)
+Attempting login for: test@example.com
+Login successful for user: child123
+00:00 +3: AuthBloc LoginRequested emits [AuthLoading, AuthError] when login fails
+Attempting login for: test@example.com
+Login error: Invalid credentials
+00:00 +4: AuthBloc LoginRequested emits [AuthLoading, AuthError] on network error
+Attempting login for: test@example.com
+Login error: Network error
+00:00 +5: AuthBloc LoginRequested calls registerToken on successful login
+Attempting login for: test@example.com
+Login successful for user: uid123
+00:00 +6: AuthBloc RegisterRequested emits [AuthLoading, AuthRegistrationSuccess] when registration succeeds and calls logout
+Attempting registration for: new@example.com
+Registration successful for user: uid123
+00:00 +6 -1: AuthBloc RegisterRequested emits [AuthLoading, AuthRegistrationSuccess] when registration succeeds and calls logout [E]
+  Expected: [<<Instance of 'AuthLoading'>>, <<Instance of 'AuthRegistrationSuccess'>>]
+    Actual: [AuthLoading:AuthLoading()]
+     Which: at location [1] is [AuthLoading:AuthLoading()] which shorter than expected
+  
+  package:matcher                              expect
+  package:bloc_test/src/bloc_test.dart 218:16  testBloc.<fn>
+  ===== asynchronous gap ===========================
+  dart:async                                   _Completer.completeError
+  package:bloc_test/src/bloc_test.dart 255:43  _runZonedGuarded.<fn>
+  ===== asynchronous gap ===========================
+  dart:async                                   _CustomZone.registerBinaryCallback
+  package:bloc_test/src/bloc_test.dart 252:5   _runZonedGuarded.<fn>
+  dart:async                                   runZonedGuarded
+  package:bloc_test/src/bloc_test.dart 251:3   _runZonedGuarded
+  package:bloc_test/src/bloc_test.dart 198:11  testBloc
+  package:bloc_test/src/bloc_test.dart 156:13  blocTest.<fn>
+  
+00:00 +6 -1: AuthBloc RegisterRequested emits [AuthLoading, AuthError] when registration fails
+Attempting registration for: existing@example.com
+Registration error: Email already in use
+00:00 +7 -1: AuthBloc RegisterRequested registers with child role correctly and emits AuthRegistrationSuccess
+Attempting registration for: child@example.com
+Registration successful for user: child123
+00:00 +7 -2: AuthBloc RegisterRequested registers with child role correctly and emits AuthRegistrationSuccess [E]
+  Expected: [<<Instance of 'AuthLoading'>>, <<Instance of 'AuthRegistrationSuccess'>>]
+    Actual: [AuthLoading:AuthLoading()]
+     Which: at location [1] is [AuthLoading:AuthLoading()] which shorter than expected
+  
+  package:matcher                              expect
+  package:bloc_test/src/bloc_test.dart 218:16  testBloc.<fn>
+  ===== asynchronous gap ===========================
+  dart:async                                   _Completer.completeError
+  package:bloc_test/src/bloc_test.dart 255:43  _runZonedGuarded.<fn>
+  ===== asynchronous gap ===========================
+  dart:async                                   _CustomZone.registerBinaryCallback
+  package:bloc_test/src/bloc_test.dart 252:5   _runZonedGuarded.<fn>
+  dart:async                                   runZonedGuarded
+  package:bloc_test/src/bloc_test.dart 251:3   _runZonedGuarded
+  package:bloc_test/src/bloc_test.dart 198:11  testBloc
+  package:bloc_test/src/bloc_test.dart 156:13  blocTest.<fn>
+  
+00:00 +7 -2: AuthBloc LogoutRequested emits [AuthUnauthenticated] when logout succeeds
+00:00 +8 -2: AuthBloc ResetPasswordRequested emits [AuthLoading, AuthPasswordResetSent] when reset succeeds
+00:00 +9 -2: AuthBloc ResetPasswordRequested emits [AuthLoading, AuthError] when reset fails
+00:00 +10 -2: AuthBloc AuthStateChanged emits [AuthAuthenticated] when user is not null
+00:00 +11 -2: AuthBloc AuthStateChanged emits [AuthUnauthenticated] when user is null
+00:00 +12 -2: AuthBloc AuthStateChanged ignores AuthStateChanged when registering
+Attempting registration for: new@example.com
+Registration successful for user: uid123
+00:00 +12 -3: AuthBloc AuthStateChanged ignores AuthStateChanged when registering [E]
+  Expected: [<<Instance of 'AuthLoading'>>, <<Instance of 'AuthRegistrationSuccess'>>]
+    Actual: [
+              AuthLoading:AuthLoading(),
+              AuthAuthenticated:AuthAuthenticated(User(uid123, test@example.com, Test User, UserRole.parent, family1, null, 2024-01-01 00:00:00.000))
+            ]
+     Which: at location [1] is AuthAuthenticated:<AuthAuthenticated(User(uid123, test@example.com, Test User, UserRole.parent, family1, null, 2024-01-01 00:00:00.000))> which is not an instance of 'AuthRegistrationSuccess'
+  
+  package:matcher                              expect
+  package:bloc_test/src/bloc_test.dart 218:16  testBloc.<fn>
+  ===== asynchronous gap ===========================
+  dart:async                                   _Completer.completeError
+  package:bloc_test/src/bloc_test.dart 255:43  _runZonedGuarded.<fn>
+  ===== asynchronous gap ===========================
+  dart:async                                   _CustomZone.registerBinaryCallback
+  package:bloc_test/src/bloc_test.dart 252:5   _runZonedGuarded.<fn>
+  dart:async                                   runZonedGuarded
+  package:bloc_test/src/bloc_test.dart 251:3   _runZonedGuarded
+  package:bloc_test/src/bloc_test.dart 198:11  testBloc
+  package:bloc_test/src/bloc_test.dart 156:13  blocTest.<fn>
+  
+00:00 +12 -3: AuthBloc AuthStateChanged registers notification token when user is not null
+00:00 +13 -3: AuthBloc LinkChildToFamily emits [AuthLoading, AuthAuthenticated] when linking succeeds
+00:00 +14 -3: AuthBloc LinkChildToFamily emits [AuthLoading, AuthError] when linking code is invalid
+00:00 +15 -3: AuthBloc LinkChildToFamily emits [AuthLoading, AuthError] when getCurrentUser returns null after linking
+00:00 +16 -3: AuthBloc LinkChildToFamily emits [AuthLoading, AuthError] when repository throws
+00:00 +17 -3: AuthBloc UpdateProfileRequested emits [AuthLoading, AuthAuthenticated] when update succeeds
+00:00 +18 -3: AuthBloc UpdateProfileRequested emits [AuthLoading, AuthError] when getCurrentUser returns null
+00:00 +19 -3: AuthBloc UpdateProfileRequested emits [AuthLoading, AuthError] when update throws
+00:00 +20 -3: AuthBloc UpdateProfileRequested works with null displayName
+00:00 +21 -3: AuthBloc authStateChanges stream integration emits AuthAuthenticated when stream emits a user
+00:00 +22 -3: AuthBloc authStateChanges stream integration emits AuthUnauthenticated when stream emits null
+00:01 +23 -3: (tearDownAll)
+00:01 +23 -3: Some tests failed.

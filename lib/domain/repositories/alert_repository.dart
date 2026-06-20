@@ -47,6 +47,8 @@ abstract class AlertRepository {
     required String childUid,
     required String alertId,
   });
+
+  Stream<List<String>> watchKeywords(String familyId);
 }
 
 class AlertModel {
@@ -272,5 +274,21 @@ class AlertRepositoryImpl implements AlertRepository {
     } catch (e) {
       throw Exception('Failed to dismiss alert: $e');
     }
+  }
+
+  @override
+  Stream<List<String>> watchKeywords(String familyId) {
+    return _firestore
+        .collection('families')
+        .doc(familyId)
+        .collection('settings')
+        .doc('keywords')
+        .snapshots()
+        .map((doc) {
+      if (!doc.exists || doc.data()?['keywords'] == null) {
+        return ['tự tử', 'đánh nhau', 'cờ bạc', 'ma túy'];
+      }
+      return List<String>.from(doc.data()!['keywords']);
+    });
   }
 }

@@ -13,10 +13,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final NotificationService _notificationService;
   StreamSubscription? _authSubscription;
   
-  // Guard flag to prevent authStateChanges from overriding
-  // registration flow (Firebase auto-signs-in after createUser)
-  bool _isRegistering = false;
-  
+
   AuthBloc({
     required AuthRepository authRepository,
     required FamilyRepository familyRepository,
@@ -80,7 +77,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(AuthLoading());
-    _isRegistering = true; // Guard: block authStateChanges
     try {
       print('Attempting registration for: ${event.email}');
       final user = await _authRepository.register(
@@ -91,13 +87,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       );
       print('Registration successful for user: ${user.uid}');
       
-      // Đăng xuất ngay để tránh auto-login của Firebase
-      await _authRepository.logout();
-      
-      _isRegistering = false; // Release guard
-      emit(AuthRegistrationSuccess());
+      // Không gọi logout nữa, để Firebase tự động login.
+      // Luồng điều hướng sẽ được xử lý qua _onAuthStateChanged.
+      // Không cần emit AuthRegistrationSuccess nữa vì AuthStateChanged sẽ emit AuthAuthenticated.
     } catch (e) {
-      _isRegistering = false; // Release guard on error too
       final errorMessage = e.toString().replaceAll('Exception: ', '');
       print('Registration error: $errorMessage');
       emit(AuthError(message: errorMessage));
@@ -129,12 +122,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthStateChanged event,
     Emitter<AuthState> emit,
   ) {
-    // Skip auth state changes during registration to prevent race condition:
-    // Firebase auto-signs-in after createUser, firing this before logout completes
-    if (_isRegistering) {
-      print('AuthStateChanged ignored (registration in progress)');
-      return;
-    }
     
     if (event.user != null) {
       _notificationService.registerToken(event.user!.uid);

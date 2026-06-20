@@ -18,19 +18,22 @@ class AuthRepositoryImpl implements AuthRepository {
   
   @override
   Stream<User?> get authStateChanges {
-    return _firebaseAuth.authStateChanges().asyncMap((firebaseUser) async {
-      if (firebaseUser == null) return null;
-      try {
-        return await _getUserFromFirestore(firebaseUser.uid);
-      } catch (e) {
-        print('Error in authStateChanges stream: $e');
-        return UserModel(
-          uid: firebaseUser.uid,
-          email: firebaseUser.email ?? '',
-          displayName: firebaseUser.displayName ?? 'User',
-          role: UserRole.parent,
-          createdAt: DateTime.now(),
-        );
+    return _firebaseAuth.authStateChanges().asyncExpand((firebaseUser) async* {
+      if (firebaseUser == null) {
+        yield null;
+      } else {
+        // Lắng nghe thay đổi từ Firestore thay vì get() 1 lần.
+        // Dùng where((doc) => doc.exists) để block stream cho đến khi document thực sự được tạo.
+        // Giải quyết triệt để lỗi Race Condition khi Firebase Auth tự động login sau lúc Register.
+        yield* _firestore
+            .collection('users')
+            .doc(firebaseUser.uid)
+            .snapshots()
+            .where((doc) => doc.exists)
+            .map((doc) => UserModel.fromFirestore(doc))
+            .handleError((e) {
+              print('Error in authStateChanges stream: $e');
+            });
       }
     });
   }

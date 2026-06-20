@@ -214,7 +214,7 @@ void main() {
 
     group('RegisterRequested', () {
       blocTest<AuthBloc, AuthState>(
-        'emits [AuthLoading, AuthRegistrationSuccess] when registration succeeds and calls logout',
+        'emits [AuthLoading] when registration succeeds (relies on auto-login)',
         build: () {
           when(() => mockAuthRepository.register(
                 'new@example.com',
@@ -222,7 +222,6 @@ void main() {
                 'New User',
                 UserRole.parent,
               )).thenAnswer((_) async => testUser);
-          when(() => mockAuthRepository.logout()).thenAnswer((_) async {});
           return createBloc();
         },
         act: (bloc) => bloc.add(const RegisterRequested(
@@ -233,10 +232,9 @@ void main() {
         )),
         expect: () => [
           isA<AuthLoading>(),
-          isA<AuthRegistrationSuccess>(),
         ],
         verify: (_) {
-          verify(() => mockAuthRepository.logout()).called(1);
+          verifyNever(() => mockAuthRepository.logout());
         },
       );
 
@@ -268,7 +266,7 @@ void main() {
       );
 
       blocTest<AuthBloc, AuthState>(
-        'registers with child role correctly and emits AuthRegistrationSuccess',
+        'registers with child role correctly',
         build: () {
           when(() => mockAuthRepository.register(
                 'child@example.com',
@@ -276,7 +274,6 @@ void main() {
                 'Child',
                 UserRole.child,
               )).thenAnswer((_) async => testChild);
-          when(() => mockAuthRepository.logout()).thenAnswer((_) async {});
           return createBloc();
         },
         act: (bloc) => bloc.add(const RegisterRequested(
@@ -287,10 +284,9 @@ void main() {
         )),
         expect: () => [
           isA<AuthLoading>(),
-          isA<AuthRegistrationSuccess>(),
         ],
         verify: (_) {
-          verify(() => mockAuthRepository.logout()).called(1);
+          verifyNever(() => mockAuthRepository.logout());
         },
       );
     });
@@ -364,36 +360,6 @@ void main() {
         build: () => createBloc(),
         act: (bloc) => bloc.add(const AuthStateChanged(user: null)),
         expect: () => [isA<AuthUnauthenticated>()],
-      );
-      
-      blocTest<AuthBloc, AuthState>(
-        'ignores AuthStateChanged when registering',
-        build: () {
-          when(() => mockAuthRepository.register(
-                'new@example.com',
-                'password123',
-                'New User',
-                UserRole.parent,
-              )).thenAnswer((_) async => testUser);
-          when(() => mockAuthRepository.logout()).thenAnswer((_) async {});
-          return createBloc();
-        },
-        act: (bloc) async {
-          // This will set _isRegistering to true, then await login
-          bloc.add(const RegisterRequested(
-            email: 'new@example.com',
-            password: 'password123',
-            name: 'New User',
-            role: UserRole.parent,
-          ));
-          
-          // Before registration completes, simulate the race condition
-          bloc.add(AuthStateChanged(user: testUser));
-        },
-        expect: () => [
-          isA<AuthLoading>(),
-          isA<AuthRegistrationSuccess>(), // Notice AuthAuthenticated is NOT emitted
-        ],
       );
 
       blocTest<AuthBloc, AuthState>(

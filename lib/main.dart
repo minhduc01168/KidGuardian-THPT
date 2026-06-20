@@ -26,6 +26,7 @@ import 'presentation/features/auth/bloc/auth_bloc.dart';
 import 'presentation/features/auth/bloc/auth_state.dart';
 import 'presentation/features/auth/bloc/family_bloc.dart';
 import 'presentation/features/auth/screens/role_selection_screen.dart';
+import 'presentation/features/auth/screens/splash_screen.dart';
 import 'presentation/features/dashboard/bloc/dashboard_bloc.dart';
 import 'presentation/features/dashboard/screens/parent_dashboard.dart';
 import 'presentation/features/dashboard/screens/child_dashboard.dart';
@@ -245,10 +246,12 @@ class KidGuardianApp extends StatelessWidget {
                 debugShowCheckedModeBanner: false,
                 home: BlocBuilder<AuthBloc, AuthState>(
                   builder: (context, state) {
-                    if (state is AuthAuthenticated) {
+                    if (state is AuthInitial || state is AuthLoading) {
+                      return const SplashScreen();
+                    } else if (state is AuthAuthenticated) {
                       return _buildHomeForRole(state.user, context);
                     }
-                    return RoleSelectionScreen();
+                    return const RoleSelectionScreen();
                   },
                 ),
               );
@@ -265,6 +268,9 @@ class KidGuardianApp extends StatelessWidget {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           context.read<NotificationBloc>().add(
             StartAlertListening(familyId: user.familyId!),
+          );
+          context.read<NotificationBloc>().add(
+            StartTimeRequestListening(familyId: user.familyId!, childUids: const []),
           );
         });
       }
