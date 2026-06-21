@@ -39,70 +39,71 @@ class _BlockedAppsView extends StatelessWidget {
   });
 
   void _showAddCustomAppDialog(BuildContext context) {
-    final packageNameController = TextEditingController();
-    final appNameController = TextEditingController();
-    final formKey = GlobalKey<FormState>();
-
-    showDialog(
+    showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (ctx) {
-        return AlertDialog(
-          title: const Text('Thêm ứng dụng tùy chỉnh'),
-          content: Form(
-            key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+        return DraggableScrollableSheet(
+          initialChildSize: 0.7,
+          minChildSize: 0.5,
+          maxChildSize: 0.9,
+          expand: false,
+          builder: (ctx, scrollController) {
+            return Column(
               children: [
-                TextFormField(
-                  controller: packageNameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Package Name',
-                    hintText: 'com.example.app',
+                const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Text(
+                    'Chọn ứng dụng để giám sát',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Vui lòng nhập package name';
-                    }
-                    return null;
-                  },
                 ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: appNameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Tên ứng dụng',
-                    hintText: 'My App',
+                Expanded(
+                  child: FutureBuilder<List<Map<String, dynamic>>>(
+                    future: SmartLockRepository().getInstalledApps(familyId, childId),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (snapshot.hasError) {
+                        return Center(child: Text('Lỗi: ${snapshot.error}'));
+                      }
+                      final apps = snapshot.data ?? [];
+                      if (apps.isEmpty) {
+                        return const Center(
+                          child: Text('Chưa có dữ liệu ứng dụng. Vui lòng mở ứng dụng trên máy trẻ để đồng bộ.'),
+                        );
+                      }
+                      return ListView.builder(
+                        controller: scrollController,
+                        itemCount: apps.length,
+                        itemBuilder: (context, index) {
+                          final app = apps[index];
+                          return ListTile(
+                            leading: const CircleAvatar(child: Icon(Icons.android)),
+                            title: Text(app['appName'] ?? 'Unknown'),
+                            subtitle: Text(app['packageName'] ?? ''),
+                            onTap: () {
+                              context.read<SmartLockBloc>().add(AddCustomApp(
+                                familyId,
+                                childId,
+                                app['packageName'],
+                                app['appName'] ?? 'Unknown',
+                              ));
+                              Navigator.of(ctx).pop();
+                            },
+                          );
+                        },
+                      );
+                    },
                   ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Vui lòng nhập tên ứng dụng';
-                    }
-                    return null;
-                  },
                 ),
               ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Hủy'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (formKey.currentState?.validate() ?? false) {
-                  context.read<SmartLockBloc>().add(AddCustomApp(
-                    familyId,
-                    childId,
-                    packageNameController.text.trim(),
-                    appNameController.text.trim(),
-                  ));
-                  Navigator.of(ctx).pop();
-                }
-              },
-              child: const Text('Thêm'),
-            ),
-          ],
+            );
+          },
         );
       },
     );

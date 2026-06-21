@@ -34,6 +34,7 @@ class SmartLockBloc extends Bloc<SmartLockEvent, SmartLockState> {
     on<LoadSmartLockSettings>(_onLoadSmartLockSettings);
     on<SaveSmartLockSettings>(_onSaveSmartLockSettings);
     on<LoadLockHistory>(_onLoadLockHistory);
+    on<LoadInstalledApps>(_onLoadInstalledApps);
   }
 
   Future<void> _onLoadAppTimeLimits(
@@ -381,6 +382,22 @@ class SmartLockBloc extends Bloc<SmartLockEvent, SmartLockState> {
       emit(LockHistoryLoaded(history));
     } catch (e) {
       emit(SmartLockError(e.toString()));
+    }
+  }
+
+  Future<void> _onLoadInstalledApps(
+    LoadInstalledApps event,
+    Emitter<SmartLockState> emit,
+  ) async {
+    emit(SmartLockLoading());
+    try {
+      final apps = await repository.getInstalledApps(
+        event.familyId,
+        event.childId,
+      );
+      emit(InstalledAppsLoaded(apps));
+    } catch (e) {
+      emit(SmartLockError('Không thể tải danh sách ứng dụng đã cài đặt: $e'));
     }
   }
 

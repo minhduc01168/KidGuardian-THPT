@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/app_time_limit_model.dart';
 import '../models/monitored_app_model.dart';
 import '../models/schedule_model.dart';
@@ -111,17 +113,39 @@ class SmartLockRepository {
     String familyId,
     String childId,
   ) async {
-    final snapshot = await _firestore
-        .collection('families')
-        .doc(familyId)
-        .collection('children')
-        .doc(childId)
-        .collection('monitoredApps')
-        .get();
+    final cacheKey = 'monitored_apps_cache_$childId';
+    try {
+      final snapshot = await _firestore
+          .collection('families')
+          .doc(familyId)
+          .collection('children')
+          .doc(childId)
+          .collection('monitoredApps')
+          .get(const GetOptions(source: Source.serverAndCache))
+          .timeout(const Duration(seconds: 5));
 
-    return snapshot.docs
-        .map((doc) => MonitoredAppModel.fromJson(doc.data()))
-        .toList();
+      final apps = snapshot.docs
+          .map((doc) => MonitoredAppModel.fromJson(doc.data()))
+          .toList();
+
+      // Lưu cache vào SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      final String encodedData = jsonEncode(apps.map((a) => a.toJson()).toList());
+      await prefs.setString(cacheKey, encodedData);
+
+      return apps;
+    } catch (e) {
+      // Nếu rớt mạng hoặc timeout, fallback dùng cache local
+      final prefs = await SharedPreferences.getInstance();
+      final cachedString = prefs.getString(cacheKey);
+      if (cachedString != null) {
+        final List<dynamic> decodedList = jsonDecode(cachedString);
+        return decodedList
+            .map((item) => MonitoredAppModel.fromJson(item as Map<String, dynamic>))
+            .toList();
+      }
+      return [];
+    }
   }
 
   Future<void> toggleMonitoredApp(
@@ -170,6 +194,57 @@ class SmartLockRepository {
     } catch (e) {
       if (e is TimeoutException) return;
       rethrow;
+    }
+  }
+
+  // --- Installed Apps (Giai đoạn 2) ---
+
+  Future<void> saveInstalledApps(
+    String familyId,
+    String childId,
+    List<Map<String, dynamic>> apps,
+  ) async {
+    try {
+      final batch = _firestore.batch();
+      final collectionRef = _firestore
+          .collection('families')
+          .doc(familyId)
+          .collection('children')
+          .doc(childId)
+          .collection('installedApps');
+
+      // Có thể tối ưu bằng cách chỉ ghi những app chưa có, 
+      // tạm thời ghi đè toàn bộ cho MVP
+      for (final app in apps) {
+        batch.set(collectionRef.doc(app['packageName']), app, SetOptions(merge: true));
+      }
+
+      await batch.commit().timeout(
+            const Duration(seconds: 10),
+            onTimeout: () => throw TimeoutException('Offline sync'),
+          );
+    } catch (e) {
+      if (e is TimeoutException) return;
+      rethrow;
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getInstalledApps(
+    String familyId,
+    String childId,
+  ) async {
+    try {
+      final snapshot = await _firestore
+          .collection('families')
+          .doc(familyId)
+          .collection('children')
+          .doc(childId)
+          .collection('installedApps')
+          .get();
+
+      return snapshot.docs.map((doc) => doc.data()).toList();
+    } catch (e) {
+      return [];
     }
   }
 

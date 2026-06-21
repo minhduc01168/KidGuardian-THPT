@@ -12,6 +12,7 @@ import 'package:kidguardian/domain/repositories/alert_repository.dart';
 import 'package:kidguardian/data/repositories/smart_lock_repository.dart';
 import 'package:kidguardian/data/models/smart_lock_settings_model.dart';
 import 'package:intl/intl.dart';
+import 'package:device_apps/device_apps.dart';
 
 // Events
 abstract class AppMonitorEvent extends Equatable {
@@ -204,7 +205,32 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
       }
     });
 
+    _syncInstalledApps();
+
     emit(AppMonitorRunning());
+  }
+
+  Future<void> _syncInstalledApps() async {
+    if (_familyId == null || _childUid == null) return;
+    try {
+      final apps = await DeviceApps.getInstalledApplications(
+        includeSystemApps: false,
+        includeAppIcons: false,
+        onlyAppsWithLaunchIntent: true,
+      );
+
+      final List<Map<String, dynamic>> appDataList = apps.map((app) {
+        return {
+          'packageName': app.packageName,
+          'appName': app.appName,
+          'versionName': app.versionName,
+        };
+      }).toList();
+
+      await smartLockRepository.saveInstalledApps(_familyId!, _childUid!, appDataList);
+    } catch (e) {
+      debugPrint('AppMonitorBloc._syncInstalledApps error: $e');
+    }
   }
 
   Future<void> _loadSettings() async {
@@ -237,6 +263,15 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
         await blockAppUseCase.execute(appPackageName: _currentAppPackage!);
         // D1: Tell native to move task to back
         await AccessibilityChannel.moveTaskToBack();
+        
+        // Ghi alert
+        await alertRepository.createAppBlockedAlert(
+          familyId: _familyId!,
+          childUid: _childUid!,
+          packageName: _currentAppPackage!,
+          reason: 'time_limit',
+        );
+
         final blockedState = await _buildBlockedState(_currentAppPackage!, blockReason: 'time_limit');
         emit(blockedState);
         return;
@@ -249,6 +284,15 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
         _logCurrentAppUsage();
         await blockAppUseCase.execute(appPackageName: _currentAppPackage!);
         await AccessibilityChannel.moveTaskToBack();
+        
+        // Ghi alert
+        await alertRepository.createAppBlockedAlert(
+          familyId: _familyId!,
+          childUid: _childUid!,
+          packageName: _currentAppPackage!,
+          reason: 'schedule (${activeSchedule.name})',
+        );
+
         final blockedState = await _buildBlockedState(
           _currentAppPackage!,
           blockReason: 'schedule',
@@ -303,6 +347,15 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
               await blockAppUseCase.execute(appPackageName: packageName);
               // D1: Tell native to move task to back
               await AccessibilityChannel.moveTaskToBack();
+              
+              // Ghi alert
+              await alertRepository.createAppBlockedAlert(
+                familyId: _familyId!,
+                childUid: _childUid!,
+                packageName: packageName,
+                reason: 'time_limit',
+              );
+
               final blockedState = await _buildBlockedState(packageName, blockReason: 'time_limit');
               emit(blockedState);
               return;
@@ -315,6 +368,15 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
               _logCurrentAppUsage();
               await blockAppUseCase.execute(appPackageName: packageName);
               await AccessibilityChannel.moveTaskToBack();
+              
+              // Ghi alert
+              await alertRepository.createAppBlockedAlert(
+                familyId: _familyId!,
+                childUid: _childUid!,
+                packageName: packageName,
+                reason: 'schedule (${activeSchedule.name})',
+              );
+
               final blockedState = await _buildBlockedState(
                 packageName,
                 blockReason: 'schedule',

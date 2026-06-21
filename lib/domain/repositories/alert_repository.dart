@@ -9,6 +9,13 @@ abstract class AlertRepository {
     required String textContext,
   });
 
+  Future<void> createAppBlockedAlert({
+    required String familyId,
+    required String childUid,
+    required String packageName,
+    required String reason,
+  });
+
   Stream<List<AlertModel>> watchNewAlerts({
     required String familyId,
     required String childUid,
@@ -135,6 +142,35 @@ class AlertRepositoryImpl implements AlertRepository {
       });
     } catch (e) {
       throw Exception('Failed to create keyword alert: $e');
+    }
+  }
+
+  @override
+  Future<void> createAppBlockedAlert({
+    required String familyId,
+    required String childUid,
+    required String packageName,
+    required String reason, // 'time_limit' or 'schedule'
+  }) async {
+    try {
+      await _firestore
+          .collection('families')
+          .doc(familyId)
+          .collection('children')
+          .doc(childUid)
+          .collection('alerts')
+          .add({
+        'type': 'app_blocked',
+        'keyword': '',
+        'packageName': packageName,
+        'textContext': 'App blocked due to: $reason',
+        'timestamp': FieldValue.serverTimestamp(),
+        'isReviewed': false,
+        'isDismissed': false,
+        'notes': '',
+      });
+    } catch (e) {
+      throw Exception('Failed to create app blocked alert: $e');
     }
   }
 
