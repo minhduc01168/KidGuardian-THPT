@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/services.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:kidguardian/presentation/blocs/smart_lock/app_monitor_bloc.dart';
 import 'package:kidguardian/domain/usecases/smart_lock/check_app_access_usecase.dart';
@@ -31,7 +32,17 @@ void main() {
     mockUsageRepository = MockUsageRepository();
     mockSmartLockRepository = MockSmartLockRepository();
     mockScheduleChecker = MockScheduleChecker();
+    mockScheduleChecker = MockScheduleChecker();
     mockAlertRepository = MockAlertRepository();
+
+    const MethodChannel channel = MethodChannel('com.kidguardian/accessibility');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+      return null;
+    });
+
+    when(() => mockAlertRepository.watchKeywords(any()))
+        .thenAnswer((_) => Stream.value([]));
 
     bloc = AppMonitorBloc(
       checkAppAccessUseCase: mockCheckAppAccessUseCase,
@@ -68,8 +79,9 @@ void main() {
       when(() => mockUsageRepository.getUsageByApp(any(), any()))
           .thenAnswer((_) async => {});
 
-      bloc.add(AppEventReceived({
-        'type': 'app_blocked',
+      bloc.add(const AppEventReceived({
+        'type': 'app_event',
+        'eventType': 'blocked',
         'packageName': 'com.test.app',
       }));
 

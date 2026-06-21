@@ -45,49 +45,39 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
       int totalToday = 0;
       int totalYesterday = 0;
       Map<String, int> usageByApp = {};
-
-      for (final childUid in family.childUids) {
-        totalToday += await _usageRepository.getTotalUsageMinutes(
-          childUid,
-          today,
-        );
-        totalYesterday += await _usageRepository.getTotalUsageMinutes(
-          childUid,
-          yesterday,
-        );
-
-        final childUsage = await _usageRepository.getUsageByApp(
-          childUid,
-          today,
-        );
-        childUsage.forEach((app, minutes) {
-          usageByApp[app] = (usageByApp[app] ?? 0) + minutes;
-        });
-      }
-
-      // Get recent logs for all children
       final List<UsageLog> allLogs = [];
-      for (final childUid in family.childUids) {
-        final logs = await _usageRepository.getUsageByChild(childUid, today);
-        allLogs.addAll(logs);
-      }
+      final Map<String, int> dailyTotals = {};
 
-      // Get 7-day history for chart
       final weekAgo = _getDateString(
         DateTime.now().subtract(const Duration(days: 7)),
       );
-      final Map<String, int> dailyTotals = {};
-      for (final childUid in family.childUids) {
-        final weekLogs = await _usageRepository.getUsageByDateRange(
-          childUid,
-          weekAgo,
-          today,
-        );
+
+      await Future.wait(family.childUids.map((childUid) async {
+        final results = await Future.wait([
+          _usageRepository.getTotalUsageMinutes(childUid, today),
+          _usageRepository.getTotalUsageMinutes(childUid, yesterday),
+          _usageRepository.getUsageByApp(childUid, today),
+          _usageRepository.getUsageByChild(childUid, today),
+          _usageRepository.getUsageByDateRange(childUid, weekAgo, today),
+        ]);
+
+        totalToday += results[0] as int;
+        totalYesterday += results[1] as int;
+
+        final childUsage = results[2] as Map<String, int>;
+        childUsage.forEach((app, minutes) {
+          usageByApp[app] = (usageByApp[app] ?? 0) + minutes;
+        });
+
+        final logs = results[3] as List<UsageLog>;
+        allLogs.addAll(logs);
+
+        final weekLogs = results[4] as List<UsageLog>;
         for (final log in weekLogs) {
           dailyTotals[log.date] =
               (dailyTotals[log.date] ?? 0) + log.durationMinutes;
         }
-      }
+      }));
 
       emit(DashboardLoaded(
         totalMinutesToday: totalToday,
@@ -108,38 +98,28 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   ) async {
     emit(DashboardLoading());
     try {
-      final totalMinutes = await _usageRepository.getTotalUsageMinutes(
-        event.childUid,
-        event.date,
-      );
-
-      final usageByApp = await _usageRepository.getUsageByApp(
-        event.childUid,
-        event.date,
-      );
-
-      final logs = await _usageRepository.getUsageByChild(
-        event.childUid,
-        event.date,
-      );
-
       final yesterday = _getDateString(
         DateTime.now().subtract(const Duration(days: 1)),
       );
-      final totalYesterday = await _usageRepository.getTotalUsageMinutes(
-        event.childUid,
-        yesterday,
-      );
-
-      // Get 7-day history for chart
+      
       final weekAgo = _getDateString(
         DateTime.now().subtract(const Duration(days: 7)),
       );
-      final weekLogs = await _usageRepository.getUsageByDateRange(
-        event.childUid,
-        weekAgo,
-        event.date,
-      );
+
+      final results = await Future.wait([
+        _usageRepository.getTotalUsageMinutes(event.childUid, event.date),
+        _usageRepository.getUsageByApp(event.childUid, event.date),
+        _usageRepository.getUsageByChild(event.childUid, event.date),
+        _usageRepository.getTotalUsageMinutes(event.childUid, yesterday),
+        _usageRepository.getUsageByDateRange(event.childUid, weekAgo, event.date),
+      ]);
+
+      final totalMinutes = results[0] as int;
+      final usageByApp = results[1] as Map<String, int>;
+      final logs = results[2] as List<UsageLog>;
+      final totalYesterday = results[3] as int;
+      final weekLogs = results[4] as List<UsageLog>;
+
       final Map<String, int> dailyTotals = {};
       for (final log in weekLogs) {
         dailyTotals[log.date] =

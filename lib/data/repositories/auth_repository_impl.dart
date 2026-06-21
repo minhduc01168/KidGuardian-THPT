@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:kidguardian/core/error/app_exception.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:rxdart/rxdart.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../models/user_model.dart';
@@ -19,14 +20,14 @@ class AuthRepositoryImpl implements AuthRepository {
   
   @override
   Stream<User?> get authStateChanges {
-    return _firebaseAuth.authStateChanges().asyncExpand((firebaseUser) async* {
+    return _firebaseAuth.authStateChanges().switchMap((firebaseUser) {
       if (firebaseUser == null) {
-        yield null;
+        return Stream.value(null);
       } else {
         // Lắng nghe thay đổi từ Firestore thay vì get() 1 lần.
         // Dùng where((doc) => doc.exists) để block stream cho đến khi document thực sự được tạo.
-        // Giải quyết triệt để lỗi Race Condition khi Firebase Auth tự động login sau lúc Register.
-        yield* _firestore
+        // Dùng switchMap để hủy snapshot stream cũ khi đăng xuất (firebaseUser = null).
+        return _firestore
             .collection('users')
             .doc(firebaseUser.uid)
             .snapshots()
@@ -157,11 +158,14 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<void> updateProfile(String uid, {String? displayName}) async {
+  Future<void> updateProfile(String uid, {String? displayName, String? familyId}) async {
     final updates = <String, dynamic>{};
     if (displayName != null) {
       updates['displayName'] = displayName;
       await _firebaseAuth.currentUser?.updateDisplayName(displayName);
+    }
+    if (familyId != null) {
+      updates['familyId'] = familyId;
     }
     if (updates.isNotEmpty) {
       await _firestore.collection('users').doc(uid).update(updates);

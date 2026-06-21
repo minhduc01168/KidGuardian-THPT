@@ -7,6 +7,6 @@ abstract class AuthRepository {
   Future<void> linkChildToFamily(String childUid, String familyId);
   Future<void> logout();
   Future<void> resetPassword(String email);
-  Future<void> updateProfile(String uid, {String? displayName});
+  Future<void> updateProfile(String uid, {String? displayName, String? familyId});
   Stream<User?> get authStateChanges;
 }

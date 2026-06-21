@@ -199,9 +199,12 @@ class _ChildDashboardState extends State<ChildDashboard> {
                   );
                 },
                 icon: Icon(Icons.link),
-                label: Text(
-                  'Nhập mã liên kết',
-                  style: TextStyle(fontSize: 18),
+                label: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    'Nhập mã liên kết',
+                    style: TextStyle(fontSize: 18),
+                  ),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.childPrimary,
@@ -809,9 +812,12 @@ class _ChildDashboardState extends State<ChildDashboard> {
               _showLogoutDialog(context);
             },
             icon: Icon(Icons.logout, color: AppColors.error),
-            label: Text(
-              AppStrings.logout,
-              style: TextStyle(color: AppColors.error),
+            label: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                AppStrings.logout,
+                style: TextStyle(color: AppColors.error),
+              ),
             ),
             style: OutlinedButton.styleFrom(
               padding: EdgeInsets.symmetric(vertical: 16),

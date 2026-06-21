@@ -318,11 +318,14 @@ class _LockScreenState extends State<LockScreen> with TickerProviderStateMixin {
                               child: ElevatedButton.icon(
                                 onPressed: _goHome,
                                 icon: const Icon(Icons.check_circle, size: 22),
-                                label: const Text(
-                                  'Giới hạn đã được đặt lại',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
+                                label: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: const Text(
+                                    'Giới hạn đã được đặt lại',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                                 style: ElevatedButton.styleFrom(
@@ -366,11 +369,14 @@ class _LockScreenState extends State<LockScreen> with TickerProviderStateMixin {
                                 child: ElevatedButton.icon(
                                   onPressed: _showRequestTimeDialog,
                                   icon: const Icon(Icons.access_time, size: 22),
-                                  label: const Text(
-                                    'Xin thêm thời gian',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
+                                  label: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: const Text(
+                                      'Xin thêm thời gian',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
                                   style: ElevatedButton.styleFrom(
@@ -399,11 +405,14 @@ class _LockScreenState extends State<LockScreen> with TickerProviderStateMixin {
                               child: OutlinedButton.icon(
                                 onPressed: _showEmergencyContactSheet,
                                 icon: const Icon(Icons.emergency, size: 22),
-                                label: const Text(
-                                  'Liên hệ khẩn cấp',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
+                                label: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: const Text(
+                                    'Liên hệ khẩn cấp',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                                 style: OutlinedButton.styleFrom(

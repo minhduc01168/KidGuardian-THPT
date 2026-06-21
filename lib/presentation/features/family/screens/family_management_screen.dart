@@ -30,23 +30,38 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> {
   }
 
   Future<void> _loadFamilyData() async {
-    if (widget.user.familyId == null) {
-      setState(() {
-        _isLoading = false;
-      });
-      return;
-    }
-
     setState(() {
       _isLoading = true;
     });
 
     try {
       final familyRepo = context.read<FamilyRepository>();
-      final family = await familyRepo.getFamily(widget.user.familyId!);
+      
+      Family? family;
+      
+      // 1. Lấy family theo familyId hiện tại của user
+      if (widget.user.familyId != null) {
+        family = await familyRepo.getFamily(widget.user.familyId!);
+      }
+      
+      // 2. Dự phòng: Nếu familyId = null nhưng user là parent, thử tìm theo parentUid
+      if (family == null && widget.user.role == UserRole.parent) {
+        family = await familyRepo.getFamilyByParent(widget.user.uid);
+      }
+      
+      // 3. Fallback: Nếu vẫn chưa có family thì tạo mới (Dành cho tài khoản cũ chưa auto-create)
+      if (family == null && widget.user.role == UserRole.parent) {
+        family = await familyRepo.createFamily(widget.user.uid);
+      }
 
       if (family != null && mounted) {
-        final children = await familyRepo.getChildrenByFamily(family.familyId);
+        // 4. Đảm bảo Family luôn có Mã liên kết (linking code)
+        if (family.linkingCode == null || family!.linkingCode!.isEmpty) {
+          await familyRepo.generateLinkingCode(family.familyId);
+          family = await familyRepo.getFamily(family.familyId);
+        }
+
+        final children = await familyRepo.getChildrenByFamily(family!.familyId);
 
         if (mounted) {
           setState(() {

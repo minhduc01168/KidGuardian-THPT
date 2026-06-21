@@ -471,9 +471,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _showLogoutDialog(context);
                   },
                   icon: Icon(Icons.logout, color: AppColors.error),
-                  label: Text(
-                    AppStrings.logout,
-                    style: TextStyle(color: AppColors.error),
+                  label: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      AppStrings.logout,
+                      style: TextStyle(color: AppColors.error),
+                    ),
                   ),
                   style: OutlinedButton.styleFrom(
                     padding: EdgeInsets.symmetric(vertical: 16),

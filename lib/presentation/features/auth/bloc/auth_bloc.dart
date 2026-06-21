@@ -53,18 +53,29 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       var user = await _authRepository.login(event.email, event.password);
       print('Login successful for user: ${user.uid}');
       
-      // Auto-create family for parent on first login
+      // Restore or auto-create family for parent
       if (user.role == UserRole.parent && user.familyId == null) {
-        print('Parent has no family, auto-creating...');
-        final family = await _familyRepository.createFamily(user.uid);
-        print('Family created: ${family.familyId}, linking code: ${family.linkingCode}');
-        // Update user locally without fetching from Firestore
-        if (user is UserModel) {
-          user = (user as UserModel).copyWith(familyId: family.familyId);
+        print('Parent has no familyId in user doc, checking existing families...');
+        final existingFamily = await _familyRepository.getFamilyByParent(user.uid);
+        
+        if (existingFamily != null) {
+          print('Found existing family: ${existingFamily.familyId}. Restoring link...');
+          await _authRepository.updateProfile(user.uid, familyId: existingFamily.familyId);
+          if (user is UserModel) {
+            user = (user as UserModel).copyWith(familyId: existingFamily.familyId);
+          } else {
+            final updatedUser = await _authRepository.getCurrentUser();
+            if (updatedUser != null) user = updatedUser;
+          }
         } else {
-          final updatedUser = await _authRepository.getCurrentUser();
-          if (updatedUser != null) {
-            user = updatedUser;
+          print('No family found, auto-creating...');
+          final family = await _familyRepository.createFamily(user.uid);
+          print('Family created: ${family.familyId}, linking code: ${family.linkingCode}');
+          if (user is UserModel) {
+            user = (user as UserModel).copyWith(familyId: family.familyId);
+          } else {
+            final updatedUser = await _authRepository.getCurrentUser();
+            if (updatedUser != null) user = updatedUser;
           }
         }
       }
@@ -102,20 +113,30 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       );
       print('Registration successful for user: ${user.uid}');
       
-      // Auto-create family cho parent NGAY SAU registration
-      // Stream bị block bởi _isHandlingRegistration nên không có race condition
+      // Restore or auto-create family cho parent NGAY SAU registration
       var finalUser = user;
       if (user.role == UserRole.parent && user.familyId == null) {
-        print('Parent registered, auto-creating family...');
-        final family = await _familyRepository.createFamily(user.uid);
-        print('Family created successfully for user: ${user.uid}');
-        // Update user locally without fetching from Firestore
-        if (user is UserModel) {
-          finalUser = (user as UserModel).copyWith(familyId: family.familyId);
+        print('Parent registered, checking existing families...');
+        final existingFamily = await _familyRepository.getFamilyByParent(user.uid);
+        
+        if (existingFamily != null) {
+          print('Found existing family: ${existingFamily.familyId}. Restoring link...');
+          await _authRepository.updateProfile(user.uid, familyId: existingFamily.familyId);
+          if (user is UserModel) {
+            finalUser = (user as UserModel).copyWith(familyId: existingFamily.familyId);
+          } else {
+            final updatedUser = await _authRepository.getCurrentUser();
+            if (updatedUser != null) finalUser = updatedUser;
+          }
         } else {
-          final updatedUser = await _authRepository.getCurrentUser();
-          if (updatedUser != null) {
-            finalUser = updatedUser;
+          print('No family found, auto-creating...');
+          final family = await _familyRepository.createFamily(user.uid);
+          print('Family created successfully for user: ${user.uid}');
+          if (user is UserModel) {
+            finalUser = (user as UserModel).copyWith(familyId: family.familyId);
+          } else {
+            final updatedUser = await _authRepository.getCurrentUser();
+            if (updatedUser != null) finalUser = updatedUser;
           }
         }
       }
