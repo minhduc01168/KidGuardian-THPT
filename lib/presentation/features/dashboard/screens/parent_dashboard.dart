@@ -23,6 +23,8 @@ import '../../help/bloc/help_bloc.dart';
 import '../../family/screens/family_management_screen.dart';
 import '../../../screens/smart_lock/time_limit_screen.dart';
 import '../../../screens/smart_lock/smart_lock_settings_screen.dart';
+import '../../../blocs/smart_lock/smart_lock_bloc.dart';
+import '../../../../data/repositories/smart_lock_repository.dart';
 import '../../../screens/interaction/time_request_approval_screen.dart';
 import '../../../screens/settings/keyword_management_screen.dart';
 import '../../../blocs/in_app_notification/in_app_notification_bloc.dart';
@@ -411,10 +413,15 @@ class _ParentDashboardState extends State<ParentDashboard> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => SmartLockSettingsScreen(
-                              familyId: user.familyId!,
-                              childId: user.uid,
-                              childName: user.displayName,
+                            builder: (_) => BlocProvider(
+                              create: (_) => SmartLockBloc(
+                                repository: SmartLockRepository(),
+                              ),
+                              child: SmartLockSettingsScreen(
+                                familyId: user.familyId!,
+                                childId: user.uid,
+                                childName: user.displayName,
+                              ),
                             ),
                           ),
                         );
@@ -670,10 +677,15 @@ class _ParentDashboardState extends State<ParentDashboard> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => SmartLockSettingsScreen(
-                          familyId: user.familyId!,
-                          childId: user.uid,
-                          childName: user.displayName,
+                        builder: (_) => BlocProvider(
+                          create: (_) => SmartLockBloc(
+                            repository: SmartLockRepository(),
+                          ),
+                          child: SmartLockSettingsScreen(
+                            familyId: user.familyId!,
+                            childId: user.uid,
+                            childName: user.displayName,
+                          ),
                         ),
                       ),
                     );
@@ -925,10 +937,15 @@ class _ParentDashboardState extends State<ParentDashboard> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => SmartLockSettingsScreen(
-                            familyId: user.familyId!,
-                            childId: user.uid,
-                            childName: user.displayName,
+                          builder: (_) => BlocProvider(
+                            create: (_) => SmartLockBloc(
+                              repository: SmartLockRepository(),
+                            ),
+                            child: SmartLockSettingsScreen(
+                              familyId: user.familyId!,
+                              childId: user.uid,
+                              childName: user.displayName,
+                            ),
                           ),
                         ),
                       );
