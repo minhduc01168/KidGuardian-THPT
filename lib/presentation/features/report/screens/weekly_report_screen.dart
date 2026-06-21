@@ -33,6 +33,13 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     }
   }
 
+  void _autoGenerateIfEmpty(ReportState state) {
+    // Nếu chưa có báo cáo nào, tự động generate báo cáo tuần hiện tại
+    if (state is ReportHistoryLoaded && state.reports.isEmpty) {
+      _generateReport();
+    }
+  }
+
   void _generateReport() {
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthAuthenticated && authState.user.familyId != null) {
@@ -215,6 +222,11 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
         ),
         body: BlocBuilder<ReportBloc, ReportState>(
           builder: (context, state) {
+            // Tự động generate nếu chưa có báo cáo
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _autoGenerateIfEmpty(state);
+            });
+
             if (state is ReportLoading) {
               return Center(
                 child: CircularProgressIndicator(color: AppColors.primary),

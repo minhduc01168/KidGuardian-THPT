@@ -68,28 +68,92 @@ sequenceDiagram
 
 ## 3. Luồng Giám Sát & Khóa Ứng Dụng (Smart Lock Flow)
 Cơ chế khóa theo chỉ định (Whitelist/Blacklist), không can thiệp vào các ứng dụng hệ thống cơ bản.
+Phụ huynh cấu hình danh sách app cần khoá → Firestore → Máy trẻ real-time sync → Accessibility Service phát hiện vi phạm → LockScreen.
 
 ```mermaid
-stateDiagram-v2
-    direction TB
-    [*] --> MonitorService: Background Service chạy ngầm
-    
-    state MonitorService {
-        [*] --> CheckUsage
-        CheckUsage --> Blocked: Hết giờ / Nằm trong khung giờ cấm
-        CheckUsage --> Tracking: Còn thời gian sử dụng
-    }
-    
-    Blocked --> LockScreen: Hiển thị Overlay đè lên App MXH
-    
-    state LockScreen {
-        [*] --> ShowWarning
-        ShowWarning --> ExitApp: Trẻ bấm phím Home/Back
-        ShowWarning --> RequestTime: Trẻ chọn "Xin thêm giờ"
-    }
-    
-    ExitApp --> [*]: Thoát về màn hình chính hệ điều hành
+flowchart TD
+    subgraph PARENT["📱 Máy Phụ Huynh"]
+        P1(["Phụ huynh mở\nDashboard"])
+        P2["Ấn 'Khoá ứng dụng'"]
+        P3{"Đã có\nfamilyId?"}
+        P3A["Hiện hộp thoại\n'Hãy thêm tài khoản con'"]
+        P4["Mở SmartLockSettingsScreen\n+ BlocProvider&lt;SmartLockBloc&gt;"]
+        P5{"Bật/Tắt\nSmart Lock\ntoàn bộ?"}
+        P6["Chọn App cần khoá\nTừ danh sách mặc định:\n• TikTok • Facebook • YouTube\n• Instagram • Zalo • Roblox\n• Free Fire + thêm thủ công"]
+        P7["Thiết lập giới hạn giờ\ncho từng App theo ngày\n(Mon–Sun, HH:mm–HH:mm)"]
+        P8["Tạo Lịch khoá (Schedule)\nTheo khung giờ cố định\nVD: 22:00–06:00 hàng ngày"]
+        P9["Lưu cấu hình"]
+        P10["✅ Toast: Lưu thành công"]
+    end
+
+    subgraph FIRESTORE["☁️ Firebase Firestore"]
+        FS1[("families/{id}/children/{childId}\n/settings/smartLock\n{isEnabled, defaultTimeLimitMinutes}")]
+        FS2[("families/{id}/children/{childId}\n/monitoredApps\n{packageName, isMonitored}")]
+        FS3[("families/{id}/children/{childId}\n/schedules\n{startTime, endTime, days[]}")]
+        FS4[("families/{id}/alerts\n{type, appName, timestamp}")]
+    end
+
+    subgraph CHILD["📱 Máy Trẻ Em (Android)"]
+        C1(["AppMonitorBloc\nchạy nền liên tục"])
+        C2["AccessibilityService\nPoll foreground app\nmỗi 1 giây"]
+        C3{"App hiện tại\ncó trong\ndanh sách khoá?"}
+        C4{"Smart Lock\nđang BẬT\n(isEnabled)?"}
+        C5{"Có Schedule\nđang active\nở thời điểm này?"}
+        C6{"Đã hết\nTime Limit\nhôm nay?"}
+        C7["🔒 Hiển thị LockScreen\n(Overlay toàn màn hình)"]
+        C8["🟢 Cho phép\ndùng app\nbình thường"]
+        C9["Ghi Alert vào\nFirestore\n{type: 'blocked'}"]
+        C10["Gửi Push Notification\ncho phụ huynh\n'Con đang cố mở app bị khoá'"]
+        C11["Trẻ chọn\n'Xin thêm giờ'"]
+        C12["→ Time Request Flow"]
+    end
+
+    P1 --> P2 --> P3
+    P3 -->|"Chưa có familyId"| P3A
+    P3 -->|"Có familyId"| P4
+    P4 --> P5
+    P5 -->|"Tắt Smart Lock"| P9
+    P5 -->|"Bật Smart Lock"| P6
+    P6 --> P7 --> P8 --> P9
+    P9 -->|"Lưu trạng thái bật/tắt"| FS1
+    P9 -->|"Lưu danh sách app khoá"| FS2
+    P9 -->|"Lưu lịch khoá"| FS3
+    P9 --> P10
+
+    FS1 & FS2 & FS3 -->|"Firestore Real-time\nListener sync về máy trẻ\n(offline cache enabled)"| C1
+    C1 --> C2 --> C3
+    C3 -->|"Không có trong danh sách"| C8
+    C3 -->|"Có trong danh sách"| C4
+    C4 -->|"Smart Lock TẮT"| C8
+    C4 -->|"Smart Lock BẬT"| C5
+    C5 -->|"Không có Schedule\nnào active"| C6
+    C5 -->|"Có Schedule active\n(đang trong giờ cấm)"| C7
+    C6 -->|"Còn trong giới hạn"| C8
+    C6 -->|"Đã hết giới hạn giờ"| C7
+    C7 --> C9 --> FS4
+    C9 --> C10
+    C7 --> C11 --> C12
+
+    style PARENT fill:#e3f2fd,stroke:#1565c0,color:#000
+    style FIRESTORE fill:#fff8e1,stroke:#f57f17,color:#000
+    style CHILD fill:#e8f5e9,stroke:#2e7d32,color:#000
+    style C7 fill:#ffcdd2,stroke:#c62828,color:#000
+    style C8 fill:#c8e6c9,stroke:#2e7d32,color:#000
+    style P3A fill:#fff3e0,stroke:#e65100,color:#000
 ```
+
+### Bảng Tham Chiếu Kỹ Thuật
+
+| Thành phần | Mô tả chi tiết |
+|---|---|
+| **Trigger phát hiện** | `AccessibilityService` Android poll foreground app mỗi 1 giây qua `MethodChannel` |
+| **Danh sách mặc định** | 7 app hardcode (TikTok, Facebook, YouTube, Instagram, Zalo, Roblox, Free Fire) |
+| **Thêm app tuỳ chỉnh** | Nhập thủ công Package Name — **(UX cần cải thiện ở Sprint 2)** |
+| **Offline safety** | Hiện chưa cache offline — nếu máy trẻ offline, danh sách khoá không áp dụng được **(fix ở Sprint 2)** |
+| **Timeout Firestore** | Mọi lệnh ghi Firestore có `.timeout(3s)` → không bao giờ treo UI |
+| **Lỗi đã fix** | `BlocProvider<SmartLockBloc>` đã được bổ sung tại 3 điểm navigate trong `parent_dashboard.dart` |
+
+
 
 ## 4. Luồng Xin Thêm Giờ (Time Request Flow)
 Cơ chế tương tác 2 chiều (Two-way Interaction) thời gian thực thông qua FCM.

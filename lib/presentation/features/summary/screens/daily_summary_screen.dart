@@ -26,10 +26,20 @@ class _DailySummaryScreenState extends State<DailySummaryScreen> {
   void _loadSummary() {
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthAuthenticated && authState.user.familyId != null) {
+      // Ưu tiên: tạo summary mới cho hôm nay từ raw usage data
       context.read<SummaryBloc>().add(
-            LoadSummaryHistory(familyId: authState.user.familyId!),
+            GenerateSummary(
+              childUid: authState.user.uid,
+              familyId: authState.user.familyId!,
+              date: _getTodayString(),
+            ),
           );
     }
+  }
+
+  String _getTodayString() {
+    final now = DateTime.now();
+    return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
   }
 
   @override
@@ -66,6 +76,14 @@ class _DailySummaryScreenState extends State<DailySummaryScreen> {
             );
           }
 
+          if (state is SummaryGenerated) {
+            return _buildSingleSummary(state.summary);
+          }
+
+          if (state is SummaryLoaded) {
+            return _buildSingleSummary(state.summary);
+          }
+
           if (state is SummaryHistoryLoaded) {
             return _buildSummaryList(state.summaries);
           }
@@ -74,6 +92,18 @@ class _DailySummaryScreenState extends State<DailySummaryScreen> {
             child: Text('Chưa có dữ liệu tổng kết'),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildSingleSummary(DailySummary summary) {
+    return RefreshIndicator(
+      onRefresh: () async => _loadSummary(),
+      child: ListView(
+        padding: EdgeInsets.all(16),
+        children: [
+          _SummaryCard(summary: summary),
+        ],
       ),
     );
   }
