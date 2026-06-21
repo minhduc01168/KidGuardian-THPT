@@ -46,13 +46,17 @@ KidGuardian sử dụng phương thức đăng nhập bằng **Email và Mật k
 
 1. Quay lại **cột menu dọc bên trái**, trong phần **Build**, chọn **Firestore Database**.
 2. Bấm vào nút **Create database** (Tạo cơ sở dữ liệu).
-3. Một cửa sổ cấu hình "Security rules" (Quy tắc bảo mật) sẽ hiện lên:
-   - Chọn **Start in test mode** (Bắt đầu ở chế độ thử nghiệm). Việc này sẽ cho phép ứng dụng đọc/ghi dữ liệu thoải mái trong quá trình bạn (hoặc học sinh) đang code và phát triển app.
-   - Bấm **Next**.
-4. Cửa sổ "Location" (Vị trí đặt máy chủ) hiện ra:
-   - Bạn có thể giữ nguyên vị trí mặc định Firebase gợi ý (thường là `nam5` hoặc `asia-southeast1`).
-   - Bấm **Enable** (Bật).
-5. Firebase sẽ mất khoảng 15 giây để khởi tạo. Khi hoàn tất, bạn sẽ thấy một bảng dữ liệu trống với dòng chữ **Start collection** (Bắt đầu bộ sưu tập).
+3. Firebase sẽ hiển thị giao diện thiết lập mới. Hãy làm theo các bước sau:
+   - **Database edition:** Chọn **Standard edition** (Phiên bản tiêu chuẩn - miễn phí và đầy đủ tính năng). Bấm **Next**.
+   - **ID, Location, & API type:** Ở mục Location (Vị trí), chọn khu vực (Ví dụ: `asia-southeast1` hoặc giữ nguyên mặc định của Firebase). Các mục khác để nguyên. Bấm **Configure** (Thiết lập) hoặc **Create** (Tạo).
+   - *(Lưu ý: Nếu màn hình có bước hỏi về Security rules (Quy tắc bảo mật), hãy chọn **Start in test mode**).*
+4. Đợi vài giây để Firebase khởi tạo cơ sở dữ liệu.
+5. **CẤU HÌNH BẢO MẬT (Rất Quan Trọng):** 
+   - Sau khi tạo xong, trên màn hình Firestore, hãy chuyển sang tab **Rules** (Quy tắc) ở ngay thanh menu phía trên.
+   - Tìm dòng có chữ `allow read, write: if false;` (nếu có).
+   - Đổi chữ `false` thành `true` (thành: `allow read, write: if true;`). Thao tác này (Test mode) cho phép ứng dụng đọc/ghi dữ liệu thoải mái trong quá trình bạn hoặc học sinh đang lập trình.
+   - Bấm nút **Publish** (Xuất bản) để lưu quy tắc mới.
+6. Xong! Bạn quay lại tab **Data** (Dữ liệu), lúc này Database đã sẵn sàng hoạt động (màn hình sẽ có dòng chữ **Start collection**).
 
 ✅ *Thành công! Database của bạn đã sẵn sàng để lưu trữ mọi thứ từ KidGuardian.*
 
