@@ -22,7 +22,12 @@ Vì Homebrew trên máy của bạn hiện đang gặp lỗi (như tôi đã ki�
    - *Android SDK*
    - *Android SDK Platform-Tools*
    - *Android Emulator*
-4. Sau khi quá trình tải hoàn tất (mất vài phút tùy tốc độ mạng), bấm **Finish**.
+4. Cài đặt thêm Command-line Tools (Bắt buộc cho Flutter):
+   - Khi ở màn hình Welcome của Android Studio, bấm vào biểu tượng 3 dấu chấm (hoặc tab **More Actions**) -> Chọn **SDK Manager**.
+   - Chuyển sang tab **SDK Tools** (nằm ở giữa).
+   - Tick chọn ô **"Android SDK Command-line Tools (latest)"**.
+   - Bấm **Apply** -> **OK** và chờ nó tải xong.
+5. Sau khi quá trình tải hoàn tất (mất vài phút tùy tốc độ mạng), bấm **Finish**.
 
 ---
 
@@ -40,6 +45,7 @@ Vì Homebrew trên máy của bạn hiện đang gặp lỗi (như tôi đã ki�
    export ANDROID_HOME=$HOME/Library/Android/sdk
    export PATH=$PATH:$ANDROID_HOME/emulator
    export PATH=$PATH:$ANDROID_HOME/platform-tools
+   export PATH=$PATH:$HOME/.flutter-sdk/flutter/bin
    ```
 4. Bấm `Ctrl + O` -> `Enter` để lưu lại, sau đó bấm `Ctrl + X` để thoát nano.
 5. Chạy lệnh sau để áp dụng ngay các thay đổi:
