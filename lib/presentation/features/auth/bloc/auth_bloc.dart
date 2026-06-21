@@ -87,6 +87,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       );
       print('Registration successful for user: ${user.uid}');
       
+      // Auto-create family for parent immediately after registration
+      if (user.role == UserRole.parent && user.familyId == null) {
+        print('Parent registered, auto-creating family...');
+        await _familyRepository.createFamily(user.uid);
+      }
+      
       // Không gọi logout nữa, để Firebase tự động login.
       // Luồng điều hướng sẽ được xử lý qua _onAuthStateChanged.
       // Không cần emit AuthRegistrationSuccess nữa vì AuthStateChanged sẽ emit AuthAuthenticated.
