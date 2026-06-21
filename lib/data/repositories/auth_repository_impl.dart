@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
+import 'package:kidguardian/core/error/app_exception.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../domain/entities/user.dart';
@@ -54,7 +55,7 @@ class AuthRepositoryImpl implements AuthRepository {
       );
       
       if (credential.user == null) {
-        throw Exception('Đăng nhập thất bại: Không nhận được thông tin người dùng');
+        throw AppException('Đăng nhập thất bại: Lỗi hệ thống từ Firebase.');
       }
       
       print('Firebase Auth successful for uid: ${credential.user!.uid}');
@@ -85,7 +86,10 @@ class AuthRepositoryImpl implements AuthRepository {
       throw _handleAuthException(e);
     } catch (e) {
       print('Unexpected error during login: $e');
-      throw Exception('Đăng nhập thất bại: $e');
+      if (e.toString().contains('SocketException') || e.toString().contains('ClientException')) {
+        throw AppException('Không có kết nối mạng. Vui lòng kiểm tra lại Wifi/4G.');
+      }
+      throw AppException('Đã có lỗi xảy ra. Vui lòng thử lại sau.');
     }
   }
   
@@ -98,7 +102,7 @@ class AuthRepositoryImpl implements AuthRepository {
       );
       
       if (credential.user == null) {
-        throw Exception('Đăng ký thất bại: Không tạo được tài khoản');
+        throw AppException('Đăng ký thất bại: Lỗi hệ thống từ Firebase.');
       }
       
       print('Firebase Auth user created: ${credential.user!.uid}');
@@ -124,11 +128,14 @@ class AuthRepositoryImpl implements AuthRepository {
       
       return userModel;
     } on firebase.FirebaseAuthException catch (e) {
-      print('FirebaseAuthException during register: ${e.code} - ${e.message}');
+      print('FirebaseAuthException during registration: ${e.code} - ${e.message}');
       throw _handleAuthException(e);
     } catch (e) {
-      print('Unexpected error during register: $e');
-      throw Exception('Đăng ký thất bại: $e');
+      print('Unexpected error during registration: $e');
+      if (e.toString().contains('SocketException') || e.toString().contains('ClientException')) {
+        throw AppException('Không có kết nối mạng. Vui lòng kiểm tra lại Wifi/4G.');
+      }
+      throw AppException('Đã có lỗi xảy ra. Vui lòng thử lại sau.');
     }
   }
   
@@ -182,24 +189,27 @@ class AuthRepositoryImpl implements AuthRepository {
       rethrow;
     } catch (e) {
       print('Error getting user from Firestore: $e');
-      throw Exception('Không thể đọc thông tin người dùng: $e');
+      throw AppException('Không thể kết nối đến máy chủ dữ liệu.');
     }
   }
   
-  Exception _handleAuthException(firebase.FirebaseAuthException e) {
+  AppException _handleAuthException(firebase.FirebaseAuthException e) {
     switch (e.code) {
       case 'user-not-found':
-        return Exception('Không tìm thấy tài khoản');
+      case 'invalid-credential':
+        return AppException('Thông tin đăng nhập không chính xác');
       case 'wrong-password':
-        return Exception('Sai mật khẩu');
+        return AppException('Sai mật khẩu');
       case 'email-already-in-use':
-        return Exception('Email đã được sử dụng');
+        return AppException('Email này đã được đăng ký');
       case 'weak-password':
-        return Exception('Mật khẩu quá yếu');
+        return AppException('Mật khẩu quá yếu (cần tối thiểu 6 ký tự)');
       case 'invalid-email':
-        return Exception('Email không hợp lệ');
+        return AppException('Định dạng Email không hợp lệ');
+      case 'network-request-failed':
+        return AppException('Không có kết nối mạng. Vui lòng kiểm tra lại Wifi/4G.');
       default:
-        return Exception('Lỗi xác thực: ${e.message}');
+        return AppException('Lỗi xác thực. Vui lòng thử lại sau.');
     }
   }
 }

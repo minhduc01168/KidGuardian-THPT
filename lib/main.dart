@@ -185,13 +185,10 @@ class KidGuardianApp extends StatelessWidget {
               listenWhen: (previous, current) =>
                   current is AuthUnauthenticated && previous is! AuthUnauthenticated,
               listener: (context, state) {
-                // pushAndRemoveUntil xoá toàn bộ stack — tránh ChildDashboard còn nằm dưới stack
-                AppNavigator.navigatorKey.currentState?.pushAndRemoveUntil(
-                  MaterialPageRoute(
-                    builder: (_) => const RoleSelectionScreen(),
-                  ),
-                  (route) => false,
-                );
+                // Sử dụng popUntil để quay về root route (home của MaterialApp).
+                // Do root route được wrap bằng BlocBuilder, nó sẽ tự động render RoleSelectionScreen 
+                // khi state là AuthUnauthenticated. Tránh lỗi văng ra RoleSelectionScreen ở lần login tiếp theo.
+                AppNavigator.navigatorKey.currentState?.popUntil((route) => route.isFirst);
               },
             ),
             BlocListener<AppMonitorBloc, AppMonitorState>(

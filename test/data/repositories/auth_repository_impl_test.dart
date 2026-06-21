@@ -171,7 +171,7 @@ void main() {
         expect(
           () => repository.login('test@test.com', 'password123'),
           throwsA(predicate((e) =>
-              e is Exception && e.toString().contains('Không tìm thấy tài khoản'))),
+              e is Exception && e.toString().contains('Thông tin đăng nhập không chính xác'))),
         );
       });
 
@@ -203,7 +203,7 @@ void main() {
         expect(
           () => repository.login('invalid', 'password'),
           throwsA(predicate((e) =>
-              e is Exception && e.toString().contains('Email không hợp lệ'))),
+              e is Exception && e.toString().contains('Định dạng Email không hợp lệ'))),
         );
       });
     });
@@ -249,7 +249,7 @@ void main() {
         expect(
           () => repository.register('existing@test.com', 'password', 'Name', domain.UserRole.parent),
           throwsA(predicate((e) =>
-              e is Exception && e.toString().contains('Email đã được sử dụng'))),
+              e is Exception && e.toString().contains('Email này đã được đăng ký'))),
         );
       });
 
@@ -265,7 +265,7 @@ void main() {
         expect(
           () => repository.register('test@test.com', '123', 'Name', domain.UserRole.parent),
           throwsA(predicate((e) =>
-              e is Exception && e.toString().contains('Mật khẩu quá yếu'))),
+              e is Exception && e.toString().contains('Mật khẩu quá yếu (cần tối thiểu 6 ký tự)'))),
         );
       });
 
@@ -316,7 +316,7 @@ void main() {
         expect(
           () => repository.resetPassword('invalid'),
           throwsA(predicate((e) =>
-              e is Exception && e.toString().contains('Không tìm thấy tài khoản'))),
+              e is Exception && e.toString().contains('Thông tin đăng nhập không chính xác'))),
         );
       });
     });

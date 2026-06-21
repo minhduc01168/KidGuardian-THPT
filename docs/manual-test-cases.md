@@ -123,8 +123,9 @@ Tài liệu này cung cấp hướng dẫn kiểm thử thủ công chi tiết c
 **Expected Result:**
 - [ ] Form validation hoạt động đúng
 - [ ] Hiển thị loading khi đang đăng ký
-- [ ] Đăng ký thành công → Chuyển đến Dashboard
+- [ ] Đăng ký thành công → Chuyển đến Dashboard (Thời gian xử lý < 2 giây)
 - [ ] Thông báo đăng ký thành công
+- [ ] *Lưu ý Firebase:* Trên Firestore Console, chỉ bảng `users` được tạo ra ban đầu. Các bảng khác (như `families`, `app_usage`) sẽ xuất hiện khi có dữ liệu đầu tiên được insert. Đây là hành vi chuẩn (NoSQL dynamic schema), không phải lỗi thiếu bảng.
 
 **Test Data:**
 | Field | Valid | Invalid |

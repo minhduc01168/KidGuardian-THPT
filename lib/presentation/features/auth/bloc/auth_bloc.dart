@@ -4,6 +4,8 @@ import '../../../../data/services/notification_service.dart';
 import '../../../../domain/repositories/auth_repository.dart';
 import '../../../../domain/repositories/family_repository.dart';
 import '../../../../domain/entities/user.dart';
+import '../../../../data/models/user_model.dart';
+import 'package:kidguardian/core/error/app_exception.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
@@ -56,10 +58,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         print('Parent has no family, auto-creating...');
         final family = await _familyRepository.createFamily(user.uid);
         print('Family created: ${family.familyId}, linking code: ${family.linkingCode}');
-        // Re-fetch user to get updated familyId
-        final updatedUser = await _authRepository.getCurrentUser();
-        if (updatedUser != null) {
-          user = updatedUser;
+        // Update user locally without fetching from Firestore
+        if (user is UserModel) {
+          user = (user as UserModel).copyWith(familyId: family.familyId);
+        } else {
+          final updatedUser = await _authRepository.getCurrentUser();
+          if (updatedUser != null) {
+            user = updatedUser;
+          }
         }
       }
       
@@ -69,6 +75,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       });
       
       emit(AuthAuthenticated(user: user));
+    } on AppException catch (e) {
+      print('Login error: ${e.message}');
+      emit(AuthError(message: e.message));
     } catch (e) {
       final errorMessage = e.toString().replaceAll('Exception: ', '');
       print('Login error: $errorMessage');
@@ -95,25 +104,36 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       
       // Auto-create family cho parent NGAY SAU registration
       // Stream bị block bởi _isHandlingRegistration nên không có race condition
+      var finalUser = user;
       if (user.role == UserRole.parent && user.familyId == null) {
         print('Parent registered, auto-creating family...');
-        await _familyRepository.createFamily(user.uid);
+        final family = await _familyRepository.createFamily(user.uid);
         print('Family created successfully for user: ${user.uid}');
+        // Update user locally without fetching from Firestore
+        if (user is UserModel) {
+          finalUser = (user as UserModel).copyWith(familyId: family.familyId);
+        } else {
+          final updatedUser = await _authRepository.getCurrentUser();
+          if (updatedUser != null) {
+            finalUser = updatedUser;
+          }
+        }
       }
-      
-      // Fetch user đã được cập nhật familyId từ Firestore
-      final updatedUser = await _authRepository.getCurrentUser();
       
       // Tháo flag TRƯỚC KHI emit để stream hoạt động bình thường trở lại
       _isHandlingRegistration = false;
       
       // Register notification token (non-blocking)
-      _notificationService.registerToken((updatedUser ?? user).uid).catchError((e) {
+      _notificationService.registerToken(finalUser.uid).catchError((e) {
         print('Failed to register notification token: $e');
       });
       
       // Emit trực tiếp thay vì chờ stream (stream có thể đã bị miss)
-      emit(AuthAuthenticated(user: updatedUser ?? user));
+      emit(AuthAuthenticated(user: finalUser));
+    } on AppException catch (e) {
+      _isHandlingRegistration = false;
+      print('Registration error: ${e.message}');
+      emit(AuthError(message: e.message));
     } catch (e) {
       _isHandlingRegistration = false;
       final errorMessage = e.toString().replaceAll('Exception: ', '');
@@ -138,6 +158,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       await _authRepository.resetPassword(event.email);
       emit(AuthPasswordResetSent());
+    } on AppException catch (e) {
+      emit(AuthError(message: e.message));
     } catch (e) {
       emit(AuthError(message: e.toString().replaceAll('Exception: ', '')));
     }
@@ -183,6 +205,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       } else {
         emit(AuthError(message: 'Không thể liên kết tài khoản'));
       }
+    } on AppException catch (e) {
+      emit(AuthError(message: e.message));
     } catch (e) {
       emit(AuthError(message: e.toString().replaceAll('Exception: ', '')));
     }
@@ -201,6 +225,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       } else {
         emit(AuthError(message: 'Không thể cập nhật thông tin'));
       }
+    } on AppException catch (e) {
+      emit(AuthError(message: e.message));
     } catch (e) {
       emit(AuthError(message: e.toString().replaceAll('Exception: ', '')));
     }
