@@ -181,9 +181,17 @@ class KidGuardianApp extends StatelessWidget {
         child: MultiBlocListener(
           listeners: [
             BlocListener<AuthBloc, AuthState>(
-              listenWhen: (previous, current) => previous is AuthAuthenticated && current is AuthUnauthenticated,
+              // Bắt mọi transition về AuthUnauthenticated (kể cả từ AuthLoading sau đăng xuất)
+              listenWhen: (previous, current) =>
+                  current is AuthUnauthenticated && previous is! AuthUnauthenticated,
               listener: (context, state) {
-                AppNavigator.navigatorKey.currentState?.popUntil((route) => route.isFirst);
+                // pushAndRemoveUntil xoá toàn bộ stack — tránh ChildDashboard còn nằm dưới stack
+                AppNavigator.navigatorKey.currentState?.pushAndRemoveUntil(
+                  MaterialPageRoute(
+                    builder: (_) => const RoleSelectionScreen(),
+                  ),
+                  (route) => false,
+                );
               },
             ),
             BlocListener<AppMonitorBloc, AppMonitorState>(

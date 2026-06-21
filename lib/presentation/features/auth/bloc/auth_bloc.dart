@@ -13,6 +13,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final NotificationService _notificationService;
   StreamSubscription? _authSubscription;
   
+  /// Flag để block stream khi đang xử lý registration.
+  /// Tránh race condition: authStateChanges stream emit AuthAuthenticated
+  /// trước khi createFamily() hoàn thành.
+  bool _isHandlingRegistration = false;
 
   AuthBloc({
     required AuthRepository authRepository,
@@ -76,6 +80,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     RegisterRequested event,
     Emitter<AuthState> emit,
   ) async {
+    // Đặt flag TRƯỚC KHI emit AuthLoading để block stream
+    _isHandlingRegistration = true;
     emit(AuthLoading());
     try {
       print('Attempting registration for: ${event.email}');
@@ -87,16 +93,29 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       );
       print('Registration successful for user: ${user.uid}');
       
-      // Auto-create family for parent immediately after registration
+      // Auto-create family cho parent NGAY SAU registration
+      // Stream bị block bởi _isHandlingRegistration nên không có race condition
       if (user.role == UserRole.parent && user.familyId == null) {
         print('Parent registered, auto-creating family...');
         await _familyRepository.createFamily(user.uid);
+        print('Family created successfully for user: ${user.uid}');
       }
       
-      // Không gọi logout nữa, để Firebase tự động login.
-      // Luồng điều hướng sẽ được xử lý qua _onAuthStateChanged.
-      // Không cần emit AuthRegistrationSuccess nữa vì AuthStateChanged sẽ emit AuthAuthenticated.
+      // Fetch user đã được cập nhật familyId từ Firestore
+      final updatedUser = await _authRepository.getCurrentUser();
+      
+      // Tháo flag TRƯỚC KHI emit để stream hoạt động bình thường trở lại
+      _isHandlingRegistration = false;
+      
+      // Register notification token (non-blocking)
+      _notificationService.registerToken((updatedUser ?? user).uid).catchError((e) {
+        print('Failed to register notification token: $e');
+      });
+      
+      // Emit trực tiếp thay vì chờ stream (stream có thể đã bị miss)
+      emit(AuthAuthenticated(user: updatedUser ?? user));
     } catch (e) {
+      _isHandlingRegistration = false;
       final errorMessage = e.toString().replaceAll('Exception: ', '');
       print('Registration error: $errorMessage');
       emit(AuthError(message: errorMessage));
@@ -128,6 +147,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthStateChanged event,
     Emitter<AuthState> emit,
   ) {
+    // Block stream nếu đang xử lý registration để tránh race condition:
+    // Firebase Auth tạo user → stream emit ngay → AuthAuthenticated trước khi
+    // createFamily() chạy xong → families collection không được tạo.
+    if (_isHandlingRegistration) {
+      print('AuthStateChanged blocked: registration in progress');
+      return;
+    }
     
     if (event.user != null) {
       _notificationService.registerToken(event.user!.uid);

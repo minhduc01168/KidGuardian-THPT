@@ -211,7 +211,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Text(
                   widget.user.role == UserRole.parent
                       ? 'Phụ huynh'
-                      : 'Học sinh',
+                      : 'Con',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -432,7 +432,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 subtitle: Text(
                                   member.role == UserRole.parent
                                       ? 'Phụ huynh'
-                                      : 'Học sinh',
+                                      : 'Con',
                                   style: TextStyle(
                                     color: AppColors.textSecondary,
                                   ),

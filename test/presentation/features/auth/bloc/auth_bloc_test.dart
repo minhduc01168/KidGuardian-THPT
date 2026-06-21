@@ -214,14 +214,46 @@ void main() {
 
     group('RegisterRequested', () {
       blocTest<AuthBloc, AuthState>(
-        'emits [AuthLoading] when registration succeeds (relies on auto-login)',
+        'emits [AuthLoading, AuthAuthenticated] when parent registration succeeds with family created',
         build: () {
+          final parentNoFamily = User(
+            uid: 'new-uid',
+            email: 'new@example.com',
+            displayName: 'New User',
+            role: UserRole.parent,
+            familyId: null,
+            createdAt: DateTime(2024, 1, 1),
+          );
+          final parentWithFamily = User(
+            uid: 'new-uid',
+            email: 'new@example.com',
+            displayName: 'New User',
+            role: UserRole.parent,
+            familyId: 'family-new',
+            createdAt: DateTime(2024, 1, 1),
+          );
+          final newFamily = Family(
+            familyId: 'family-new',
+            parentUid: 'new-uid',
+            childUids: const [],
+            linkingCode: 'XYZ789',
+            createdAt: DateTime(2024, 1, 1),
+            updatedAt: DateTime(2024, 1, 1),
+          );
+
           when(() => mockAuthRepository.register(
                 'new@example.com',
                 'password123',
                 'New User',
                 UserRole.parent,
-              )).thenAnswer((_) async => testUser);
+              )).thenAnswer((_) async => parentNoFamily);
+
+          when(() => mockFamilyRepository.createFamily('new-uid'))
+              .thenAnswer((_) async => newFamily);
+
+          when(() => mockAuthRepository.getCurrentUser())
+              .thenAnswer((_) async => parentWithFamily);
+
           return createBloc();
         },
         act: (bloc) => bloc.add(const RegisterRequested(
@@ -232,10 +264,114 @@ void main() {
         )),
         expect: () => [
           isA<AuthLoading>(),
+          isA<AuthAuthenticated>().having(
+            (s) => s.user.familyId,
+            'user.familyId',
+            'family-new',
+          ),
         ],
         verify: (_) {
+          // createFamily phải được gọi đúng một lần
+          verify(() => mockFamilyRepository.createFamily('new-uid')).called(1);
+          // getCurrentUser được gọi sau createFamily để lấy familyId mới
+          verify(() => mockAuthRepository.getCurrentUser()).called(1);
+          // Không được gọi logout
           verifyNever(() => mockAuthRepository.logout());
         },
+      );
+
+      blocTest<AuthBloc, AuthState>(
+        'does NOT create family when registering as child role',
+        build: () {
+          when(() => mockAuthRepository.register(
+                'child@example.com',
+                'password123',
+                'Child',
+                UserRole.child,
+              )).thenAnswer((_) async => testChild);
+
+          when(() => mockAuthRepository.getCurrentUser())
+              .thenAnswer((_) async => testChild);
+
+          return createBloc();
+        },
+        act: (bloc) => bloc.add(const RegisterRequested(
+          email: 'child@example.com',
+          password: 'password123',
+          name: 'Child',
+          role: UserRole.child,
+        )),
+        expect: () => [
+          isA<AuthLoading>(),
+          isA<AuthAuthenticated>(),
+        ],
+        verify: (_) {
+          // Child không tạo family
+          verifyNever(() => mockFamilyRepository.createFamily(any()));
+        },
+      );
+
+      blocTest<AuthBloc, AuthState>(
+        'blocks authStateChanges stream during registration (race condition fix)',
+        build: () {
+          final parentNoFamily = User(
+            uid: 'new-uid',
+            email: 'new@example.com',
+            displayName: 'New User',
+            role: UserRole.parent,
+            familyId: null,
+            createdAt: DateTime(2024, 1, 1),
+          );
+          final parentWithFamily = User(
+            uid: 'new-uid',
+            email: 'new@example.com',
+            displayName: 'New User',
+            role: UserRole.parent,
+            familyId: 'family-new',
+            createdAt: DateTime(2024, 1, 1),
+          );
+          final newFamily = Family(
+            familyId: 'family-new',
+            parentUid: 'new-uid',
+            childUids: const [],
+            linkingCode: 'XYZ789',
+            createdAt: DateTime(2024, 1, 1),
+            updatedAt: DateTime(2024, 1, 1),
+          );
+
+          when(() => mockAuthRepository.register(any(), any(), any(), any()))
+              .thenAnswer((_) async {
+            // Simulate: Firebase stream fire TRONG KHI register đang chạy
+            // Với fix mới, stream sẽ bị block, không gây emit sớm
+            authStateController.add(parentNoFamily); // stream fires early
+            return parentNoFamily;
+          });
+
+          when(() => mockFamilyRepository.createFamily('new-uid'))
+              .thenAnswer((_) async => newFamily);
+
+          when(() => mockAuthRepository.getCurrentUser())
+              .thenAnswer((_) async => parentWithFamily);
+
+          return createBloc();
+        },
+        act: (bloc) => bloc.add(const RegisterRequested(
+          email: 'new@example.com',
+          password: 'password123',
+          name: 'New User',
+          role: UserRole.parent,
+        )),
+        wait: const Duration(milliseconds: 200),
+        expect: () => [
+          isA<AuthLoading>(),
+          // Chỉ có DUY NHẤT một AuthAuthenticated với familyId đã được set
+          // Không bị emit hai lần (stream emit lần 1 + bloc emit lần 2)
+          isA<AuthAuthenticated>().having(
+            (s) => s.user.familyId,
+            'user.familyId',
+            'family-new',
+          ),
+        ],
       );
 
       blocTest<AuthBloc, AuthState>(
@@ -263,31 +399,6 @@ void main() {
             'Email already in use',
           ),
         ],
-      );
-
-      blocTest<AuthBloc, AuthState>(
-        'registers with child role correctly',
-        build: () {
-          when(() => mockAuthRepository.register(
-                'child@example.com',
-                'password123',
-                'Child',
-                UserRole.child,
-              )).thenAnswer((_) async => testChild);
-          return createBloc();
-        },
-        act: (bloc) => bloc.add(const RegisterRequested(
-          email: 'child@example.com',
-          password: 'password123',
-          name: 'Child',
-          role: UserRole.child,
-        )),
-        expect: () => [
-          isA<AuthLoading>(),
-        ],
-        verify: (_) {
-          verifyNever(() => mockAuthRepository.logout());
-        },
       );
     });
 
