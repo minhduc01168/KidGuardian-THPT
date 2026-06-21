@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 enum TimeRequestStatus { pending, approved, rejected }
@@ -85,8 +86,13 @@ class TimeRequestRepositoryImpl implements TimeRequestRepository {
           .collection('children')
           .doc(request.childUid)
           .collection('timeRequests')
-          .add(request.toMap());
+          .add(request.toMap())
+          .timeout(
+            const Duration(seconds: 3),
+            onTimeout: () => throw TimeoutException('Offline sync'),
+          );
     } catch (e) {
+      if (e is TimeoutException) return; // Proceed since data is cached locally
       throw Exception('Failed to submit time request: $e');
     }
   }
@@ -152,8 +158,12 @@ class TimeRequestRepositoryImpl implements TimeRequestRepository {
           .update({
         'status': 'approved',
         'parentResponse': response ?? 'Đã chấp nhận',
-      });
+      }).timeout(
+        const Duration(seconds: 3),
+        onTimeout: () => throw TimeoutException('Offline sync'),
+      );
     } catch (e) {
+      if (e is TimeoutException) return;
       throw Exception('Failed to approve request: $e');
     }
   }
@@ -176,8 +186,12 @@ class TimeRequestRepositoryImpl implements TimeRequestRepository {
           .update({
         'status': 'rejected',
         'parentResponse': response ?? 'Đã từ chối',
-      });
+      }).timeout(
+        const Duration(seconds: 3),
+        onTimeout: () => throw TimeoutException('Offline sync'),
+      );
     } catch (e) {
+      if (e is TimeoutException) return;
       throw Exception('Failed to reject request: $e');
     }
   }

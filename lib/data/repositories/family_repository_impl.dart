@@ -33,11 +33,12 @@ class FamilyRepositoryImpl implements FamilyRepository {
     await _firestore
         .collection('families')
         .doc(familyId)
-        .set(family.toMap());
+        .set(family.toMap())
+        .timeout(const Duration(seconds: 5), onTimeout: () => null);
 
     await _firestore.collection('users').doc(parentUid).update({
       'familyId': familyId,
-    });
+    }).timeout(const Duration(seconds: 5), onTimeout: () => null);
 
     return family;
   }
@@ -60,7 +61,8 @@ class FamilyRepositoryImpl implements FamilyRepository {
           .collection('families')
           .where('parentUid', isEqualTo: parentUid)
           .limit(1)
-          .get();
+          .get()
+          .timeout(const Duration(seconds: 5));
 
       if (query.docs.isEmpty) return null;
       return FamilyModel.fromFirestore(query.docs.first);
@@ -84,7 +86,7 @@ class FamilyRepositoryImpl implements FamilyRepository {
     await _firestore.collection('families').doc(familyId).update({
       'linkingCode': linkingCode,
       'updatedAt': FieldValue.serverTimestamp(),
-    });
+    }).timeout(const Duration(seconds: 5), onTimeout: () => null);
 
     return linkingCode;
   }
@@ -96,11 +98,11 @@ class FamilyRepositoryImpl implements FamilyRepository {
     await familyRef.update({
       'childUids': FieldValue.arrayUnion([childUid]),
       'updatedAt': FieldValue.serverTimestamp(),
-    });
+    }).timeout(const Duration(seconds: 5), onTimeout: () => null);
 
     await _firestore.collection('users').doc(childUid).update({
       'familyId': familyId,
-    });
+    }).timeout(const Duration(seconds: 5), onTimeout: () => null);
 
     final doc = await familyRef.get();
     return FamilyModel.fromFirestore(doc);
@@ -127,12 +129,12 @@ class FamilyRepositoryImpl implements FamilyRepository {
     await _firestore.collection('families').doc(familyId).update({
       'childUids': FieldValue.arrayRemove([childUid]),
       'updatedAt': FieldValue.serverTimestamp(),
-    });
+    }).timeout(const Duration(seconds: 5), onTimeout: () => null);
 
     await _firestore.collection('users').doc(childUid).update({
       'familyId': FieldValue.delete(),
       'linkedTo': FieldValue.delete(),
-    });
+    }).timeout(const Duration(seconds: 5), onTimeout: () => null);
   }
 
   @override

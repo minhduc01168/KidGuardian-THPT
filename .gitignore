@@ -3,6 +3,8 @@ backend/.env
 _bmad
 .agent
 .agents
+test_output.log
+
 
 # Flutter/Dart
 .dart_tool/
@@ -21,3 +23,4 @@ android/app/google-services.json
 android/local.properties
 android/key.properties
 
+.DS_Store

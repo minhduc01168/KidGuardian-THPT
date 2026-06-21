@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/app_time_limit_model.dart';
 import '../models/monitored_app_model.dart';
@@ -44,14 +45,23 @@ class SmartLockRepository {
     String childId,
     AppTimeLimitModel limit,
   ) async {
-    await _firestore
-        .collection('families')
-        .doc(familyId)
-        .collection('children')
-        .doc(childId)
-        .collection('timeLimits')
-        .doc(limit.appPackageName)
-        .set(limit.toJson());
+    try {
+      await _firestore
+          .collection('families')
+          .doc(familyId)
+          .collection('children')
+          .doc(childId)
+          .collection('timeLimits')
+          .doc(limit.appPackageName)
+          .set(limit.toJson())
+          .timeout(
+            const Duration(seconds: 3),
+            onTimeout: () => throw TimeoutException('Offline sync'),
+          );
+    } catch (e) {
+      if (e is TimeoutException) return;
+      rethrow;
+    }
   }
 
   // Pre-defined popular apps list for MVP
@@ -120,14 +130,23 @@ class SmartLockRepository {
     String appPackageName,
     bool isMonitored,
   ) async {
-    await _firestore
-        .collection('families')
-        .doc(familyId)
-        .collection('children')
-        .doc(childId)
-        .collection('monitoredApps')
-        .doc(appPackageName)
-        .set({'isMonitored': isMonitored}, SetOptions(merge: true));
+    try {
+      await _firestore
+          .collection('families')
+          .doc(familyId)
+          .collection('children')
+          .doc(childId)
+          .collection('monitoredApps')
+          .doc(appPackageName)
+          .set({'isMonitored': isMonitored}, SetOptions(merge: true))
+          .timeout(
+            const Duration(seconds: 3),
+            onTimeout: () => throw TimeoutException('Offline sync'),
+          );
+    } catch (e) {
+      if (e is TimeoutException) return;
+      rethrow;
+    }
   }
 
   Future<void> addCustomApp(
@@ -135,14 +154,23 @@ class SmartLockRepository {
     String childId,
     MonitoredAppModel app,
   ) async {
-    await _firestore
-        .collection('families')
-        .doc(familyId)
-        .collection('children')
-        .doc(childId)
-        .collection('monitoredApps')
-        .doc(app.appPackageName)
-        .set(app.toJson());
+    try {
+      await _firestore
+          .collection('families')
+          .doc(familyId)
+          .collection('children')
+          .doc(childId)
+          .collection('monitoredApps')
+          .doc(app.appPackageName)
+          .set(app.toJson())
+          .timeout(
+            const Duration(seconds: 3),
+            onTimeout: () => throw TimeoutException('Offline sync'),
+          );
+    } catch (e) {
+      if (e is TimeoutException) return;
+      rethrow;
+    }
   }
 
   // Schedule CRUD methods
@@ -188,7 +216,15 @@ class SmartLockRepository {
             .collection('schedules')
             .doc(schedule.id);
 
-    await docRef.set(schedule.toJson());
+    try {
+      await docRef.set(schedule.toJson()).timeout(
+            const Duration(seconds: 3),
+            onTimeout: () => throw TimeoutException('Offline sync'),
+          );
+    } catch (e) {
+      if (e is TimeoutException) return;
+      rethrow;
+    }
   }
 
   Future<void> deleteSchedule(
@@ -196,14 +232,23 @@ class SmartLockRepository {
     String childId,
     String scheduleId,
   ) async {
-    await _firestore
-        .collection('families')
-        .doc(familyId)
-        .collection('children')
-        .doc(childId)
-        .collection('schedules')
-        .doc(scheduleId)
-        .delete();
+    try {
+      await _firestore
+          .collection('families')
+          .doc(familyId)
+          .collection('children')
+          .doc(childId)
+          .collection('schedules')
+          .doc(scheduleId)
+          .delete()
+          .timeout(
+            const Duration(seconds: 3),
+            onTimeout: () => throw TimeoutException('Offline sync'),
+          );
+    } catch (e) {
+      if (e is TimeoutException) return;
+      rethrow;
+    }
   }
 
   // Smart Lock Settings methods
@@ -230,14 +275,23 @@ class SmartLockRepository {
     String childId,
     SmartLockSettingsModel settings,
   ) async {
-    await _firestore
-        .collection('families')
-        .doc(familyId)
-        .collection('children')
-        .doc(childId)
-        .collection('settings')
-        .doc('smartLock')
-        .set(settings.copyWith(updatedAt: DateTime.now()).toJson());
+    try {
+      await _firestore
+          .collection('families')
+          .doc(familyId)
+          .collection('children')
+          .doc(childId)
+          .collection('settings')
+          .doc('smartLock')
+          .set(settings.copyWith(updatedAt: DateTime.now()).toJson())
+          .timeout(
+            const Duration(seconds: 3),
+            onTimeout: () => throw TimeoutException('Offline sync'),
+          );
+    } catch (e) {
+      if (e is TimeoutException) return;
+      rethrow;
+    }
   }
 
   // Lock History methods
@@ -270,13 +324,22 @@ class SmartLockRepository {
     String childId,
     LockHistoryEntryModel entry,
   ) async {
-    await _firestore
-        .collection('families')
-        .doc(familyId)
-        .collection('children')
-        .doc(childId)
-        .collection('lockHistory')
-        .add(entry.toJson());
+    try {
+      await _firestore
+          .collection('families')
+          .doc(familyId)
+          .collection('children')
+          .doc(childId)
+          .collection('lockHistory')
+          .add(entry.toJson())
+          .timeout(
+            const Duration(seconds: 3),
+            onTimeout: () => throw TimeoutException('Offline sync'),
+          );
+    } catch (e) {
+      if (e is TimeoutException) return;
+      rethrow;
+    }
   }
 
   List<MonitoredAppModel> getPopularMonitoredApps() {

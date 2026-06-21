@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'core/theme/app_theme.dart';
 import 'core/navigation/app_routes.dart';
 import 'data/repositories/auth_repository_impl.dart';
@@ -57,6 +58,10 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  FirebaseFirestore.instance.settings = const Settings(
+    persistenceEnabled: true,
+    cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+  );
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   runApp(const KidGuardianApp());
 }
@@ -188,6 +193,15 @@ class KidGuardianApp extends StatelessWidget {
                 // Sử dụng popUntil để quay về root route (home của MaterialApp).
                 // Do root route được wrap bằng BlocBuilder, nó sẽ tự động render RoleSelectionScreen 
                 // khi state là AuthUnauthenticated. Tránh lỗi văng ra RoleSelectionScreen ở lần login tiếp theo.
+                AppNavigator.navigatorKey.currentState?.popUntil((route) => route.isFirst);
+              },
+            ),
+            BlocListener<AuthBloc, AuthState>(
+              listenWhen: (previous, current) =>
+                  current is AuthAuthenticated && previous is! AuthAuthenticated,
+              listener: (context, state) {
+                // Khi đăng nhập/đăng ký thành công, pop tất cả các modal/screen phụ (Login/Register)
+                // để hiển thị màn hình chính (Dashboard) được render bởi BlocBuilder ở root route.
                 AppNavigator.navigatorKey.currentState?.popUntil((route) => route.isFirst);
               },
             ),

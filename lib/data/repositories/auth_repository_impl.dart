@@ -76,7 +76,8 @@ class AuthRepositoryImpl implements AuthRepository {
         await _firestore
             .collection('users')
             .doc(credential.user!.uid)
-            .set(newUser.toMap());
+            .set(newUser.toMap())
+            .timeout(const Duration(seconds: 5), onTimeout: () => null);
         
         return newUser;
       }
@@ -109,7 +110,10 @@ class AuthRepositoryImpl implements AuthRepository {
       print('Firebase Auth user created: ${credential.user!.uid}');
       
       // Update display name
-      await credential.user!.updateDisplayName(name);
+      await credential.user!.updateDisplayName(name).timeout(
+        const Duration(seconds: 5), 
+        onTimeout: () => null,
+      );
       
       // Create user document in Firestore
       final userModel = UserModel(
@@ -123,7 +127,8 @@ class AuthRepositoryImpl implements AuthRepository {
       await _firestore
           .collection('users')
           .doc(credential.user!.uid)
-          .set(userModel.toMap());
+          .set(userModel.toMap())
+          .timeout(const Duration(seconds: 5), onTimeout: () => null);
       
       print('User document created in Firestore');
       
@@ -146,7 +151,7 @@ class AuthRepositoryImpl implements AuthRepository {
     await _firestore.collection('users').doc(childUid).update({
       'familyId': familyId,
       'linkedTo': familyId,
-    });
+    }).timeout(const Duration(seconds: 5), onTimeout: () => null);
   }
 
   @override
@@ -168,7 +173,10 @@ class AuthRepositoryImpl implements AuthRepository {
       updates['familyId'] = familyId;
     }
     if (updates.isNotEmpty) {
-      await _firestore.collection('users').doc(uid).update(updates);
+      await _firestore.collection('users').doc(uid).update(updates).timeout(
+        const Duration(seconds: 5), 
+        onTimeout: () => null,
+      );
     }
   }
   
