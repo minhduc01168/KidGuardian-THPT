@@ -180,6 +180,12 @@ class KidGuardianApp extends StatelessWidget {
         ],
         child: MultiBlocListener(
           listeners: [
+            BlocListener<AuthBloc, AuthState>(
+              listenWhen: (previous, current) => previous is AuthAuthenticated && current is AuthUnauthenticated,
+              listener: (context, state) {
+                AppNavigator.navigatorKey.currentState?.popUntil((route) => route.isFirst);
+              },
+            ),
             BlocListener<AppMonitorBloc, AppMonitorState>(
               listenWhen: (previous, current) => current is AppBlockedState,
               listener: (context, state) {
