@@ -16,6 +16,13 @@ abstract class AlertRepository {
     required String reason,
   });
 
+  Future<void> createTimeRequestAlert({
+    required String familyId,
+    required String childUid,
+    required String packageName,
+    required int requestedMinutes,
+  });
+
   Stream<List<AlertModel>> watchNewAlerts({
     required String familyId,
     required String childUid,
@@ -171,6 +178,35 @@ class AlertRepositoryImpl implements AlertRepository {
       });
     } catch (e) {
       throw Exception('Failed to create app blocked alert: $e');
+    }
+  }
+
+  @override
+  Future<void> createTimeRequestAlert({
+    required String familyId,
+    required String childUid,
+    required String packageName,
+    required int requestedMinutes,
+  }) async {
+    try {
+      await _firestore
+          .collection('families')
+          .doc(familyId)
+          .collection('children')
+          .doc(childUid)
+          .collection('alerts')
+          .add({
+        'type': 'time_request',
+        'keyword': '',
+        'packageName': packageName,
+        'textContext': 'Yêu cầu thêm $requestedMinutes phút',
+        'timestamp': FieldValue.serverTimestamp(),
+        'isReviewed': false,
+        'isDismissed': false,
+        'notes': '',
+      });
+    } catch (e) {
+      throw Exception('Failed to create time request alert: $e');
     }
   }
 

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:kidguardian/domain/repositories/time_request_repository.dart';
 import 'package:kidguardian/domain/repositories/rules_repository.dart';
+import 'package:kidguardian/domain/repositories/alert_repository.dart';
 
 // Events
 abstract class TimeRequestEvent extends Equatable {
@@ -147,11 +148,16 @@ class TimeRequestHistoryLoaded extends TimeRequestState {
 class TimeRequestBloc extends Bloc<TimeRequestEvent, TimeRequestState> {
   final TimeRequestRepository repository;
   final RulesRepository? rulesRepository;
+  final AlertRepository? alertRepository;
   StreamSubscription? _requestSubscription;
   List<TimeRequest> _allRequests = [];
   TimeRequestFilterStatus _filterStatus = TimeRequestFilterStatus.all;
 
-  TimeRequestBloc({required this.repository, this.rulesRepository}) : super(TimeRequestInitial()) {
+  TimeRequestBloc({
+    required this.repository, 
+    this.rulesRepository,
+    this.alertRepository,
+  }) : super(TimeRequestInitial()) {
     on<SubmitTimeRequest>(_onSubmitRequest);
     on<LoadTimeRequests>(_onLoadRequests);
     on<LoadPendingRequests>(_onLoadPendingRequests);
@@ -206,6 +212,20 @@ class TimeRequestBloc extends Bloc<TimeRequestEvent, TimeRequestState> {
 
       if (!autoApproved) {
         await repository.submitRequest(request);
+        
+        // Ghi log alert
+        if (alertRepository != null) {
+          try {
+            await alertRepository!.createTimeRequestAlert(
+              familyId: event.familyId,
+              childUid: event.childUid,
+              packageName: event.appPackageName,
+              requestedMinutes: event.requestedMinutes,
+            );
+          } catch (e) {
+            debugPrint('Error creating time request alert: $e');
+          }
+        }
       }
 
       emit(TimeRequestSubmitted(
