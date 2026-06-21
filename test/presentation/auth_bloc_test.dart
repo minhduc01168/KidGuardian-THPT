@@ -70,6 +70,8 @@ void main() {
       build: () {
         when(() => authRepository.register(any(), any(), any(), any()))
             .thenAnswer((_) async => testUser);
+        when(() => familyRepository.getFamilyByParent(any()))
+            .thenAnswer((_) async => null);
         when(() => familyRepository.createFamily(any()))
             .thenAnswer((_) async => testFamily);
             
@@ -106,6 +108,8 @@ void main() {
       build: () {
         when(() => authRepository.login(any(), any()))
             .thenAnswer((_) async => testUser);
+        when(() => familyRepository.getFamilyByParent(any()))
+            .thenAnswer((_) async => null);
         when(() => familyRepository.createFamily(any()))
             .thenAnswer((_) async => testFamily);
             

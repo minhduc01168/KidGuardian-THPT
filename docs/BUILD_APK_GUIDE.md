@@ -15,7 +15,7 @@ cd ~/CVS/kidguardian-thpt
 
 Nếu gõ lệnh `flutter` mà terminal báo `command not found`, bạn cần đưa đường dẫn Flutter vào biến môi trường:
 ```bash
-export PATH="$PATH:$HOME/development/flutter/bin"
+export PATH="$PATH:$HOME/.flutter-sdk/flutter/bin"
 ```
 *(Lưu ý: Nếu bạn đã thêm lệnh này vào file `~/.bashrc` hoặc `~/.zshrc` thì có thể bỏ qua bước này).*
 

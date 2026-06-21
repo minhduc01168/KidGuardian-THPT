@@ -103,6 +103,8 @@ void main() {
           when(() => mockAuthRepository.login('test@example.com', 'password123'))
               .thenAnswer((_) async => parentNoFamily);
               
+          when(() => mockFamilyRepository.getFamilyByParent('uid123'))
+              .thenAnswer((_) async => null);
           when(() => mockFamilyRepository.createFamily('uid123'))
               .thenAnswer((_) async => testFamily);
               
@@ -248,6 +250,8 @@ void main() {
                 UserRole.parent,
               )).thenAnswer((_) async => parentNoFamily);
 
+          when(() => mockFamilyRepository.getFamilyByParent('new-uid'))
+              .thenAnswer((_) async => null);
           when(() => mockFamilyRepository.createFamily('new-uid'))
               .thenAnswer((_) async => newFamily);
 
@@ -347,6 +351,8 @@ void main() {
             return parentNoFamily;
           });
 
+          when(() => mockFamilyRepository.getFamilyByParent('new-uid'))
+              .thenAnswer((_) async => null);
           when(() => mockFamilyRepository.createFamily('new-uid'))
               .thenAnswer((_) async => newFamily);
 

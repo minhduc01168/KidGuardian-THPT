@@ -30,7 +30,7 @@
 ### 1.1 Thiết bị yêu cầu
 - [ ] Điện thoại Android 8.0+ (API 26+)
 - [ ] Kết nối internet ổn định
-- [ ] Ít nhất 2 điện thoại (1 cho Parent, 1 cho Child) hoặc dùng 2 tài khoản trên cùng máy
+- [ ] 2 thiết bị (hoặc 1 điện thoại thật + 1 máy ảo - xem Hướng dẫn 1.6)
 
 ### 1.2 Cài đặt APK
 ```
@@ -79,6 +79,20 @@ Chuẩn bị 2 email (có thể là email ảo, chưa từng đăng ký app):
 | **FIX C1** | Foreground Service — monitoring không bị kill khi background | [Test Flow 12](#13-test-flow-12-foreground-service-fix-c1) |
 | **FIX C2** | Native block app bằng `GLOBAL_ACTION_HOME` (Accessibility) | [Test Flow 13](#14-test-flow-13-native-app-blocking---accessibility-fix-c2) |
 | **FIX C3** | Realtime notification cho phụ huynh khi con xin thêm giờ | [Test Flow 14](#15-test-flow-14-realtime-time-request-notification-fix-c3) |
+
+### 1.6 Hướng dẫn test khi chỉ có 1 thiết bị thật (Single Device Testing)
+
+Vì KidGuardian yêu cầu quyền Native sâu (Accessibility Service) trên máy Child, nhưng role Parent chỉ cần thao tác giao diện để đọc/ghi dữ liệu. Nếu bạn chỉ có 1 điện thoại thật, dưới đây là các phương án tối ưu:
+
+**Phương án 1 (Khuyên dùng): 1 Máy thật (Child) + 1 Máy ảo Emulator (Parent)**
+- **Máy điện thoại thật:** Cài file APK, đăng nhập với vai trò **Con (Child)**. Tiến hành cấp các quyền Accessibility Service, Notification. Máy thật sẽ test chính xác nhất tính năng khóa app ở mức hardware, văng màn hình Home và Foreground Service.
+- **Máy ảo (Android Emulator):** Mở máy ảo trên máy tính. Chạy lệnh `flutter run` hoặc cài file APK. Đăng nhập với vai trò **Phụ huynh (Parent)**. Dùng máy ảo để nhận thông báo realtime, xem dashboard và thay đổi cài đặt giới hạn.
+
+**Phương án 2: Sử dụng Không gian kép / App Clone trên cùng 1 điện thoại**
+- Các thiết bị Android đều có tính năng nhân bản ứng dụng: **Dual Messenger (Samsung)**, **Dual Apps (Xiaomi)**, **App Cloner (Oppo)** hoặc **Secure Folder**.
+- Bạn có thể nhân bản ứng dụng KidGuardian thành 2 phiên bản độc lập trên cùng 1 máy.
+- **Bản gốc:** Đăng nhập Child, cấp quyền Accessibility.
+- **Bản nhân bản:** Đăng nhập Parent để điều khiển. *(Lưu ý: Chuyển đổi liên tục giữa 2 app có thể làm ảnh hưởng đôi chút đến Foreground Service do OS tối ưu RAM, nhưng vẫn test được mượt mà luồng dữ liệu).*
 
 ---
 
@@ -131,8 +145,10 @@ Chuẩn bị 2 email (có thể là email ảo, chưa từng đăng ký app):
 | 1 | Vào Profile/Settings | Hiển thị nút "Đăng xuất" | ☐ |
 | 2 | Nhấn "Đăng xuất" | Hiển thị dialog xác nhận | ☐ |
 | 3 | Nhấn "Hủy" | Đóng dialog, vẫn đăng nhập | ☐ |
-| 4 | Nhấn "Đăng xuất" lần nữa → Xác nhận | Chuyển về màn hình Login | ☐ |
-| 5 | Thoát app → Mở lại | Hiển thị màn hình Login (không tự đăng nhập) | ☐ |
+| 4 | Nhấn "Đăng xuất" lần nữa → Xác nhận | Chuyển về màn hình Chọn Role / Login | ☐ |
+| 5 | Kiểm tra hiện tượng tự đăng nhập lại (Lỗi cũ) | App **KHÔNG TỰ ĐỘNG nhảy ngược lại Dashboard** sau khi vừa văng ra ngoài | ☐ |
+| 6 | Kiểm tra giao diện với Role Child (Lỗi cũ) | Chữ trên nút và thông báo **không bị cắt xén**, hiển thị đầy đủ | ☐ |
+| 7 | Thoát app → Mở lại | Hiển thị màn hình Login (không tự đăng nhập) | ☐ |
 
 ---
 
