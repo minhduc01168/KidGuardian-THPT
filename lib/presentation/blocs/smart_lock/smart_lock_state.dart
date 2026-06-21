@@ -79,11 +79,4 @@ class LockHistoryLoaded extends SmartLockState {
   List<Object> get props => [history];
 }
 
-class InstalledAppsLoaded extends SmartLockState {
-  final List<Map<String, dynamic>> installedApps;
 
-  const InstalledAppsLoaded(this.installedApps);
-
-  @override
-  List<Object> get props => [installedApps];
-}

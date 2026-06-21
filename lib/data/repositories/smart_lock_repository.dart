@@ -205,7 +205,6 @@ class SmartLockRepository {
     List<Map<String, dynamic>> apps,
   ) async {
     try {
-      final batch = _firestore.batch();
       final collectionRef = _firestore
           .collection('families')
           .doc(familyId)
@@ -213,16 +212,22 @@ class SmartLockRepository {
           .doc(childId)
           .collection('installedApps');
 
-      // Có thể tối ưu bằng cách chỉ ghi những app chưa có, 
-      // tạm thời ghi đè toàn bộ cho MVP
-      for (final app in apps) {
-        batch.set(collectionRef.doc(app['packageName']), app, SetOptions(merge: true));
-      }
+      // Chia nhỏ thành các batch 500 (giới hạn của Firestore)
+      const int batchSize = 500;
+      for (var i = 0; i < apps.length; i += batchSize) {
+        final batch = _firestore.batch();
+        final end = (i + batchSize < apps.length) ? i + batchSize : apps.length;
+        final chunk = apps.sublist(i, end);
 
-      await batch.commit().timeout(
-            const Duration(seconds: 10),
-            onTimeout: () => throw TimeoutException('Offline sync'),
-          );
+        for (final app in chunk) {
+          batch.set(collectionRef.doc(app['packageName']), app, SetOptions(merge: true));
+        }
+
+        await batch.commit().timeout(
+              const Duration(seconds: 10),
+              onTimeout: () => throw TimeoutException('Offline sync'),
+            );
+      }
     } catch (e) {
       if (e is TimeoutException) return;
       rethrow;

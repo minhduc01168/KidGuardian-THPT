@@ -138,12 +138,4 @@ class LoadLockHistory extends SmartLockEvent {
   List<Object> get props => [familyId, childId];
 }
 
-class LoadInstalledApps extends SmartLockEvent {
-  final String familyId;
-  final String childId;
 
-  const LoadInstalledApps(this.familyId, this.childId);
-
-  @override
-  List<Object> get props => [familyId, childId];
-}
