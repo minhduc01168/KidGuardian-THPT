@@ -12,7 +12,8 @@ import 'package:kidguardian/domain/repositories/alert_repository.dart';
 import 'package:kidguardian/data/repositories/smart_lock_repository.dart';
 import 'package:kidguardian/data/models/smart_lock_settings_model.dart';
 import 'package:intl/intl.dart';
-import 'package:device_apps/device_apps.dart';
+import 'package:installed_apps/installed_apps.dart';
+import 'package:installed_apps/app_info.dart';
 
 // Events
 abstract class AppMonitorEvent extends Equatable {
@@ -213,16 +214,16 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
   Future<void> _syncInstalledApps() async {
     if (_familyId == null || _childUid == null) return;
     try {
-      final apps = await DeviceApps.getInstalledApplications(
-        includeSystemApps: false,
-        includeAppIcons: false,
-        onlyAppsWithLaunchIntent: true,
+      final List<AppInfo> apps = await InstalledApps.getInstalledApps(
+        excludeSystemApps: true,
+        excludeNonLaunchableApps: true,
+        withIcon: false,
       );
 
       final List<Map<String, dynamic>> appDataList = apps.map((app) {
         return {
           'packageName': app.packageName,
-          'appName': app.appName,
+          'appName': app.name,
           'versionName': app.versionName,
         };
       }).toList();
