@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/entities/weekly_report.dart';
+import '../../domain/entities/monthly_report.dart';
 import '../../domain/repositories/report_repository.dart';
 import '../../domain/repositories/usage_repository.dart';
 import '../models/weekly_report_model.dart';
