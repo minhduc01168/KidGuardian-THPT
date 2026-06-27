@@ -21,7 +21,11 @@
 10. [Test Flow 9: Trợ giúp](#10-test-flow-9-trợ-giúp)
 11. [Test Flow 10: Tương tác Parent-Child](#11-test-flow-10-tương-tác-parent-child)
 12. [Test Flow 11: Khẩn cấp](#12-test-flow-11-khẩn-cấp)
-13. [Bug Report Template](#13-bug-report-template)
+13. [Test Flow 12: Foreground Service (FIX C1)](#13-test-flow-12-foreground-service-fix-c1)
+14. [Test Flow 13: Native App Blocking - Accessibility (FIX C2)](#14-test-flow-13-native-app-blocking---accessibility-fix-c2)
+15. [Test Flow 14: Realtime Time Request Notification (FIX C3)](#15-test-flow-14-realtime-time-request-notification-fix-c3)
+16. [Test Flow 15: Cảnh Báo & Quản Lý Từ Khóa Nhạy Cảm (Epic 4)](#16-test-flow-15-cảnh-báo--quản-lý-từ-khóa-nhạy-cảm-epic-4)
+17. [Bug Report Template](#17-bug-report-template)
 
 ---
 
@@ -337,6 +341,15 @@ sequenceDiagram
 | 3 | Nhập email nhận | Không lỗi | ☐ |
 | 4 | Nhấn "Gửi ngay" | Hiển thị thông báo gửi thành công | ☐ |
 
+### TC-REPORT-005: Xem báo cáo tháng (30 ngày)
+| Bước | Hành động | Kết quả mong đợi | Pass/Fail |
+|------|-----------|------------------|-----------|
+| 1 | Từ Dashboard nhấn "Báo cáo tháng" hoặc vào tab Báo cáo > Báo cáo tháng | Hiển thị màn hình tổng kết 30 ngày qua | ☐ |
+| 2 | Xem thẻ tổng kết | Hiển thị tổng số giờ/phút và % tăng/giảm so với 30 ngày trước | ☐ |
+| 3 | Xem biểu đồ xu hướng theo tuần | Hiển thị 4 cột (Tuần 1 - Tuần 4) tương ứng với 4 tuần gần nhất | ☐ |
+| 4 | Xem Top 5 ứng dụng tốn thời gian nhất | Hiển thị đúng danh sách 5 app cùng số giờ cụ thể | ☐ |
+| 5 | Kiểm tra tài khoản mới tạo (chưa có log) | Hiển thị trạng thái "Chưa có báo cáo tháng" thân thiện | ☐ |
+
 ---
 
 ## 8. Test Flow 7: Thông báo
@@ -445,6 +458,21 @@ sequenceDiagram
 | 1 | Vào Interaction > Request History | Hiển thị tất cả yêu cầu | ☐ |
 | 2 | Lọc theo trạng thái | Hiển thị: Chờ duyệt / Đã duyệt / Đã từ chối | ☐ |
 | 3 | Xem chi tiết yêu cầu | Hiển thị đầy đủ thông tin | ☐ |
+
+### TC-INT-004: Cài đặt quy tắc tự động duyệt (Auto Approval Rules - Parent)
+| Bước | Hành động | Kết quả mong đợi | Pass/Fail |
+|------|-----------|------------------|-----------|
+| 1 | Vào Cài đặt > Quy tắc tự động duyệt hoặc Quick Actions > Auto Approval | Hiển thị danh sách quy tắc đang có | ☐ |
+| 2 | Nhấn "Thêm quy tắc mới" | Hiển thị form thiết lập | ☐ |
+| 3 | Chọn ứng dụng (VD: Từ điển / Học tập), đặt giới hạn tối đa ≤ 15 phút | Không lỗi | ☐ |
+| 4 | Nhấn "Lưu quy tắc" | Quy tắc được thêm thành công vào danh sách và ở trạng thái Bật (ON) | ☐ |
+
+### TC-INT-005: Con xin thời gian hợp lệ theo quy tắc tự động
+| Bước | Hành động | Kết quả mong đợi | Pass/Fail |
+|------|-----------|------------------|-----------|
+| 1 | Máy Child: xin thêm 15 phút cho ứng dụng đã được thiết lập tự động duyệt | Form xin thêm giờ gửi đi | ☐ |
+| 2 | Kiểm tra kết quả phản hồi trên máy Child | Hệ thống **tự động phê duyệt ngay lập tức**, hiển thị "✅ Đã được duyệt tự động — +15 phút" | ☐ |
+| 3 | Kiểm tra lịch sử yêu cầu trên máy Parent | Yêu cầu được ghi nhận với nhãn "Duyệt tự động (Auto)" | ☐ |
 
 ---
 
@@ -583,7 +611,35 @@ sequenceDiagram
 
 ---
 
-## 16. Bug Report Template
+## 16. Test Flow 15: Cảnh Báo & Quản Lý Từ Khóa Nhạy Cảm (Epic 4)
+
+> **Mục tiêu:** Kiểm tra khả năng phát hiện từ khóa nguy hiểm/nhạy cảm (bạo lực, game, cờ bạc...) và gửi thông báo cảnh báo kịp thời cho phụ huynh.
+
+### TC-KEYWORD-001: Quản lý danh sách từ khóa nhạy cảm (Parent)
+| Bước | Hành động | Kết quả mong đợi | Pass/Fail |
+|------|-----------|------------------|-----------|
+| 1 | Vào Cài đặt > Quản lý từ khóa (Keyword Management) | Hiển thị danh sách từ khóa nhạy cảm đang theo dõi | ☐ |
+| 2 | Nhấn "Thêm từ khóa" → Nhập từ khóa mới (VD: `free fire`, `cờ bạc`) | Lưu thành công vào danh sách | ☐ |
+| 3 | Thử nhập từ khóa trùng lặp hoặc để trống | Hiển thị lỗi cảnh báo hợp lệ | ☐ |
+| 4 | Xóa hoặc tắt (toggle OFF) một từ khóa | Từ khóa bị xóa/tắt thành công | ☐ |
+
+### TC-KEYWORD-002: Phát hiện và gửi cảnh báo vi phạm realtime
+| Bước | Hành động | Kết quả mong đợi | Pass/Fail |
+|------|-----------|------------------|-----------|
+| 1 | Máy Child: thực hiện gõ hoặc truy cập nội dung chứa từ khóa nhạy cảm đang bật giám sát | Hệ thống ghi nhận log cảnh báo | ☐ |
+| 2 | Máy Parent: quan sát notification bar | Nhận được cảnh báo realtime vi phạm từ khóa | ☐ |
+| 3 | Nhấn vào thông báo cảnh báo | Mở thẳng đến màn hình chi tiết lịch sử cảnh báo (Alert History) | ☐ |
+
+### TC-KEYWORD-003: Xem xét và đánh giá lịch sử cảnh báo (Alert Review)
+| Bước | Hành động | Kết quả mong đợi | Pass/Fail |
+|------|-----------|------------------|-----------|
+| 1 | Vào Lịch sử cảnh báo (Alert History) | Hiển thị danh sách các lần vi phạm theo thứ tự thời gian | ☐ |
+| 2 | Lọc theo trạng thái (Chưa xử lý / Đã xử lý) | Hiển thị đúng kết quả lọc | ☐ |
+| 3 | Nhấn vào một cảnh báo → Chọn "Đánh dấu đã xử lý" hoặc "Bỏ qua" | Trạng thái cảnh báo được cập nhật thành công | ☐ |
+
+---
+
+## 17. Bug Report Template
 
 Khi phát hiện bug, ghi lại theo format sau:
 
@@ -651,6 +707,7 @@ Khi phát hiện bug, ghi lại theo format sau:
 - [ ] Thống kê sử dụng
 - [ ] Tổng hợp hàng ngày
 - [ ] Gửi báo cáo email
+- [ ] Báo cáo tháng (30 ngày)
 
 ### Notifications
 - [ ] Trung tâm thông báo
@@ -672,6 +729,8 @@ Khi phát hiện bug, ghi lại theo format sau:
 - [ ] Yêu cầu thêm thời gian
 - [ ] Duyệt/Từ chối yêu cầu
 - [ ] Lịch sử yêu cầu
+- [ ] Cài đặt quy tắc tự động duyệt (Auto Approval Rules)
+- [ ] Con xin giờ hợp lệ được tự động duyệt
 
 ### Emergency
 - [ ] Kích hoạt khẩn cấp
@@ -696,6 +755,11 @@ Khi phát hiện bug, ghi lại theo format sau:
 - [ ] TC-C3-004: Duyệt nhanh từ notification
 - [ ] TC-C3-005: TimeRequestStatusScreen tự cập nhật (realtime)
 
+### ⭐ [MỚI] Epic 4 — Cảnh Báo & Quản Lý Từ Khóa Nhạy Cảm
+- [ ] TC-KEYWORD-001: Thêm/Sửa/Xóa từ khóa nhạy cảm
+- [ ] TC-KEYWORD-002: Nhận cảnh báo vi phạm từ khóa realtime
+- [ ] TC-KEYWORD-003: Xem xét và đánh giá lịch sử cảnh báo
+
 ---
 
 **Ghi chú cuối:**
@@ -709,4 +773,4 @@ Khi phát hiện bug, ghi lại theo format sau:
 
 ---
 
-*Cập nhật: 06/06/2026 — FIX C1 (Foreground Service) + C2 (Native Block) + C3 (Realtime Notification)*
+*Cập nhật: 27/06/2026 — Bổ sung Báo cáo tháng (Story 6.1) + Quản lý từ khóa (Epic 4) + Quy tắc tự động duyệt (Story 5.6)*
