@@ -11,6 +11,7 @@ import '../../auth/bloc/auth_state.dart';
 
 import '../../auth/screens/profile_screen.dart';
 import '../../report/screens/weekly_report_screen.dart';
+import '../../report/screens/monthly_report_screen.dart';
 import '../../settings/screens/app_settings_screen.dart';
 import '../../summary/screens/daily_summary_screen.dart';
 import '../../../screens/smart_lock/blocked_apps_screen.dart';
@@ -495,6 +496,28 @@ class _ParentDashboardState extends State<ParentDashboard> {
                     },
                   ),
                 ),
+              ],
+            ),
+            SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: _QuickActionCard(
+                    icon: Icons.calendar_month,
+                    title: 'Báo cáo tháng',
+                    color: AppColors.primaryDark,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const MonthlyReportScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                SizedBox(width: 16),
+                Expanded(child: SizedBox()),
               ],
             ),
             SizedBox(height: 16),

@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import '../../../../domain/entities/weekly_report.dart';
+import '../../../../domain/entities/monthly_report.dart';
 
 abstract class ReportState extends Equatable {
   const ReportState();
@@ -30,10 +31,28 @@ class ReportHistoryLoaded extends ReportState {
   List<Object?> get props => [reports];
 }
 
+class MonthlyReportHistoryLoaded extends ReportState {
+  final List<MonthlyReport> reports;
+
+  const MonthlyReportHistoryLoaded({required this.reports});
+
+  @override
+  List<Object?> get props => [reports];
+}
+
 class ReportGenerated extends ReportState {
   final WeeklyReport report;
 
   const ReportGenerated({required this.report});
+
+  @override
+  List<Object?> get props => [report];
+}
+
+class MonthlyReportGenerated extends ReportState {
+  final MonthlyReport report;
+
+  const MonthlyReportGenerated({required this.report});
 
   @override
   List<Object?> get props => [report];

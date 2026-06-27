@@ -23,4 +23,14 @@ class AppUtils {
     };
     return icons[appName] ?? Icons.apps;
   }
+
+  static String formatMinutes(int minutes) {
+    if (minutes >= 60) {
+      final h = minutes ~/ 60;
+      final m = minutes % 60;
+      if (m == 0) return '${h}h';
+      return '${h}h ${m}p';
+    }
+    return '${minutes}p';
+  }
 }

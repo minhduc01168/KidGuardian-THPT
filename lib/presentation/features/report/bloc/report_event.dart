@@ -21,10 +21,32 @@ class GenerateWeeklyReport extends ReportEvent {
   List<Object?> get props => [childUid, familyId];
 }
 
+class GenerateMonthlyReport extends ReportEvent {
+  final String childUid;
+  final String familyId;
+
+  const GenerateMonthlyReport({
+    required this.childUid,
+    required this.familyId,
+  });
+
+  @override
+  List<Object?> get props => [childUid, familyId];
+}
+
 class LoadReportHistory extends ReportEvent {
   final String familyId;
 
   const LoadReportHistory({required this.familyId});
+
+  @override
+  List<Object?> get props => [familyId];
+}
+
+class LoadMonthlyReportHistory extends ReportEvent {
+  final String familyId;
+
+  const LoadMonthlyReportHistory({required this.familyId});
 
   @override
   List<Object?> get props => [familyId];

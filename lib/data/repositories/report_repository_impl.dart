@@ -3,6 +3,7 @@ import '../../domain/entities/weekly_report.dart';
 import '../../domain/repositories/report_repository.dart';
 import '../../domain/repositories/usage_repository.dart';
 import '../models/weekly_report_model.dart';
+import '../models/monthly_report_model.dart';
 import '../services/email_service.dart';
 
 class ReportRepositoryImpl implements ReportRepository {
@@ -190,6 +191,191 @@ class ReportRepositoryImpl implements ReportRepository {
 
       return query.docs
           .map((doc) => WeeklyReportModel.fromFirestore(doc))
+          .toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  @override
+  Future<MonthlyReport> generateMonthlyReport(
+    String childUid,
+    String familyId,
+  ) async {
+    final now = DateTime.now();
+    final monthEnd = now;
+    final monthStart = now.subtract(const Duration(days: 29));
+    final previousMonthEnd = monthStart.subtract(const Duration(days: 1));
+    final previousMonthStart = previousMonthEnd.subtract(const Duration(days: 29));
+
+    final monthStartStr = _getDateString(monthStart);
+    final monthEndStr = _getDateString(monthEnd);
+    final prevMonthStartStr = _getDateString(previousMonthStart);
+    final prevMonthEndStr = _getDateString(previousMonthEnd);
+
+    // Get current month data
+    final currentMonthLogs = await _usageRepository.getUsageByDateRange(
+      childUid,
+      monthStartStr,
+      monthEndStr,
+    );
+
+    // Get previous month data
+    final previousMonthLogs = await _usageRepository.getUsageByDateRange(
+      childUid,
+      prevMonthStartStr,
+      prevMonthEndStr,
+    );
+
+    int totalMinutes = 0;
+    int previousMonthMinutes = 0;
+    Map<String, int> usageByApp = {};
+    Map<String, int> previousMonthUsageByApp = {};
+    Map<String, int> weeklyBreakdown = {
+      'Tuần 1': 0,
+      'Tuần 2': 0,
+      'Tuần 3': 0,
+      'Tuần 4': 0,
+    };
+
+    for (final log in currentMonthLogs) {
+      totalMinutes += log.durationMinutes;
+      usageByApp[log.appName] =
+          (usageByApp[log.appName] ?? 0) + log.durationMinutes;
+
+      // Group into 4 weeks approx
+      try {
+        final logDate = DateTime.parse(log.date);
+        final daysDiff = monthEnd.difference(logDate).inDays;
+        if (daysDiff <= 7) {
+          weeklyBreakdown['Tuần 4'] = (weeklyBreakdown['Tuần 4'] ?? 0) + log.durationMinutes;
+        } else if (daysDiff <= 14) {
+          weeklyBreakdown['Tuần 3'] = (weeklyBreakdown['Tuần 3'] ?? 0) + log.durationMinutes;
+        } else if (daysDiff <= 21) {
+          weeklyBreakdown['Tuần 2'] = (weeklyBreakdown['Tuần 2'] ?? 0) + log.durationMinutes;
+        } else {
+          weeklyBreakdown['Tuần 1'] = (weeklyBreakdown['Tuần 1'] ?? 0) + log.durationMinutes;
+        }
+      } catch (_) {}
+    }
+
+    for (final log in previousMonthLogs) {
+      previousMonthMinutes += log.durationMinutes;
+      previousMonthUsageByApp[log.appName] =
+          (previousMonthUsageByApp[log.appName] ?? 0) + log.durationMinutes;
+    }
+
+    double percentChange = 0;
+    if (previousMonthMinutes > 0) {
+      percentChange =
+          ((totalMinutes - previousMonthMinutes) / previousMonthMinutes * 100);
+    } else if (totalMinutes > 0) {
+      percentChange = 100;
+    }
+
+    final sortedApps = usageByApp.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final topApps = sortedApps.take(5).map((e) => e.key).toList();
+
+    final improvements = <String>[];
+    final concerns = <String>[];
+
+    if (percentChange < -10) {
+      improvements.add('Giảm ${percentChange.abs().toStringAsFixed(0)}% thời gian so với 30 ngày trước');
+    } else if (percentChange > 10) {
+      concerns.add('Tăng ${percentChange.toStringAsFixed(0)}% thời gian so với 30 ngày trước');
+    }
+
+    for (final app in topApps.take(3)) {
+      final current = usageByApp[app] ?? 0;
+      final previous = previousMonthUsageByApp[app] ?? 0;
+      if (previous > 0) {
+        final appChange = ((current - previous) / previous * 100);
+        if (appChange > 25) {
+          concerns.add('$app tăng ${appChange.toStringAsFixed(0)}%');
+        } else if (appChange < -25) {
+          improvements.add('$app giảm ${appChange.abs().toStringAsFixed(0)}%');
+        }
+      }
+    }
+
+    final report = MonthlyReportModel(
+      reportId: '',
+      childUid: childUid,
+      familyId: familyId,
+      monthStartDate: monthStartStr,
+      monthEndDate: monthEndStr,
+      totalMinutes: totalMinutes,
+      previousMonthMinutes: previousMonthMinutes,
+      usageByApp: usageByApp,
+      previousMonthUsageByApp: previousMonthUsageByApp,
+      weeklyBreakdown: weeklyBreakdown,
+      topApps: topApps,
+      percentChange: percentChange,
+      improvements: improvements,
+      concerns: concerns,
+      generatedAt: now,
+    );
+
+    final docRef = await _firestore
+        .collection('monthly_reports')
+        .add(report.toMap());
+
+    return MonthlyReportModel(
+      reportId: docRef.id,
+      childUid: childUid,
+      familyId: familyId,
+      monthStartDate: monthStartStr,
+      monthEndDate: monthEndStr,
+      totalMinutes: totalMinutes,
+      previousMonthMinutes: previousMonthMinutes,
+      usageByApp: usageByApp,
+      previousMonthUsageByApp: previousMonthUsageByApp,
+      weeklyBreakdown: weeklyBreakdown,
+      topApps: topApps,
+      percentChange: percentChange,
+      improvements: improvements,
+      concerns: concerns,
+      generatedAt: now,
+    );
+  }
+
+  @override
+  Future<List<MonthlyReport>> getMonthlyReportsByFamily(
+    String familyId, {
+    int limit = 4,
+  }) async {
+    try {
+      final query = await _firestore
+          .collection('monthly_reports')
+          .where('familyId', isEqualTo: familyId)
+          .orderBy('generatedAt', descending: true)
+          .limit(limit)
+          .get();
+
+      return query.docs
+          .map((doc) => MonthlyReportModel.fromFirestore(doc))
+          .toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  @override
+  Future<List<MonthlyReport>> getMonthlyReportsByChild(
+    String childUid, {
+    int limit = 4,
+  }) async {
+    try {
+      final query = await _firestore
+          .collection('monthly_reports')
+          .where('childUid', isEqualTo: childUid)
+          .orderBy('generatedAt', descending: true)
+          .limit(limit)
+          .get();
+
+      return query.docs
+          .map((doc) => MonthlyReportModel.fromFirestore(doc))
           .toList();
     } catch (e) {
       return [];

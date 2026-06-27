@@ -10,7 +10,9 @@ class ReportBloc extends Bloc<ReportEvent, ReportState> {
       : _reportRepository = reportRepository,
         super(ReportInitial()) {
     on<GenerateWeeklyReport>(_onGenerateWeeklyReport);
+    on<GenerateMonthlyReport>(_onGenerateMonthlyReport);
     on<LoadReportHistory>(_onLoadReportHistory);
+    on<LoadMonthlyReportHistory>(_onLoadMonthlyReportHistory);
     on<LoadLatestReport>(_onLoadLatestReport);
     on<SendReportByEmail>(_onSendReportByEmail);
     on<UpdateEmailPreference>(_onUpdateEmailPreference);
@@ -43,6 +45,37 @@ class ReportBloc extends Bloc<ReportEvent, ReportState> {
         event.familyId,
       );
       emit(ReportHistoryLoaded(reports: reports));
+    } catch (e) {
+      emit(ReportError(message: e.toString().replaceAll('Exception: ', '')));
+    }
+  }
+
+  Future<void> _onGenerateMonthlyReport(
+    GenerateMonthlyReport event,
+    Emitter<ReportState> emit,
+  ) async {
+    emit(ReportLoading());
+    try {
+      final report = await _reportRepository.generateMonthlyReport(
+        event.childUid,
+        event.familyId,
+      );
+      emit(MonthlyReportGenerated(report: report));
+    } catch (e) {
+      emit(ReportError(message: e.toString().replaceAll('Exception: ', '')));
+    }
+  }
+
+  Future<void> _onLoadMonthlyReportHistory(
+    LoadMonthlyReportHistory event,
+    Emitter<ReportState> emit,
+  ) async {
+    emit(ReportLoading());
+    try {
+      final reports = await _reportRepository.getMonthlyReportsByFamily(
+        event.familyId,
+      );
+      emit(MonthlyReportHistoryLoaded(reports: reports));
     } catch (e) {
       emit(ReportError(message: e.toString().replaceAll('Exception: ', '')));
     }

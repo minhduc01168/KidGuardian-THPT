@@ -148,8 +148,8 @@ flowchart TD
 |---|---|
 | **Trigger phát hiện** | `AccessibilityService` Android poll foreground app mỗi 1 giây qua `MethodChannel` |
 | **Danh sách mặc định** | 7 app hardcode (TikTok, Facebook, YouTube, Instagram, Zalo, Roblox, Free Fire) |
-| **Thêm app tuỳ chỉnh** | Nhập thủ công Package Name — **(UX cần cải thiện ở Sprint 2)** |
-| **Offline safety** | Hiện chưa cache offline — nếu máy trẻ offline, danh sách khoá không áp dụng được **(fix ở Sprint 2)** |
+| **Thêm app tuỳ chỉnh** | Tự động quét từ máy trẻ (`installed_apps`), hiển thị danh sách trong BottomSheet để phụ huynh chọn ✅ |
+| **Offline safety** | Đã tích hợp Offline Cache bằng `SharedPreferences` trong Repository → Máy trẻ hoạt động mượt mà dù mất kết nối mạng ✅ |
 | **Timeout Firestore** | Mọi lệnh ghi Firestore có `.timeout(3s)` → không bao giờ treo UI |
 | **Lỗi đã fix** | `BlocProvider<SmartLockBloc>` đã được bổ sung tại 3 điểm navigate trong `parent_dashboard.dart` |
 
