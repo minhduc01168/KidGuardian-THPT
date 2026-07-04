@@ -253,13 +253,14 @@ class AlertRepositoryImpl implements AlertRepository {
     return _firestore
         .collectionGroup('alerts')
         .where('type', isEqualTo: 'keyword_detected')
-        .orderBy('timestamp', descending: true)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs
+      final docs = snapshot.docs
           .where((doc) => doc.reference.path.contains('families/$familyId/'))
           .map((doc) => AlertModel.fromFirestore(doc))
           .toList();
+      docs.sort((a, b) => (b.timestamp ?? DateTime.fromMillisecondsSinceEpoch(0)).compareTo(a.timestamp ?? DateTime.fromMillisecondsSinceEpoch(0)));
+      return docs;
     });
   }
 

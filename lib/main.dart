@@ -66,8 +66,18 @@ void main() async {
   runApp(const KidGuardianApp());
 }
 
-class KidGuardianApp extends StatelessWidget {
+class KidGuardianApp extends StatefulWidget {
   const KidGuardianApp({super.key});
+
+  @override
+  State<KidGuardianApp> createState() => _KidGuardianAppState();
+}
+
+class _KidGuardianAppState extends State<KidGuardianApp> {
+  bool _parentListenersStarted = false;
+  String? _startedParentFamilyId;
+  bool _childMonitoringStarted = false;
+  String? _startedChildUid;
 
   @override
   Widget build(BuildContext context) {
@@ -186,13 +196,9 @@ class KidGuardianApp extends StatelessWidget {
         child: MultiBlocListener(
           listeners: [
             BlocListener<AuthBloc, AuthState>(
-              // Bắt mọi transition về AuthUnauthenticated (kể cả từ AuthLoading sau đăng xuất)
               listenWhen: (previous, current) =>
                   current is AuthUnauthenticated && previous is! AuthUnauthenticated,
               listener: (context, state) {
-                // Sử dụng popUntil để quay về root route (home của MaterialApp).
-                // Do root route được wrap bằng BlocBuilder, nó sẽ tự động render RoleSelectionScreen 
-                // khi state là AuthUnauthenticated. Tránh lỗi văng ra RoleSelectionScreen ở lần login tiếp theo.
                 AppNavigator.navigatorKey.currentState?.popUntil((route) => route.isFirst);
               },
             ),
@@ -200,8 +206,6 @@ class KidGuardianApp extends StatelessWidget {
               listenWhen: (previous, current) =>
                   current is AuthAuthenticated && previous is! AuthAuthenticated,
               listener: (context, state) {
-                // Khi đăng nhập/đăng ký thành công, pop tất cả các modal/screen phụ (Login/Register)
-                // để hiển thị màn hình chính (Dashboard) được render bởi BlocBuilder ở root route.
                 AppNavigator.navigatorKey.currentState?.popUntil((route) => route.isFirst);
               },
             ),
@@ -289,7 +293,9 @@ class KidGuardianApp extends StatelessWidget {
 
   Widget _buildHomeForRole(User user, BuildContext context) {
     if (user.role == UserRole.parent) {
-      if (user.familyId != null) {
+      if (user.familyId != null && (!_parentListenersStarted || _startedParentFamilyId != user.familyId)) {
+        _parentListenersStarted = true;
+        _startedParentFamilyId = user.familyId;
         WidgetsBinding.instance.addPostFrameCallback((_) {
           context.read<NotificationBloc>().add(
             StartAlertListening(familyId: user.familyId!),
@@ -301,7 +307,9 @@ class KidGuardianApp extends StatelessWidget {
       }
       return ParentDashboard();
     } else {
-      if (user.familyId != null) {
+      if (user.familyId != null && (!_childMonitoringStarted || _startedChildUid != user.uid)) {
+        _childMonitoringStarted = true;
+        _startedChildUid = user.uid;
         WidgetsBinding.instance.addPostFrameCallback((_) {
           context.read<AppMonitorBloc>().add(StartMonitoring(user.familyId!, user.uid));
         });

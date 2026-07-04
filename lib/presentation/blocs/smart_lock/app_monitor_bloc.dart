@@ -174,6 +174,7 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
   }
 
   void _onStartMonitoring(StartMonitoring event, Emitter<AppMonitorState> emit) {
+    if (_isMonitoring && _familyId == event.familyId && _childUid == event.childUid) return;
     _familyId = event.familyId;
     _childUid = event.childUid;
     _isMonitoring = true;

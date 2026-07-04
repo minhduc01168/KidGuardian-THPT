@@ -167,6 +167,7 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
   }
 
   void _onStartListening(StartAlertListening event, Emitter<NotificationState> emit) {
+    if (_alertSubscription != null && _familyId == event.familyId) return;
     _familyId = event.familyId;
     _childUid = null;
     _notifiedAlertIds = {};
@@ -208,6 +209,7 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     StartTimeRequestListening event,
     Emitter<NotificationState> emit,
   ) {
+    if (_timeRequestSubscription != null && _familyId == event.familyId) return;
     _timeRequestSubscription?.cancel();
     _notifiedRequestIds = {};
 

@@ -120,11 +120,14 @@ class TimeRequestRepositoryImpl implements TimeRequestRepository {
     return _firestore
         .collectionGroup('timeRequests')
         .where('familyId', isEqualTo: familyId)
-        .where('status', isEqualTo: 'pending')
-        .orderBy('timestamp', descending: true)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) => TimeRequest.fromFirestore(doc)).toList();
+      final list = snapshot.docs
+          .map((doc) => TimeRequest.fromFirestore(doc))
+          .where((req) => req.status == TimeRequestStatus.pending)
+          .toList();
+      list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      return list;
     });
   }
 
@@ -133,10 +136,11 @@ class TimeRequestRepositoryImpl implements TimeRequestRepository {
     return _firestore
         .collectionGroup('timeRequests')
         .where('familyId', isEqualTo: familyId)
-        .orderBy('timestamp', descending: true)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) => TimeRequest.fromFirestore(doc)).toList();
+      final list = snapshot.docs.map((doc) => TimeRequest.fromFirestore(doc)).toList();
+      list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      return list;
     });
   }
 
