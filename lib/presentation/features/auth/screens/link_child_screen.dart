@@ -188,46 +188,52 @@ class _LinkChildScreenState extends State<LinkChildScreen> {
 
                 BlocBuilder<FamilyBloc, FamilyState>(
                   builder: (context, state) {
-                    return SizedBox(
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: state is FamilyLoading
-                            ? null
-                            : () {
-                                final code = _digitControllers
-                                    .map((c) => c.text)
-                                    .join();
-                                if (code.length == 6 &&
-                                    RegExp(r'^[A-Z0-9]{6}$')
-                                        .hasMatch(code)) {
-                                  _handleLinkChild(code);
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content:
-                                          Text('Vui lòng nhập mã 6 ký tự (chữ hoa và số)'),
-                                      backgroundColor: AppColors.warning,
-                                    ),
-                                  );
-                                }
-                              },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.childPrimary,
+                    return ElevatedButton(
+                      onPressed: state is FamilyLoading
+                          ? null
+                          : () {
+                              final code = _digitControllers
+                                  .map((c) => c.text)
+                                  .join();
+                              if (code.length == 6 &&
+                                  RegExp(r'^[A-Z0-9]{6}$')
+                                      .hasMatch(code)) {
+                                _handleLinkChild(code);
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content:
+                                        Text('Vui lòng nhập mã 6 ký tự (chữ hoa và số)'),
+                                    backgroundColor: AppColors.warning,
+                                  ),
+                                );
+                              }
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.childPrimary,
+                        padding: EdgeInsets.symmetric(vertical: 14),
+                        minimumSize: Size(double.infinity, 54),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        child: state is FamilyLoading
-                            ? SizedBox(
-                                height: 24,
-                                width: 24,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : Text(
-                                'Liên kết',
-                                style: TextStyle(fontSize: 18),
-                              ),
                       ),
+                      child: state is FamilyLoading
+                          ? SizedBox(
+                              height: 24,
+                              width: 24,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Text(
+                              'Liên kết',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                height: 1.2,
+                              ),
+                            ),
                     );
                   },
                 ),

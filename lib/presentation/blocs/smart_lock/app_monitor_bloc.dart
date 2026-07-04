@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
@@ -229,7 +231,32 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
         };
       }).toList();
 
+      // Sắp xếp theo packageName để đảm bảo thứ tự nhất quán khi tạo hash
+      appDataList.sort((a, b) => (a['packageName'] as String).compareTo(b['packageName'] as String));
+      final String currentAppsHash = jsonEncode(appDataList);
+
+      final prefs = await SharedPreferences.getInstance();
+      final String cacheKeyHash = 'last_synced_apps_hash_${_childUid}';
+      final String cacheKeyTime = 'last_synced_time_${_childUid}';
+
+      final String? cachedHash = prefs.getString(cacheKeyHash);
+      final int? cachedTime = prefs.getInt(cacheKeyTime);
+      final int nowMs = DateTime.now().millisecondsSinceEpoch;
+
+      // Chỉ đồng bộ lên Firestore nếu danh sách app thay đổi HOẶC đã qua 24 giờ (86400000 ms) kể từ lần sync cuối
+      final bool hasChanged = cachedHash != currentAppsHash;
+      final bool isExpired = cachedTime == null || (nowMs - cachedTime) > 86400000;
+
+      if (!hasChanged && !isExpired) {
+        debugPrint('AppMonitorBloc._syncInstalledApps: Danh sách ứng dụng không đổi và chưa quá 24h, bỏ qua ghi Firestore để tiết kiệm Quota.');
+        return;
+      }
+
       await smartLockRepository.saveInstalledApps(_familyId!, _childUid!, appDataList);
+
+      await prefs.setString(cacheKeyHash, currentAppsHash);
+      await prefs.setInt(cacheKeyTime, nowMs);
+      debugPrint('AppMonitorBloc._syncInstalledApps: Đồng bộ danh sách ${appDataList.length} ứng dụng lên Firestore thành công.');
     } catch (e) {
       debugPrint('AppMonitorBloc._syncInstalledApps error: $e');
     }

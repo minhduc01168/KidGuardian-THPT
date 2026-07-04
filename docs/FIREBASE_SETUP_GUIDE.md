@@ -60,9 +60,45 @@ KidGuardian sử dụng phương thức đăng nhập bằng **Email và Mật k
 
 ✅ *Thành công! Database của bạn đã sẵn sàng để lưu trữ mọi thứ từ KidGuardian.*
 
+## ⚡ PHẦN 4: CẤU HÌNH CHỈ MỤC GOM NHÓM (COLLECTION GROUP INDEXES - BẮT BUỘC)
+
+Đây là bước **CỰC KÌ QUAN TRỌNG** khi thiết lập dự án KidGuardian. 
+
+**Tại sao cần bước này?**  
+Ứng dụng KidGuardian có tính năng cho phép Phụ huynh theo dõi cảnh báo (`alerts`) và yêu cầu xin thêm giờ (`timeRequests`) từ **tất cả các con** trong gia đình cùng một lúc. Để làm được điều này, ứng dụng sử dụng kỹ thuật truy vấn gom nhóm (**Collection Group Query**) của Firestore.  
+Mặc định, Firebase **KHÔNG** tự động tạo chỉ mục (index) cho các truy vấn gom nhóm. Nếu bạn không bật chỉ mục này trên Firebase Console, ứng dụng sẽ gặp lỗi `FAILED_PRECONDITION`, tự động thử lại liên tục gây cạn kiệt hạn ngạch miễn phí (Quota Exceeded) và dẫn đến sập ứng dụng (`Out of memory / SIGABRT`).
+
+### 🛠️ Cách tạo Chỉ mục (Có 2 cách):
+
+#### Cách 1: Tạo siêu nhanh qua đường link tự động trong Log (Khuyên dùng)
+1. Khi bạn chạy app lần đầu và đăng nhập vào tài khoản Phụ huynh, nếu chưa có chỉ mục, trong cửa sổ **Logcat** (Android Studio) hoặc **Debug Console** (VS Code) sẽ in ra dòng lỗi màu đỏ có chứa đường link web.
+2. Bạn chỉ cần **copy đường link trong log** và dán vào trình duyệt web đang đăng nhập tài khoản Google quản lý Firebase Console của dự án.
+   * *Ví dụ Link 1 (Cho Alerts):* `https://console.firebase.google.com/v1/r/project/<id-dự-án>/firestore/indexes?create_exemption=...`
+   * *Ví dụ Link 2 (Cho TimeRequests):* `https://console.firebase.google.com/v1/r/project/<id-dự-án>/firestore/indexes?create_exemption=...`
+3. Khi trang Firebase Console mở ra, bấm nút xanh **"Create Index" (Tạo chỉ mục)** hoặc **"Save"**.
+4. Chờ khoảng **1 - 2 phút** để Firebase xây dựng xong chỉ mục (Trạng thái chuyển từ *Building* sang *Enabled* / màu xanh).
+
+#### Cách 2: Tạo thủ công trực tiếp trên Firebase Console
+Nếu bạn không muốn tìm link trong log, bạn có thể tự thiết lập trước trên giao diện Firebase Console:
+1. Mở Firebase Console -> Chọn dự án KidGuardian -> Mở **Firestore Database**.
+2. Chuyển sang tab **Indexes** (Chỉ mục) ở menu trên cùng -> Chọn tab con **Single-field** (Trường đơn) hoặc cuộn xuống phần **Exemptions**.
+3. Bấm nút **Add Exemption** (Thêm trường hợp ngoại lệ) hoặc **Add Index**:
+   * **Chỉ mục 1 (Cho Cảnh báo từ máy con):**
+     - Collection ID: `alerts`
+     - Field path: `type`
+     - Query scope: **Collection group** (Nhóm bộ sưu tập)
+     - Bấm **Save / Create**.
+   * **Chỉ mục 2 (Cho Yêu cầu xin thêm thời gian):**
+     - Collection ID: `timeRequests`
+     - Field path: `familyId`
+     - Query scope: **Collection group** (Nhóm bộ sưu tập)
+     - Bấm **Save / Create**.
+
+✅ *Thành công! Sau khi trạng thái Index báo **Enabled**, ứng dụng sẽ chạy siêu mượt mà và không bao giờ bị lỗi kết nối hay sập app nữa.*
+
 ---
 
-## 📱 PHẦN 4: KẾT NỐI APP FLUTTER VỚI FIREBASE (Dành cho học sinh làm lại từ đầu)
+## 📱 PHẦN 5: KẾT NỐI APP FLUTTER VỚI FIREBASE (Dành cho học sinh làm lại từ đầu)
 
 *(Lưu ý: Với dự án hiện tại trên máy tính của bạn, phần này ĐÃ ĐƯỢC LÀM SẴN. Nhưng nếu học sinh tải source code mới về máy khác, các em phải làm bước này).*
 
@@ -82,9 +118,10 @@ KidGuardian sử dụng phương thức đăng nhập bằng **Email và Mật k
 ---
 
 ## 🎯 TỔNG KẾT
-Một dự án Firebase cho KidGuardian chỉ có thể hoạt động khi thỏa mãn **đủ 3 điều kiện**:
+Một dự án Firebase cho KidGuardian chỉ có thể hoạt động hoàn hảo và không bị sập khi thỏa mãn **đủ 4 điều kiện**:
 1. Đã bật **Authentication (Email/Password)**.
 2. Đã tạo **Firestore Database** (chế độ Test mode).
-3. Đã có file **google-services.json** nằm trong folder `android/app/`.
+3. Đã tạo **2 Collection Group Indexes** cho `alerts` và `timeRequests` trên tab Indexes.
+4. Đã có file **google-services.json** nằm trong folder `android/app/`.
 
 Chúc bạn và các học sinh hoàn thành xuất sắc dự án!
