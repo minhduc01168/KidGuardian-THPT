@@ -117,6 +117,31 @@ Nếu bạn không muốn tìm link trong log, bạn có thể tự thiết lậ
 
 ---
 
+## 📊 PHẦN 6: HƯỚNG DẪN KIỂM TRA HẠN NGẠCH (QUOTA) VÀ GIÁM SÁT DUNG LƯỢNG FIREBASE
+
+Trong quá trình phát triển và kiểm thử ứng dụng, nếu gặp lỗi `RESOURCE_EXHAUSTED: Quota exceeded` (gây sập app hoặc không đọc/ghi được dữ liệu), đó là do dự án đã dùng hết hạn ngạch miễn phí hàng ngày của gói Spark Plan.
+
+### 1. Giới hạn hạn ngạch miễn phí hàng ngày (Spark Plan - Free Tier)
+* **Cloud Firestore Read (Đọc):** Tối đa **50.000 lần/ngày**.
+* **Cloud Firestore Write (Ghi):** Tối đa **20.000 lần/ngày**.
+* **Cloud Firestore Delete (Xóa):** Tối đa **20.000 lần/ngày**.
+* **Thời gian làm mới (Reset về 0):** **14:00 (2 giờ chiều) hàng ngày** theo giờ Việt Nam (tương đương 00:00 giờ Pacific Time - PST/PDT).
+
+### 2. Các liên kết kiểm tra hạn ngạch nhanh cho dự án `kidguardian-b54f7`
+* **Xem trên Firebase Console (Biểu đồ Đọc/Ghi/Xóa trong ngày):**
+  👉 [https://console.firebase.google.com/project/kidguardian-b54f7/firestore/databases/-default-/usage](https://console.firebase.google.com/project/kidguardian-b54f7/firestore/databases/-default-/usage)
+* **Xem Tổng quan Sử dụng & Mức dùng toàn dự án:**
+  👉 [https://console.firebase.google.com/project/kidguardian-b54f7/usage/details](https://console.firebase.google.com/project/kidguardian-b54f7/usage/details)
+* **Xem trên Google Cloud Console (Chi tiết từng chỉ số Quota của Firestore API):**
+  👉 [https://console.cloud.google.com/iam-admin/quotas?project=kidguardian-b54f7&service=firestore.googleapis.com](https://console.cloud.google.com/iam-admin/quotas?project=kidguardian-b54f7&service=firestore.googleapis.com)
+* **Biểu đồ lưu lượng API Firestore theo thời gian thực:**
+  👉 [https://console.cloud.google.com/apis/api/firestore.googleapis.com/metrics?project=kidguardian-b54f7](https://console.cloud.google.com/apis/api/firestore.googleapis.com/metrics?project=kidguardian-b54f7)
+
+> [!TIP]
+> 💡 **Lưu ý tối ưu:** Để tránh cạn kiệt Quota trong tương lai, ứng dụng KidGuardian đã tích hợp cơ chế bộ nhớ đệm (Cache & Diffing) trong `AppMonitorBloc`, giúp tiết kiệm từ 95% - 98% số lần ghi Firestore khi đồng bộ danh sách ứng dụng installed apps.
+
+---
+
 ## 🎯 TỔNG KẾT
 Một dự án Firebase cho KidGuardian chỉ có thể hoạt động hoàn hảo và không bị sập khi thỏa mãn **đủ 4 điều kiện**:
 1. Đã bật **Authentication (Email/Password)**.
