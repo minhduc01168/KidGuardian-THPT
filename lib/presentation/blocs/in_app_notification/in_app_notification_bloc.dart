@@ -160,10 +160,42 @@ class InAppNotificationBloc extends Bloc<InAppNotificationEvent, InAppNotificati
             add(InAppNotificationReceived(notification));
           }
         }
-        _sortAndEmit(emit);
       },
       onError: (error) {
         debugPrint('Alert stream error: $error');
+      },
+    );
+
+    _requestSubscription?.cancel();
+    _requestSubscription = timeRequestRepository
+        .watchPendingRequests(familyId: event.familyId)
+        .listen(
+      (requests) {
+        for (final req in requests) {
+          final existing = _notifications.where((n) => n.id == req.id).firstOrNull;
+          if (existing == null) {
+            final notification = InAppNotification(
+              id: req.id,
+              type: 'time_request',
+              title: 'Yêu cầu thêm thời gian',
+              body: 'Yêu cầu ${req.requestedMinutes} phút cho ${req.appName}',
+              timestamp: req.timestamp,
+              isRead: _readIds.contains(req.id),
+              data: {
+                'familyId': event.familyId,
+                'childUid': req.childUid,
+                'requestId': req.id,
+                'packageName': req.appPackageName,
+                'requestedMinutes': req.requestedMinutes,
+              },
+            );
+            _notifications.add(notification);
+            add(InAppNotificationReceived(notification));
+          }
+        }
+      },
+      onError: (error) {
+        debugPrint('TimeRequest stream error: $error');
       },
     );
 

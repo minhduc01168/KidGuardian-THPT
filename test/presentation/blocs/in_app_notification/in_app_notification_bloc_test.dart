@@ -58,6 +58,9 @@ void main() {
           when(() => mockAlertRepository.watchAllFamilyAlerts(
                 familyId: any(named: 'familyId'),
               )).thenAnswer((_) => Stream.value([]));
+          when(() => mockTimeRequestRepository.watchPendingRequests(
+                familyId: any(named: 'familyId'),
+              )).thenAnswer((_) => Stream.value([]));
           return bloc;
         },
         act: (bloc) =>
@@ -81,6 +84,9 @@ void main() {
           when(() => mockAlertRepository.watchAllFamilyAlerts(
                 familyId: any(named: 'familyId'),
               )).thenAnswer((_) => Stream.value(alerts));
+          when(() => mockTimeRequestRepository.watchPendingRequests(
+                familyId: any(named: 'familyId'),
+              )).thenAnswer((_) => Stream.value([]));
           return bloc;
         },
         act: (bloc) =>
@@ -107,6 +113,9 @@ void main() {
           when(() => mockAlertRepository.watchAllFamilyAlerts(
                 familyId: any(named: 'familyId'),
               )).thenAnswer((_) => Stream.value(alerts));
+          when(() => mockTimeRequestRepository.watchPendingRequests(
+                familyId: any(named: 'familyId'),
+              )).thenAnswer((_) => Stream.value([]));
           return bloc;
         },
         act: (bloc) =>
@@ -135,6 +144,9 @@ void main() {
           when(() => mockAlertRepository.watchAllFamilyAlerts(
                 familyId: any(named: 'familyId'),
               )).thenAnswer((_) => Stream.value(alerts));
+          when(() => mockTimeRequestRepository.watchPendingRequests(
+                familyId: any(named: 'familyId'),
+              )).thenAnswer((_) => Stream.value([]));
           return bloc;
         },
         act: (bloc) async {
@@ -172,6 +184,9 @@ void main() {
           when(() => mockAlertRepository.watchAllFamilyAlerts(
                 familyId: any(named: 'familyId'),
               )).thenAnswer((_) => Stream.value(alerts));
+          when(() => mockTimeRequestRepository.watchPendingRequests(
+                familyId: any(named: 'familyId'),
+              )).thenAnswer((_) => Stream.value([]));
           return bloc;
         },
         act: (bloc) async {
@@ -242,6 +257,9 @@ void main() {
     group('close', () {
       test('cancels subscriptions on close', () async {
         when(() => mockAlertRepository.watchAllFamilyAlerts(
+              familyId: any(named: 'familyId'),
+            )).thenAnswer((_) => Stream.value([]));
+        when(() => mockTimeRequestRepository.watchPendingRequests(
               familyId: any(named: 'familyId'),
             )).thenAnswer((_) => Stream.value([]));
 
