@@ -161,6 +161,24 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
   bool _isMonitoring = false;
   SmartLockSettingsModel? _settings;
 
+  // P12: Cooldown map to prevent spamming createAppBlockedAlert (5 mins per app)
+  final Map<String, DateTime> _lastAlertSentMap = {};
+
+  Future<void> _sendBlockedAlertIfNeeded(String packageName, String reason) async {
+    if (_familyId == null || _childUid == null) return;
+    final lastSent = _lastAlertSentMap[packageName];
+    final now = DateTime.now();
+    if (lastSent == null || now.difference(lastSent).inMinutes >= 5) {
+      _lastAlertSentMap[packageName] = now;
+      await alertRepository.createAppBlockedAlert(
+        familyId: _familyId!,
+        childUid: _childUid!,
+        packageName: packageName,
+        reason: reason,
+      );
+    }
+  }
+
   AppMonitorBloc({
     required this.checkAppAccessUseCase,
     required this.blockAppUseCase,
@@ -293,13 +311,8 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
         // D1: Tell native to move task to back
         await AccessibilityChannel.moveTaskToBack();
         
-        // Ghi alert
-        await alertRepository.createAppBlockedAlert(
-          familyId: _familyId!,
-          childUid: _childUid!,
-          packageName: _currentAppPackage!,
-          reason: 'time_limit',
-        );
+        // Ghi alert có cooldown
+        await _sendBlockedAlertIfNeeded(_currentAppPackage!, 'time_limit');
 
         final blockedState = await _buildBlockedState(_currentAppPackage!, blockReason: 'time_limit');
         emit(blockedState);
@@ -314,13 +327,8 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
         await blockAppUseCase.execute(appPackageName: _currentAppPackage!);
         await AccessibilityChannel.moveTaskToBack();
         
-        // Ghi alert
-        await alertRepository.createAppBlockedAlert(
-          familyId: _familyId!,
-          childUid: _childUid!,
-          packageName: _currentAppPackage!,
-          reason: 'schedule (${activeSchedule.name})',
-        );
+        // Ghi alert có cooldown
+        await _sendBlockedAlertIfNeeded(_currentAppPackage!, 'schedule (${activeSchedule.name})');
 
         final blockedState = await _buildBlockedState(
           _currentAppPackage!,
@@ -377,13 +385,8 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
               // D1: Tell native to move task to back
               await AccessibilityChannel.moveTaskToBack();
               
-              // Ghi alert
-              await alertRepository.createAppBlockedAlert(
-                familyId: _familyId!,
-                childUid: _childUid!,
-                packageName: packageName,
-                reason: 'time_limit',
-              );
+              // Ghi alert có cooldown
+              await _sendBlockedAlertIfNeeded(packageName, 'time_limit');
 
               final blockedState = await _buildBlockedState(packageName, blockReason: 'time_limit');
               emit(blockedState);
@@ -398,13 +401,8 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
               await blockAppUseCase.execute(appPackageName: packageName);
               await AccessibilityChannel.moveTaskToBack();
               
-              // Ghi alert
-              await alertRepository.createAppBlockedAlert(
-                familyId: _familyId!,
-                childUid: _childUid!,
-                packageName: packageName,
-                reason: 'schedule (${activeSchedule.name})',
-              );
+              // Ghi alert có cooldown
+              await _sendBlockedAlertIfNeeded(packageName, 'schedule (${activeSchedule.name})');
 
               final blockedState = await _buildBlockedState(
                 packageName,

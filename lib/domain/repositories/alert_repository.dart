@@ -224,6 +224,7 @@ class AlertRepositoryImpl implements AlertRepository {
         .where('isReviewed', isEqualTo: false)
         .where('isDismissed', isEqualTo: false)
         .orderBy('timestamp', descending: true)
+        .limit(50)
         .snapshots()
         .map((snapshot) {
       return snapshot.docs.map((doc) => AlertModel.fromFirestore(doc)).toList();
@@ -242,6 +243,7 @@ class AlertRepositoryImpl implements AlertRepository {
         .doc(childUid)
         .collection('alerts')
         .orderBy('timestamp', descending: true)
+        .limit(50)
         .snapshots()
         .map((snapshot) {
       return snapshot.docs.map((doc) => AlertModel.fromFirestore(doc)).toList();
@@ -253,6 +255,7 @@ class AlertRepositoryImpl implements AlertRepository {
     return _firestore
         .collectionGroup('alerts')
         .where('type', isEqualTo: 'keyword_detected')
+        .limit(50)
         .snapshots()
         .map((snapshot) {
       final docs = snapshot.docs
