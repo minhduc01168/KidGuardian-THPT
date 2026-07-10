@@ -43,7 +43,7 @@ void main() {
 
       final state = bloc.state as KeywordManagementLoaded;
       expect(state.keywords, contains('bắt nạt'));
-      expect(state.keywords.length, 5);
+      expect(state.keywords.length, 22);
     });
 
     test('AddKeyword does not add duplicate keyword', () async {
@@ -65,7 +65,7 @@ void main() {
       await Future.delayed(const Duration(milliseconds: 300));
 
       final state = bloc.state as KeywordManagementLoaded;
-      expect(state.keywords.length, 4);
+      expect(state.keywords.length, 21);
     });
 
     test('RemoveKeyword removes keyword from list', () async {
@@ -77,7 +77,7 @@ void main() {
 
       final state = bloc.state as KeywordManagementLoaded;
       expect(state.keywords, isNot(contains('ma túy')));
-      expect(state.keywords.length, 3);
+      expect(state.keywords.length, 20);
     });
 
     test('ResetToDefaults restores default keywords', () async {
@@ -91,7 +91,7 @@ void main() {
       await Future.delayed(const Duration(milliseconds: 300));
 
       final state = bloc.state as KeywordManagementLoaded;
-      expect(state.keywords.length, 4);
+      expect(state.keywords.length, 21);
       expect(state.keywords, isNot(contains('custom')));
     });
   });

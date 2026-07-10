@@ -3,22 +3,33 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:kidguardian/domain/repositories/time_request_repository.dart';
+import 'package:kidguardian/domain/repositories/alert_repository.dart';
 import 'package:kidguardian/presentation/widgets/smart_lock/request_time_dialog.dart';
 
 class MockTimeRequestRepository extends Mock implements TimeRequestRepository {}
+class MockAlertRepository extends Mock implements AlertRepository {}
 
 void main() {
   late MockTimeRequestRepository mockRepository;
+  late MockAlertRepository mockAlertRepository;
 
   setUp(() {
     mockRepository = MockTimeRequestRepository();
+    mockAlertRepository = MockAlertRepository();
   });
 
   Widget buildDialog() {
     return MaterialApp(
       home: Scaffold(
-        body: RepositoryProvider<TimeRequestRepository>(
-          create: (_) => mockRepository,
+        body: MultiRepositoryProvider(
+          providers: [
+            RepositoryProvider<TimeRequestRepository>(
+              create: (_) => mockRepository,
+            ),
+            RepositoryProvider<AlertRepository>(
+              create: (_) => mockAlertRepository,
+            ),
+          ],
           child: const RequestTimeDialog(
             appPackageName: 'com.zhiliaoapp.musically',
             appName: 'TikTok',

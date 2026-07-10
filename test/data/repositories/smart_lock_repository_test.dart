@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:kidguardian/data/repositories/smart_lock_repository.dart';
 import 'package:kidguardian/data/models/app_time_limit_model.dart';
 import 'package:kidguardian/data/models/monitored_app_model.dart';
@@ -13,6 +14,12 @@ class MockQuerySnapshot extends Mock implements QuerySnapshot<Map<String, dynami
 class MockQueryDocumentSnapshot extends Mock implements QueryDocumentSnapshot<Map<String, dynamic>> {}
 
 void main() {
+  setUpAll(() {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    SharedPreferences.setMockInitialValues({});
+    registerFallbackValue(const GetOptions());
+  });
+
   late SmartLockRepository repository;
   late MockFirebaseFirestore mockFirestore;
   late MockCollectionReference mockFamiliesCollection;
@@ -113,7 +120,7 @@ void main() {
       });
 
       when(() => mockQuerySnapshot.docs).thenReturn([mockDocSnapshot]);
-      when(() => mockMonitoredAppsCollection.get())
+      when(() => mockMonitoredAppsCollection.get(any()))
           .thenAnswer((_) async => mockQuerySnapshot);
 
       // act
@@ -124,14 +131,14 @@ void main() {
       expect(result.length, 1);
       expect(result.first.appPackageName, 'com.zhiliaoapp.musically');
       expect(result.first.isMonitored, true);
-      verify(() => mockMonitoredAppsCollection.get()).called(1);
+      verify(() => mockMonitoredAppsCollection.get(any())).called(1);
     });
 
     test('getMonitoredApps should return empty list when no documents', () async {
       // arrange
       final mockQuerySnapshot = MockQuerySnapshot();
       when(() => mockQuerySnapshot.docs).thenReturn([]);
-      when(() => mockMonitoredAppsCollection.get())
+      when(() => mockMonitoredAppsCollection.get(any()))
           .thenAnswer((_) async => mockQuerySnapshot);
 
       // act
