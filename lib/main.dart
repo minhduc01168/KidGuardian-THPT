@@ -37,6 +37,7 @@ import 'presentation/features/settings/bloc/settings_event.dart';
 import 'presentation/features/settings/bloc/settings_state.dart';
 import 'presentation/features/summary/bloc/summary_bloc.dart';
 import 'presentation/blocs/smart_lock/app_monitor_bloc.dart';
+import 'presentation/blocs/smart_lock/smart_lock_bloc.dart';
 import 'presentation/blocs/notification/notification_bloc.dart';
 import 'presentation/blocs/in_app_notification/in_app_notification_bloc.dart';
 import 'presentation/screens/smart_lock/lock_screen.dart';
@@ -174,6 +175,11 @@ class _KidGuardianAppState extends State<KidGuardianApp> {
               alertRepository: context.read<AlertRepository>(),
             ),
           ),
+          BlocProvider<SmartLockBloc>(
+            create: (context) => SmartLockBloc(
+              repository: context.read<SmartLockRepository>(),
+            ),
+          ),
           BlocProvider<NotificationBloc>(
             create: (context) => NotificationBloc(
               alertRepository: context.read<AlertRepository>(),
@@ -278,6 +284,13 @@ class _KidGuardianAppState extends State<KidGuardianApp> {
                 ],
                 debugShowCheckedModeBanner: false,
                 home: BlocBuilder<AuthBloc, AuthState>(
+                  buildWhen: (previous, current) {
+                    if (previous.runtimeType != current.runtimeType) return true;
+                    if (previous is AuthAuthenticated && current is AuthAuthenticated) {
+                      return previous.user.uid != current.user.uid || previous.user.role != current.user.role;
+                    }
+                    return false;
+                  },
                   builder: (context, state) {
                     if (state is AuthInitial || state is AuthLoading) {
                       return const SplashScreen();
@@ -309,7 +322,7 @@ class _KidGuardianAppState extends State<KidGuardianApp> {
           );
         });
       }
-      return ParentDashboard();
+      return const ParentDashboard();
     } else {
       if (user.familyId != null && (!_childMonitoringStarted || _startedChildUid != user.uid)) {
         _childMonitoringStarted = true;
@@ -318,7 +331,10 @@ class _KidGuardianAppState extends State<KidGuardianApp> {
           context.read<AppMonitorBloc>().add(StartMonitoring(user.familyId!, user.uid));
         });
       }
-      return ChildDashboard();
+      return Theme(
+        data: AppTheme.childTheme,
+        child: const ChildDashboard(),
+      );
     }
   }
 }

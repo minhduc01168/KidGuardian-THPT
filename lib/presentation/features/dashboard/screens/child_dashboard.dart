@@ -271,8 +271,8 @@ class _ChildDashboardState extends State<ChildDashboard> {
   Widget _buildHomeTab(User user) {
     return BlocBuilder<DashboardBloc, DashboardState>(
       builder: (context, dashboardState) {
-        if (dashboardState is DashboardLoading) {
-          return Center(
+        if (dashboardState is DashboardLoading || dashboardState is DashboardInitial) {
+          return const Center(
             child: CircularProgressIndicator(
               color: AppColors.childPrimary,
             ),

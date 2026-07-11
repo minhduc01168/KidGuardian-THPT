@@ -199,9 +199,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
     
     if (event.user != null) {
+      // Tránh double-emit nếu đã AuthAuthenticated với cùng user uid (ví dụ từ _onLoginRequested/Register)
+      if (state is AuthAuthenticated && (state as AuthAuthenticated).user.uid == event.user!.uid) {
+        print('AuthStateChanged blocked: already authenticated for ${event.user!.uid}');
+        return;
+      }
       _notificationService.registerToken(event.user!.uid);
       emit(AuthAuthenticated(user: event.user!));
     } else {
+      if (state is AuthUnauthenticated) return;
       emit(AuthUnauthenticated());
     }
   }
