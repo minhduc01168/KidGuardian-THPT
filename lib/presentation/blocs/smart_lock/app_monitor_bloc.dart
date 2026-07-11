@@ -235,6 +235,8 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
   Future<void> _syncInstalledApps() async {
     if (_familyId == null || _childUid == null) return;
     try {
+      // Trì hoãn 2 giây để đảm bảo ChildDashboard đã mount hoàn tất trước khi gọi Native Plugin Android
+      await Future.delayed(const Duration(seconds: 2));
       final List<AppInfo> apps = await InstalledApps.getInstalledApps(
         excludeSystemApps: true,
         excludeNonLaunchableApps: true,

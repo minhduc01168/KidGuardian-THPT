@@ -95,7 +95,18 @@ class _ChildDashboardState extends State<ChildDashboard> {
       child: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, state) {
           if (state is! AuthAuthenticated) {
-            return SizedBox.shrink();
+            return Scaffold(
+              appBar: AppBar(
+                title: const Text(AppStrings.appName),
+                automaticallyImplyLeading: false,
+                backgroundColor: AppColors.childPrimary,
+              ),
+              body: const Center(
+                child: CircularProgressIndicator(
+                  color: AppColors.childPrimary,
+                ),
+              ),
+            );
           }
 
         final user = state.user;
