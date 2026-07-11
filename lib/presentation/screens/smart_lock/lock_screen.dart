@@ -1,11 +1,15 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kidguardian/platform/android/accessibility_channel.dart';
 import 'package:kidguardian/domain/usecases/smart_lock/emergency_access_manager.dart';
 import 'package:kidguardian/presentation/widgets/smart_lock/app_icon_display.dart';
 import 'package:kidguardian/presentation/widgets/smart_lock/countdown_timer.dart';
 import 'package:kidguardian/presentation/widgets/smart_lock/request_time_dialog.dart';
 import 'package:kidguardian/presentation/widgets/smart_lock/emergency_contact_sheet.dart';
+import 'package:kidguardian/presentation/blocs/smart_lock/smart_lock_bloc.dart';
+import 'package:kidguardian/presentation/blocs/smart_lock/smart_lock_state.dart';
+import 'package:kidguardian/presentation/blocs/smart_lock/app_monitor_bloc.dart';
 
 class LockScreen extends StatefulWidget {
   final String appPackageName;
@@ -41,6 +45,7 @@ class LockScreen extends StatefulWidget {
 
 class _LockScreenState extends State<LockScreen> with TickerProviderStateMixin {
   bool _isReset = false;
+  bool _isRequestPending = false;
   final _emergencyManager = EmergencyAccessManager();
   StreamSubscription<int>? _emergencySub;
   StreamSubscription<EmergencyState>? _emergencyStateSub;
@@ -101,8 +106,8 @@ class _LockScreenState extends State<LockScreen> with TickerProviderStateMixin {
     return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
   }
 
-  void _showRequestTimeDialog() {
-    showDialog(
+  void _showRequestTimeDialog() async {
+    final submitted = await showDialog<bool>(
       context: context,
       builder: (_) => RequestTimeDialog(
         appPackageName: widget.appPackageName,
@@ -111,6 +116,9 @@ class _LockScreenState extends State<LockScreen> with TickerProviderStateMixin {
         childUid: widget.childUid,
       ),
     );
+    if (submitted == true && mounted) {
+      setState(() => _isRequestPending = true);
+    }
   }
 
   void _showEmergencyContactSheet() {
@@ -133,7 +141,24 @@ class _LockScreenState extends State<LockScreen> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
-      child: Scaffold(
+      child: MultiBlocListener(
+        listeners: [
+          BlocListener<SmartLockBloc, SmartLockState>(
+            listener: (context, state) {
+              if (state is SmartLockSettingsLoaded) {
+                context.read<AppMonitorBloc>().add(const CheckCurrentAppLimit());
+              }
+            },
+          ),
+          BlocListener<AppMonitorBloc, AppMonitorState>(
+            listener: (context, state) {
+              if (state is AppMonitorRunning) {
+                Navigator.of(context).popUntil((route) => route.settings.name != 'lock_screen');
+              }
+            },
+          ),
+        ],
+        child: Scaffold(
         body: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
@@ -350,6 +375,54 @@ class _LockScreenState extends State<LockScreen> with TickerProviderStateMixin {
                               ),
                             ),
                           ] else ...[
+                            if (_isRequestPending) ...[
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: Colors.greenAccent.shade400, width: 1.5),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const SizedBox(
+                                      width: 22,
+                                      height: 22,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.greenAccent),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: const [
+                                          Text(
+                                            'Yêu cầu thêm giờ đã được gửi!',
+                                            style: TextStyle(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          SizedBox(height: 2),
+                                          Text(
+                                            'Đang chờ phụ huynh duyệt. Màn hình sẽ tự động mở khi được chấp thuận.',
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              color: Colors.white70,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                            ],
                             // Request more time button (only for time limit blocks)
                             if (widget.blockReason != 'schedule') ...[
                               Container(
@@ -357,7 +430,7 @@ class _LockScreenState extends State<LockScreen> with TickerProviderStateMixin {
                                 height: 56,
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(16),
-                                  color: Colors.white,
+                                  color: _isRequestPending ? Colors.white.withOpacity(0.7) : Colors.white,
                                   boxShadow: [
                                     BoxShadow(
                                       color: Colors.black.withOpacity(0.1),
@@ -367,13 +440,13 @@ class _LockScreenState extends State<LockScreen> with TickerProviderStateMixin {
                                   ],
                                 ),
                                 child: ElevatedButton.icon(
-                                  onPressed: _showRequestTimeDialog,
+                                  onPressed: _isRequestPending ? null : _showRequestTimeDialog,
                                   icon: const Icon(Icons.access_time, size: 22),
                                   label: FittedBox(
                                     fit: BoxFit.scaleDown,
-                                    child: const Text(
-                                      'Xin thêm thời gian',
-                                      style: TextStyle(
+                                    child: Text(
+                                      _isRequestPending ? 'Đã gửi yêu cầu (Đang chờ...)' : 'Xin thêm thời gian',
+                                      style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -452,6 +525,7 @@ class _LockScreenState extends State<LockScreen> with TickerProviderStateMixin {
             ),
           ),
         ),
+      ),
       ),
     );
   }

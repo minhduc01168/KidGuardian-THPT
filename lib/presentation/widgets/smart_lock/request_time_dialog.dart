@@ -86,7 +86,7 @@ class _RequestTimeDialogState extends State<RequestTimeDialog> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () => Navigator.of(context).pop(),
+                      onPressed: () => Navigator.of(context).pop(true),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF6B7FE8),
                         foregroundColor: Colors.white,

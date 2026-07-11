@@ -18,6 +18,11 @@ import '../bloc/dashboard_bloc.dart';
 import '../bloc/dashboard_event.dart';
 import '../bloc/dashboard_state.dart';
 import '../../../blocs/emergency_access/emergency_access_screen.dart';
+import 'package:kidguardian/presentation/blocs/smart_lock/smart_lock_bloc.dart';
+import 'package:kidguardian/presentation/blocs/smart_lock/smart_lock_event.dart';
+import 'package:kidguardian/presentation/blocs/smart_lock/smart_lock_state.dart';
+import 'package:kidguardian/presentation/blocs/smart_lock/app_monitor_bloc.dart';
+import 'package:kidguardian/presentation/widgets/smart_lock/request_time_dialog.dart';
 
 class ChildDashboard extends StatefulWidget {
   const ChildDashboard({super.key});
@@ -28,7 +33,7 @@ class ChildDashboard extends StatefulWidget {
 
 class _ChildDashboardState extends State<ChildDashboard> {
   int _currentIndex = 0;
-  final int _dailyLimitMinutes = 120; // Default 2 hours, will be updated from settings
+  int _dailyLimitMinutes = 120; // Default 2 hours, will be updated from settings
 
   @override
   void initState() {
@@ -48,16 +53,50 @@ class _ChildDashboardState extends State<ChildDashboard> {
               date: dateStr,
             ),
           );
+
+      if (authState.user.familyId != null) {
+        context.read<SmartLockBloc>().add(
+              LoadSmartLockSettings(
+                authState.user.familyId!,
+                authState.user.uid,
+              ),
+            );
+      }
     }
+  }
+
+  String _getAppName(String packageNameOrName) {
+    const map = {
+      'com.zhiliaoapp.musically': 'TikTok',
+      'com.facebook.katana': 'Facebook',
+      'com.google.android.youtube': 'YouTube',
+      'com.instagram.android': 'Instagram',
+      'com.zing.zalo': 'Zalo',
+      'com.roblox.client': 'Roblox',
+      'com.dts.freefireth': 'Free Fire',
+    };
+    return map[packageNameOrName] ?? packageNameOrName;
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AuthBloc, AuthState>(
-      builder: (context, state) {
-        if (state is! AuthAuthenticated) {
-          return SizedBox.shrink();
-        }
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<SmartLockBloc, SmartLockState>(
+          listener: (context, state) {
+            if (state is SmartLockSettingsLoaded && mounted) {
+              setState(() {
+                _dailyLimitMinutes = state.settings.defaultTimeLimitMinutes;
+              });
+            }
+          },
+        ),
+      ],
+      child: BlocBuilder<AuthBloc, AuthState>(
+        builder: (context, state) {
+          if (state is! AuthAuthenticated) {
+            return SizedBox.shrink();
+          }
 
         final user = state.user;
         final isLinked = user.familyId != null;
@@ -153,6 +192,7 @@ class _ChildDashboardState extends State<ChildDashboard> {
               : null,
         );
       },
+    ),
     );
   }
 
@@ -219,8 +259,8 @@ class _ChildDashboardState extends State<ChildDashboard> {
 
   Widget _buildHomeTab(User user) {
     return BlocBuilder<DashboardBloc, DashboardState>(
-      builder: (context, state) {
-        if (state is DashboardLoading) {
+      builder: (context, dashboardState) {
+        if (dashboardState is DashboardLoading) {
           return Center(
             child: CircularProgressIndicator(
               color: AppColors.childPrimary,
@@ -228,19 +268,41 @@ class _ChildDashboardState extends State<ChildDashboard> {
           );
         }
 
-        if (state is DashboardLoaded) {
-          return _buildHomeContent(user, state);
-        }
+        return BlocBuilder<AppMonitorBloc, AppMonitorState>(
+          builder: (context, monitorState) {
+            int totalToday = 0;
+            Map<String, int> usageByApp = {};
 
-        return _buildHomeEmpty(user);
+            if (dashboardState is DashboardLoaded) {
+              totalToday = dashboardState.totalMinutesToday;
+              usageByApp = Map<String, int>.from(dashboardState.usageByApp);
+            }
+
+            // Đồng bộ dữ liệu thực tế đang đếm nếu có từ AppMonitorBloc
+            if (monitorState is AppBlockedState) {
+              final appPkg = monitorState.appPackageName;
+              if (appPkg.isNotEmpty && monitorState.usedMinutes > (usageByApp[appPkg] ?? 0)) {
+                final diff = monitorState.usedMinutes - (usageByApp[appPkg] ?? 0);
+                usageByApp[appPkg] = monitorState.usedMinutes;
+                totalToday += diff;
+              }
+            }
+
+            if (dashboardState is DashboardLoaded || monitorState is AppBlockedState || monitorState is AppMonitorRunning) {
+              return _buildHomeContent(user, totalToday, usageByApp);
+            }
+
+            return _buildHomeEmpty(user);
+          },
+        );
       },
     );
   }
 
-  Widget _buildHomeContent(User user, DashboardLoaded state) {
-    final remainingMinutes = _dailyLimitMinutes - state.totalMinutesToday;
+  Widget _buildHomeContent(User user, int totalMinutesToday, Map<String, int> usageByApp) {
+    final remainingMinutes = _dailyLimitMinutes - totalMinutesToday;
     final isOverLimit = remainingMinutes <= 0;
-    final progress = state.totalMinutesToday / _dailyLimitMinutes;
+    final progress = _dailyLimitMinutes > 0 ? (totalMinutesToday / _dailyLimitMinutes) : 0.0;
 
     return RefreshIndicator(
       onRefresh: () async => _loadDashboard(),
@@ -357,6 +419,37 @@ class _ChildDashboardState extends State<ChildDashboard> {
                         color: AppColors.textSecondary,
                       ),
                     ),
+                    SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          if (user.familyId != null) {
+                            showDialog(
+                              context: context,
+                              builder: (_) => RequestTimeDialog(
+                                familyId: user.familyId!,
+                                childUid: user.uid,
+                                appPackageName: 'general_time',
+                                appName: 'Thời gian sử dụng chung',
+                              ),
+                            );
+                          }
+                        },
+                        icon: const Icon(Icons.more_time, color: Colors.white),
+                        label: const Text(
+                          'Yêu cầu thêm thời gian',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.childPrimary,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -364,7 +457,7 @@ class _ChildDashboardState extends State<ChildDashboard> {
             SizedBox(height: 24),
 
             // Usage by app
-            if (state.usageByApp.isNotEmpty) ...[
+            if (usageByApp.isNotEmpty) ...[
               Text(
                 'Ứng dụng đã sử dụng',
                 style: TextStyle(
@@ -380,29 +473,103 @@ class _ChildDashboardState extends State<ChildDashboard> {
                     children: [
                       SizedBox(
                         height: 150,
-                        child: _buildPieChart(state.usageByApp),
+                        child: _buildPieChart(usageByApp),
                       ),
                       SizedBox(height: 16),
-                      ...state.usageByApp.entries.take(5).map((entry) {
+                      ...usageByApp.entries.take(5).map((entry) {
+                        final appDisplayName = _getAppName(entry.key);
+                        final isOverAppLimit = entry.value >= _dailyLimitMinutes;
                         return Padding(
-                          padding: EdgeInsets.symmetric(vertical: 4),
+                          padding: EdgeInsets.symmetric(vertical: 6),
                           child: Row(
                             children: [
                               Icon(
-                                AppUtils.getAppIcon(entry.key),
-                                size: 20,
-                                color: AppUtils.getAppColor(entry.key),
+                                AppUtils.getAppIcon(appDisplayName),
+                                size: 24,
+                                color: AppUtils.getAppColor(appDisplayName),
                               ),
-                              SizedBox(width: 8),
-                              Expanded(child: Text(entry.key)),
+                              SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      appDisplayName,
+                                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                                    ),
+                                    Text(
+                                      isOverAppLimit ? 'Đã hết giới hạn' : 'Đang sử dụng bình thường',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: isOverAppLimit ? AppColors.error : AppColors.childPrimary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                               Text(
                                 '${entry.value}p',
-                                style: TextStyle(fontWeight: FontWeight.bold),
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                              ),
+                              SizedBox(width: 8),
+                              IconButton(
+                                icon: Icon(
+                                  Icons.add_circle_outline,
+                                  color: AppColors.childPrimary,
+                                  size: 22,
+                                ),
+                                tooltip: 'Xin thêm giờ cho app này',
+                                onPressed: () {
+                                  if (user.familyId != null) {
+                                    showDialog(
+                                      context: context,
+                                      builder: (_) => RequestTimeDialog(
+                                        familyId: user.familyId!,
+                                        childUid: user.uid,
+                                        appPackageName: entry.key,
+                                        appName: appDisplayName,
+                                      ),
+                                    );
+                                  }
+                                },
                               ),
                             ],
                           ),
                         );
                       }),
+                    ],
+                  ),
+                ),
+              ),
+            ] else ...[
+              Card(
+                child: Padding(
+                  padding: EdgeInsets.all(24),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.timer,
+                        size: 64,
+                        color: AppColors.childPrimary,
+                      ),
+                      SizedBox(height: 16),
+                      Text(
+                        'Chưa có dữ liệu ứng dụng',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        'Hôm nay bạn chưa sử dụng ứng dụng nào. Hãy tiếp tục duy trì thói quen sử dụng điện thoại lành mạnh nhé! 🌟',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textSecondary,
+                          height: 1.4,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -512,11 +679,37 @@ class _ChildDashboardState extends State<ChildDashboard> {
                   ),
                   SizedBox(height: 8),
                   Text(
-                    'Bắt đầu sử dụng điện thoại để xem thống kê',
+                    'Hôm nay bạn chưa sử dụng ứng dụng nào. Bắt đầu sử dụng điện thoại để xem thống kê hoặc gửi yêu cầu thêm thời gian.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 14,
                       color: AppColors.textSecondary,
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      if (user.familyId != null) {
+                        showDialog(
+                          context: context,
+                          builder: (_) => RequestTimeDialog(
+                            familyId: user.familyId!,
+                            childUid: user.uid,
+                            appPackageName: 'general_time',
+                            appName: 'Thời gian sử dụng chung',
+                          ),
+                        );
+                      }
+                    },
+                    icon: const Icon(Icons.more_time, color: Colors.white),
+                    label: const Text(
+                      'Yêu cầu thêm thời gian',
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.childPrimary,
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
                   ),
                 ],
@@ -534,7 +727,7 @@ class _ChildDashboardState extends State<ChildDashboard> {
         if (state is DashboardLoaded && state.dailyTotals.isNotEmpty) {
           return _buildUsageContent(state);
         }
-        return _buildUsageEmpty();
+        return _buildUsageEmpty(user);
       },
     );
   }
@@ -700,33 +893,65 @@ class _ChildDashboardState extends State<ChildDashboard> {
     );
   }
 
-  Widget _buildUsageEmpty() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.bar_chart,
-            size: 80,
-            color: AppColors.textSecondary,
-          ),
-          SizedBox(height: 16),
-          Text(
-            'Thống kê sử dụng',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
+  Widget _buildUsageEmpty(User user) {
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(24),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(height: 40),
+            Icon(
+              Icons.bar_chart_rounded,
+              size: 96,
+              color: AppColors.childPrimary.withOpacity(0.5),
             ),
-          ),
-          SizedBox(height: 8),
-          Text(
-            'Chưa có dữ liệu',
-            style: TextStyle(
-              fontSize: 16,
-              color: AppColors.textSecondary,
+            SizedBox(height: 24),
+            Text(
+              'Thống kê sử dụng hôm nay',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
-        ],
+            SizedBox(height: 12),
+            Text(
+              'Hôm nay bạn chưa sử dụng ứng dụng nào hoặc dữ liệu đang được đồng bộ từ thiết bị.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15,
+                color: AppColors.textSecondary,
+                height: 1.4,
+              ),
+            ),
+            SizedBox(height: 32),
+            ElevatedButton.icon(
+              onPressed: () {
+                if (user.familyId != null) {
+                  showDialog(
+                    context: context,
+                    builder: (_) => RequestTimeDialog(
+                      familyId: user.familyId!,
+                      childUid: user.uid,
+                      appPackageName: 'general_time',
+                      appName: 'Thời gian sử dụng chung',
+                    ),
+                  );
+                }
+              },
+              icon: const Icon(Icons.more_time, color: Colors.white),
+              label: const Text(
+                'Yêu cầu thêm thời gian',
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.childPrimary,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
