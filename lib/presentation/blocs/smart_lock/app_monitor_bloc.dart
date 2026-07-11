@@ -428,10 +428,23 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
     }
   }
 
+  // P12b: Cooldown map để ngăn spam createKeywordAlert (10 phút/keyword)
+  final Map<String, DateTime> _lastKeywordAlertMap = {};
+
   Future<void> _onKeywordDetected(KeywordDetectedEvent event, Emitter<AppMonitorState> emit) async {
     if (_familyId == null || _childUid == null) return;
     if (event.keyword.isEmpty || event.packageName.isEmpty) return;
-    
+
+    // Cooldown 10 phút/keyword: ngăn spam nếu trẻ gõ cùng từ khóa liên tiếp
+    final cooldownKey = '${event.keyword}_${event.packageName}';
+    final lastSent = _lastKeywordAlertMap[cooldownKey];
+    final now = DateTime.now();
+    if (lastSent != null && now.difference(lastSent).inMinutes < 10) {
+      debugPrint('AppMonitorBloc: Keyword alert cooldown active for "${event.keyword}", skipping write.');
+      return;
+    }
+    _lastKeywordAlertMap[cooldownKey] = now;
+
     try {
       await alertRepository.createKeywordAlert(
         familyId: _familyId!,

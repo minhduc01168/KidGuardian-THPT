@@ -252,18 +252,19 @@ class AlertRepositoryImpl implements AlertRepository {
 
   @override
   Stream<List<AlertModel>> watchAllFamilyAlerts({required String familyId}) {
+    // Dùng Firestore-level where('familyId') thay vì filter bằng Dart code client-side
+    // để tránh đọc toàn bộ collectionGroup rồi mới lọc — gây lãng phí Reads nghiêm trọng
     return _firestore
         .collectionGroup('alerts')
+        .where('familyId', isEqualTo: familyId)
         .where('type', isEqualTo: 'keyword_detected')
+        .orderBy('timestamp', descending: true)
         .limit(50)
         .snapshots()
         .map((snapshot) {
-      final docs = snapshot.docs
-          .where((doc) => doc.reference.path.contains('families/$familyId/'))
+      return snapshot.docs
           .map((doc) => AlertModel.fromFirestore(doc))
           .toList();
-      docs.sort((a, b) => (b.timestamp ?? DateTime.fromMillisecondsSinceEpoch(0)).compareTo(a.timestamp ?? DateTime.fromMillisecondsSinceEpoch(0)));
-      return docs;
     });
   }
 

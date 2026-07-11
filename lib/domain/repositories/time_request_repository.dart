@@ -120,6 +120,8 @@ class TimeRequestRepositoryImpl implements TimeRequestRepository {
     return _firestore
         .collectionGroup('timeRequests')
         .where('familyId', isEqualTo: familyId)
+        .orderBy('timestamp', descending: true)
+        .limit(50)
         .snapshots()
         .map((snapshot) {
       final list = snapshot.docs
@@ -136,6 +138,8 @@ class TimeRequestRepositoryImpl implements TimeRequestRepository {
     return _firestore
         .collectionGroup('timeRequests')
         .where('familyId', isEqualTo: familyId)
+        .orderBy('timestamp', descending: true)
+        .limit(50)
         .snapshots()
         .map((snapshot) {
       final list = snapshot.docs.map((doc) => TimeRequest.fromFirestore(doc)).toList();
