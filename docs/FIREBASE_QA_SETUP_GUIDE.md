@@ -1,6 +1,8 @@
-# HƯỚNG DẪN TẠO VÀ CHUYỂN ĐỔI DỰ ÁN FIREBASE DỰ PHÒNG (QA/TESTING)
+# HƯỚNG DẪN TẠO VÀ CHUYỂN ĐỔI DỰ ÁN FIREBASE DỰ PHÒNG (QA/TESTING) & TỐI ƯU HẠN NGẠCH
 
 > **Mục đích:** Khi dự án Firebase chính (`KidGuardian-Production`) tạm thời hết hạn ngạch miễn phí 50.000 Reads/ngày trong quá trình chạy test tự động hoặc kiểm thử stress, bạn có thể tạo một dự án Firebase phụ (`KidGuardian-QA`) để tiếp tục kiểm thử thủ công (Manual Test) ngay lập tức mà không cần phải chờ đến 14:00 chiều để reset hạn ngạch.
+> 
+> **Đặc biệt:** Tài liệu này bao gồm hướng dẫn **Tích hợp & Cấu hình Collection, Composite Indexes và chính sách TTL** để tối ưu hóa triệt để lượt gửi/đọc dữ liệu, giúp gói Free Spark Plan chạy mượt mà không bao giờ bị thâm hụt.
 
 ---
 
@@ -8,9 +10,10 @@
 1. [Bước 1: Tạo dự án mới trên Firebase Console](#bước-1-tạo-dự-án-mới-trên-firebase-console)
 2. [Bước 2: Kích hoạt Authentication (Email/Password)](#bước-2-kích-hoạt-authentication-emailpassword)
 3. [Bước 3: Kích hoạt Cloud Firestore & Cấu hình Luật (Security Rules)](#bước-3-kích-hoạt-cloud-firestore--cấu-hình-luật-security-rules)
-4. [Bước 4: Đăng ký ứng dụng Android & Tải `google-services.json`](#bước-4-đăng-ký-ứng-dụng-android--tải-google-servicesjson)
-5. [Bước 5: Thay thế cấu hình trong dự án Flutter & Khởi chạy](#bước-5-thay-thế-cấu-hình-trong-dự-án-flutter--khởi-chạy)
-6. [Bước 6: Cách chuyển lại về dự án chính (Production) khi cần](#bước-6-cách-chuyển-lại-về-dự-án-chính-production-khi-cần)
+4. [Bước 4: Cấu hình Composite Indexes & Tích hợp Collection tối ưu lượt gửi](#bước-4-cấu-hình-composite-indexes--tích-hợp-collection-tối-ưu-lượt-gửi)
+5. [Bước 5: Đăng ký ứng dụng Android & Tải `google-services.json`](#bước-5-đăng-ký-ứng-dụng-android--tải-google-servicesjson)
+6. [Bước 6: Thay thế cấu hình trong dự án Flutter & Khởi chạy](#bước-6-thay-thế-cấu-hình-trong-dự-án-flutter--khởi-chạy)
+7. [Bước 7: Cách chuyển lại về dự án chính (Production) khi cần](#bước-7-cách-chuyển-lại-về-dự-án-chính-production-khi-cần)
 
 ---
 
@@ -61,9 +64,74 @@
 
 ---
 
-## BƯỚC 4: ĐĂNG KÝ ỨNG DỤNG ANDROID & TẢI `google-services.json`
+## BƯỚC 4: CẤU HÌNH COMPOSITE INDEXES & TÍCH HỢP COLLECTION TỐI ƯU LƯỢT GỬI
 
-Để app Flutter KidGuardian kết nối được với dự án `KidGuardian-QA` vừa tạo:
+Để ứng dụng KidGuardian tận dụng được các câu truy vấn **giới hạn số lượng `.limit(50)`** (`FIX C5`) và ngăn chặn việc quét thừa toàn bộ bảng (gây lãng phí hàng nghìn lượt Reads), bạn **bắt buộc phải cấu hình Composite Indexes (Chỉ mục kép)** cho các Collection chính ngay sau khi tạo Firestore:
+
+### 1. Tạo Composite Index cho `alerts` (Cảnh báo & Khóa ứng dụng)
+Khi phụ huynh xem Lịch sử Cảnh báo, app thực hiện truy vấn `collectionGroup('alerts').where('familyId', ...).orderBy('timestamp', descending: true).limit(50)`. Để tối ưu lượt đọc:
+1. Trong Firestore Database, chuyển sang tab **Indexes** (Chỉ mục).
+2. Tại mục **Composite (Chỉ mục kép)**, bấm nút **Add Index** (Thêm chỉ mục).
+3. Điền thông tin chính xác:
+   - **Collection ID:** `alerts`
+   - **Query scope:** Chọn **Collection group**
+   - **Fields indexed (Các trường được lập chỉ mục):**
+     - Trường 1: Nhập `familyId` $\rightarrow$ Chọn **Ascending (Tăng dần)**
+     - Trường 2: Nhập `timestamp` $\rightarrow$ Chọn **Descending (Giảm dần)**
+4. Bấm **Create** (Tạo). *(Chờ 1-2 phút để trạng thái chuyển từ Building sang Enabled)*.
+
+### 2. Tạo Composite Index cho `timeRequests` (Yêu cầu xin thêm giờ)
+Để phụ huynh nhận danh sách xin giờ mới nhất mà không phải load toàn bộ lịch sử:
+1. Bấm tiếp **Add Index**.
+2. Điền thông tin:
+   - **Collection ID:** `timeRequests`
+   - **Query scope:** Chọn **Collection group**
+   - **Fields indexed:**
+     - Trường 1: `familyId` $\rightarrow$ **Ascending**
+     - Trường 2: `timestamp` $\rightarrow$ **Descending**
+3. Bấm **Create**.
+
+### 3. Tạo Composite Index cho `notifications` (Trung tâm thông báo)
+1. Bấm tiếp **Add Index**.
+2. Điền thông tin:
+   - **Collection ID:** `notifications`
+   - **Query scope:** Chọn **Collection group**
+   - **Fields indexed:**
+     - Trường 1: `familyId` $\rightarrow$ **Ascending**
+     - Trường 2: `timestamp` $\rightarrow$ **Descending**
+3. Bấm **Create**.
+
+### 4. Tích hợp Chính sách tự động xóa (TTL - Time-To-Live Policy) tiết kiệm Quota
+Để ngăn các Collection `alerts` và `notifications` phình to lên hàng ngàn tài liệu sau nhiều ngày test (khiến mỗi lần query/sort tốn thêm tài nguyên), hãy thiết lập chính sách tự động xóa ngầm:
+1. Tại tab **Indexes**, cuộn xuống hoặc chuyển sang phần **TTL Policies**.
+2. Bấm **Create Policy**:
+   - **Collection group:** Nhập `alerts`
+   - **Timestamp field:** Nhập `timestamp`
+3. Bấm **Create Policy** tiếp cho `notifications` với trường `timestamp`.
+*(Firebase sẽ tự động dọn dẹp các tài liệu cũ sau thời hạn mà hoàn toàn miễn phí, không tính vào lượt Deletes/Reads hàng ngày của gói Spark Plan).*
+
+### 5. Cấu trúc phân tầng Collection chuẩn của KidGuardian
+Khi bạn chạy app lần đầu với tài khoản mới, hệ thống tự động sinh ra cấu trúc cây Collection tối ưu hóa lượt gửi như sau:
+```text
+databases/
+ └── (default)/documents/
+      ├── users/{uid}                     (Lưu role, profile của Parent/Child)
+      ├── linkCodes/{code}                (Mã 6 số liên kết gia đình, có hạn sử dụng)
+      └── families/{familyId}/
+           ├── children/{childUid}/
+           │    ├── monitoredApps/{appId} (Danh sách app + trạng thái chặn)
+           │    ├── timeRequests/{reqId}  (Yêu cầu xin giờ của trẻ)
+           │    ├── dailyUsage/{date}     (Log sử dụng app gom nhóm giờ - tối ưu 1 write/giờ)
+           │    └── notifications/{id}    (Thông báo đẩy cho từng thiết bị)
+           ├── alerts/{alertId}           (Cảnh báo vi phạm khóa app - được bảo vệ bởi Cooldown 5 phút)
+           └── settings/autoApprovalRules (Quy tắc tự động duyệt thời gian)
+```
+
+---
+
+## BƯỚC 5: ĐĂNG KÝ ỨNG DỤNG ANDROID & TẢI `google-services.json`
+
+Để app Flutter KidGuardian kết nối được với dự án `KidGuardian-QA` vừa tạo và nhận cấu hình Index/Collection trên:
 
 1. Tại trang chủ dự án (`Project Overview`), bấm vào **biểu tượng hình con robot Android** để thêm ứng dụng Android.
 2. Tại ô **Android package name (Tên gói Android)**:  
@@ -76,7 +144,7 @@
 
 ---
 
-## BƯỚC 5: THAY THẾ CẤU HÌNH TRONG DỰ ÁN FLUTTER & KHỞI CHẠY
+## BƯỚC 6: THAY THẾ CẤU HÌNH TRONG DỰ ÁN FLUTTER & KHỞI CHẠY
 
 Bây giờ chúng ta sẽ dán file `google-services.json` của dự án QA vào code:
 
@@ -86,7 +154,7 @@ Trước khi thay thế, hãy đổi tên file `google-services.json` hiện t�
 - Đổi tên thành: `android/app/google-services.production.json`
 
 ### 2. Dán file cấu hình QA mới vào
-- Copy file `google-services.json` mà bạn vừa tải về ở Bước 4.
+- Copy file `google-services.json` mà bạn vừa tải về ở Bước 5.
 - Dán vào đúng thư mục: `android/app/google-services.json`.
 
 ### 3. Xóa bộ nhớ đệm và build lại app (Clean Build)
@@ -103,11 +171,11 @@ flutter pub get
 flutter run
 ```
 
-🎉 **Xong!** Lúc này ứng dụng KidGuardian trên máy ảo/thiết bị của bạn đã được kết nối với dự án `KidGuardian-QA` mới tinh với hạn ngạch **50.000 Reads & 20.000 Writes hoàn toàn trống**. Bạn có thể đăng ký tài khoản mới và kiểm thử thủ công thoải mái!
+🎉 **Xong!** Lúc này ứng dụng KidGuardian đã kết nối vào database `KidGuardian-QA` mới tinh với **50.000 Reads & 20.000 Writes hoàn toàn trống**, đồng thời được bảo vệ bởi hệ thống **Composite Indexes và TTL** giúp tốc độ đọc cực nhanh và không hao tốn Quota!
 
 ---
 
-## BƯỚC 6: CÁCH CHUYỂN LẠI VỀ DỰ ÁN CHÍNH (PRODUCTION) KHI CẦN
+## BƯỚC 7: CÁCH CHUYỂN LẠI VỀ DỰ ÁN CHÍNH (PRODUCTION) KHI CẦN
 
 Khi hạn ngạch của dự án chính đã được reset (sau 14:00 chiều) và bạn muốn chuyển app trở về kết nối với dự án chính (`KidGuardian-Production`):
 
@@ -120,4 +188,4 @@ Khi hạn ngạch của dự án chính đã được reset (sau 14:00 chiều) 
    Ứng dụng sẽ lập tức kết nối trở lại với cơ sở dữ liệu chính thức!
 
 ---
-*Tài liệu được thiết kế tối ưu giúp chuyển đổi môi trường kiểm thử linh hoạt, đảm bảo không bao giờ bị gián đoạn tiến độ nghiệm thu dự án.*
+*Tài liệu được chuẩn hóa bao gồm đầy đủ kiến trúc tối ưu hóa Collection và Quota Firebase cho KidGuardian.*
