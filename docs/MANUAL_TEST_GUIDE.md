@@ -60,6 +60,17 @@
 2. Tìm **KidGuardian** > Chuyển công tắc sang **Bật (On)** > Bấm **Cho phép**.
 
 **📱 Đối với Xiaomi / Redmi / POCO (MIUI/HyperOS):**
+> [!WARNING]
+> **Khắc phục lỗi "Chế độ cài đặt bị hạn chế" (Restricted Settings) khi nút bật bị mờ:**  
+> Từ Android 13/14 (MIUI 14 & HyperOS), hệ thống tự động khóa quyền Trợ năng đối với các file APK cài ngoài (sideloaded APK). Để mở khóa:
+> 1. Vào **Cài đặt (Settings)** > **Ứng dụng (Apps)** > **Quản lý ứng dụng (Manage apps)**.
+> 2. Tìm và chọn ứng dụng **KidGuardian** (hoặc nhấn giữ icon KidGuardian ngoài màn hình chính > Chọn **Thông tin ứng dụng / App info**).
+> 3. Tại trang Thông tin ứng dụng:
+>    - Cuộn xuống dưới cùng, tìm mục **"Cho phép cài đặt bị hạn chế" (Allow restricted settings)** và bật ON.
+>    - *Hoặc (trên một số phiên bản MIUI/HyperOS):* Nhấn vào **biểu tượng 3 dấu chấm (⋮)** ở góc trên cùng bên phải > Chọn **"Cho phép cài đặt bị hạn chế" (Allow restricted settings)**.
+> 4. Xác thực bằng vân tay/mật khẩu màn hình khóa nếu được yêu cầu.
+> 5. Sau khi đã mở khóa thành công, quay trở lại **Cài đặt > Cài đặt bổ sung > Hỗ trợ tiếp cận (Accessibility) > Đã tải xuống > KidGuardian** và bật công tắc ON bình thường!
+
 1. Vào **Cài đặt** > **Cài đặt bổ sung** > **Hỗ trợ tiếp cận (Accessibility)** > Tab **Đã tải xuống (Downloaded apps)**.
 2. Chọn **KidGuardian** > Bật **Sử dụng KidGuardian**.
 3. *Lưu ý:* Khi hiện cảnh báo nguy hiểm đếm ngược 10 giây, tích vào ô "Tôi nhận thức được rủi ro..." rồi bấm **OK**.
