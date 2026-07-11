@@ -21,43 +21,100 @@ Tài liệu này tổng hợp đầy đủ các **Biểu đồ kiến trúc & UM
 
 ## 1. BIỂU ĐỒ USE CASE TỔNG QUÁT
 
-Biểu đồ mô tả sự tương tác giữa 3 tác nhân chính (`Parent`, `Child`, và `Firebase Cloud System`) với các mô-đun chức năng toàn cục của hệ thống KidGuardian.
+Để tránh hiện tượng các đường nối bị đan chéo nhau khó nhìn, biểu đồ Use Case tổng quát được trình bày theo **2 bố cục tối ưu (Clean Layouts)**: Bố cục Phân cụm Chức năng (Functional Clusters) và Bố cục Đối xứng Trái-Phải (Zero-Crossing Symmetrical Layout).
+
+### 1.1 Bố cục Phân cụm Chức năng (Functional Clusters Layout)
+Mô hình hóa các Use Case thành 3 cụm nghiệp vụ cốt lõi (`1. Xác thực & Liên kết`, `2. Giám sát & Khóa thông minh`, `3. Báo cáo & Cảnh báo`), giúp đường nối trực quan, mạch lạc và không bị chồng chéo.
+
+```mermaid
+graph TB
+    subgraph Actors [Các Tác Nhân Chính]
+        Parent(["👤 Phụ huynh (Parent)"])
+        System(["☁️ Firebase Cloud System"])
+        Child(["👦 Học sinh/Con (Child)"])
+    end
+
+    subgraph KidGuardianSystem [HỆ THỐNG KIDGUARDIAN - CÁC CỤM CHỨC NĂNG]
+        direction TB
+        
+        subgraph GroupAuth [Cụm 1: Quản lý Tài khoản & Liên kết]
+            UC1("Đăng ký / Đăng nhập & Quản lý Profile")
+            UC2("Ghép nối Gia đình qua Mã 6 số (Link Code)")
+        end
+
+        subgraph GroupLock [Cụm 2: Giám sát & Khóa Ứng Dụng]
+            UC3("Thiết lập Giới hạn Thời gian & Lịch trình")
+            UC4("Khóa Ứng dụng & Màn hình Smart Lock")
+            UC5("Yêu cầu Xin giờ & Phê duyệt (Tự động/Thủ công)")
+        end
+
+        subgraph GroupReport [Cụm 3: Thống kê & Cảnh báo An toàn]
+            UC6("Theo dõi Biểu đồ Sử dụng & Đồng bộ Log")
+            UC7("Cảnh báo Vi phạm Khóa App & Từ khóa")
+        end
+    end
+
+    Parent ===> GroupAuth
+    Parent ===> GroupLock
+    Parent ===> GroupReport
+
+    GroupAuth <=== Child
+    GroupLock <=== Child
+    GroupReport <=== Child
+
+    System -.- GroupAuth
+    System -.- GroupLock
+    System -.- GroupReport
+```
+
+### 1.2 Bố cục Đối xứng Trái - Phải (Zero-Crossing Symmetrical Layout)
+Bố cục tách biệt Phụ huynh ở bên **Trái (Left)** và Học sinh ở bên **Phải (Right)**, kết nối ngang vào từng Use Case tương ứng ở giữa, đảm bảo **100% không có bất kỳ đường dây nào bị đan chéo (Zero Criss-Cross)**.
 
 ```mermaid
 graph LR
-    subgraph Actors [Các Tác Nhân]
+    subgraph LeftActor [Tác Nhân Quản Lý]
         Parent(["👤 Phụ huynh (Parent)"])
-        Child(["👦 Học sinh/Con (Child)"])
-        System(["☁️ Firebase Cloud System"])
     end
 
-    subgraph KidGuardianSystem [Hệ Thống KidGuardian]
+    subgraph CoreUseCases [CÁC USE CASE HỆ THỐNG]
+        direction TB
         UC1("Quản lý Tài khoản & Xác thực")
         UC2("Ghép nối Gia đình (Link Code)")
         UC3("Thiết lập Giới hạn Thời gian App")
         UC4("Khóa Ứng dụng Thông minh (Smart Lock)")
         UC5("Yêu cầu & Phê duyệt Thêm giờ")
         UC6("Theo dõi Báo cáo Sử dụng & Log")
-        UC7("Cảnh báo Vi phạm & Từ khóa")
+        UC7("Cảnh báo Vi phạm & Từ khóa nhạy cảm")
     end
 
-    Parent --> UC1
-    Parent --> UC2
-    Parent --> UC3
-    Parent --> UC5
-    Parent --> UC6
-    Parent --> UC7
+    subgraph RightActor [Tác Nhân Giám Sát]
+        Child(["👦 Học sinh/Con (Child)"])
+    end
 
-    Child --> UC1
-    Child --> UC2
-    Child --> UC4
-    Child --> UC5
-    Child --> UC6
+    subgraph TopSystem [Máy Chủ Nền Tảng]
+        System(["☁️ Firebase Cloud"])
+    end
 
-    System -.-> UC2
-    System -.-> UC4
-    System -.-> UC6
-    System -.-> UC7
+    %% Kết nối ngang từ bên Trái (Parent)
+    Parent ---> UC1
+    Parent ---> UC2
+    Parent ---> UC3
+    Parent ---> UC5
+    Parent ---> UC6
+    Parent ---> UC7
+
+    %% Kết nối ngang từ bên Phải (Child)
+    UC1 <--- Child
+    UC2 <--- Child
+    UC4 <--- Child
+    UC5 <--- Child
+    UC6 <--- Child
+
+    %% Kết nối từ trên xuống (System)
+    System -.- UC2
+    System -.- UC4
+    System -.- UC6
+    System -.- UC7
 ```
 
 ---
