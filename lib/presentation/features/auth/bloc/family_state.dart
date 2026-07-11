@@ -62,6 +62,15 @@ class ChildLinkedToFamily extends FamilyState {
   List<Object?> get props => [family];
 }
 
+class ChildRemovedFromFamily extends FamilyState {
+  final Family family;
+
+  const ChildRemovedFromFamily({required this.family});
+
+  @override
+  List<Object?> get props => [family];
+}
+
 class FamilyError extends FamilyState {
   final String message;
 

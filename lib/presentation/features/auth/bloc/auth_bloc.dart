@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../data/services/notification_service.dart';
 import '../../../../domain/repositories/auth_repository.dart';
 import '../../../../domain/repositories/family_repository.dart';
 import 'auth_event.dart';
@@ -8,13 +9,16 @@ import 'auth_state.dart';
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository _authRepository;
   final FamilyRepository _familyRepository;
+  final NotificationService _notificationService;
   StreamSubscription? _authSubscription;
   
   AuthBloc({
     required AuthRepository authRepository,
     required FamilyRepository familyRepository,
+    required NotificationService notificationService,
   })  : _authRepository = authRepository,
         _familyRepository = familyRepository,
+        _notificationService = notificationService,
         super(AuthInitial()) {
     
     on<LoginRequested>(_onLoginRequested);
@@ -37,10 +41,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading());
     try {
+      print('Attempting login for: ${event.email}');
       final user = await _authRepository.login(event.email, event.password);
+      print('Login successful for user: ${user.uid}');
+      
+      // Register notification token (non-blocking)
+      _notificationService.registerToken(user.uid).catchError((e) {
+        print('Failed to register notification token: $e');
+      });
+      
       emit(AuthAuthenticated(user: user));
     } catch (e) {
-      emit(AuthError(message: e.toString().replaceAll('Exception: ', '')));
+      final errorMessage = e.toString().replaceAll('Exception: ', '');
+      print('Login error: $errorMessage');
+      emit(AuthError(message: errorMessage));
     }
   }
   
@@ -50,15 +64,25 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading());
     try {
+      print('Attempting registration for: ${event.email}');
       final user = await _authRepository.register(
         event.email,
         event.password,
         event.name,
         event.role,
       );
+      print('Registration successful for user: ${user.uid}');
+      
+      // Register notification token (non-blocking)
+      _notificationService.registerToken(user.uid).catchError((e) {
+        print('Failed to register notification token: $e');
+      });
+      
       emit(AuthAuthenticated(user: user));
     } catch (e) {
-      emit(AuthError(message: e.toString().replaceAll('Exception: ', '')));
+      final errorMessage = e.toString().replaceAll('Exception: ', '');
+      print('Registration error: $errorMessage');
+      emit(AuthError(message: errorMessage));
     }
   }
   
@@ -88,6 +112,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) {
     if (event.user != null) {
+      _notificationService.registerToken(event.user!.uid);
       emit(AuthAuthenticated(user: event.user!));
     } else {
       emit(AuthUnauthenticated());

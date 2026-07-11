@@ -1,12 +1,26 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/app_time_limit_model.dart';
 import '../models/monitored_app_model.dart';
+import '../models/schedule_model.dart';
+import '../models/family_model.dart';
+import '../models/smart_lock_settings_model.dart';
+import '../models/lock_history_entry_model.dart';
 
 class SmartLockRepository {
   final FirebaseFirestore _firestore;
 
   SmartLockRepository({FirebaseFirestore? firestore})
       : _firestore = firestore ?? FirebaseFirestore.instance;
+
+  Future<FamilyModel?> getFamily(String familyId) async {
+    try {
+      final doc = await _firestore.collection('families').doc(familyId).get();
+      if (!doc.exists) return null;
+      return FamilyModel.fromFirestore(doc);
+    } catch (e) {
+      return null;
+    }
+  }
 
   Future<List<AppTimeLimitModel>> getAppTimeLimits(
     String familyId,
@@ -129,6 +143,140 @@ class SmartLockRepository {
         .collection('monitoredApps')
         .doc(app.appPackageName)
         .set(app.toJson());
+  }
+
+  // Schedule CRUD methods
+
+  Future<List<ScheduleModel>> getSchedules(
+    String familyId,
+    String childId,
+  ) async {
+    final snapshot = await _firestore
+        .collection('families')
+        .doc(familyId)
+        .collection('children')
+        .doc(childId)
+        .collection('schedules')
+        .get();
+
+    return snapshot.docs
+        .map((doc) => ScheduleModel.fromJson({
+              ...doc.data(),
+              'id': doc.id,
+            }))
+        .toList();
+  }
+
+  Future<void> saveSchedule(
+    String familyId,
+    String childId,
+    ScheduleModel schedule,
+  ) async {
+    final docRef = schedule.id.isEmpty
+        ? _firestore
+            .collection('families')
+            .doc(familyId)
+            .collection('children')
+            .doc(childId)
+            .collection('schedules')
+            .doc()
+        : _firestore
+            .collection('families')
+            .doc(familyId)
+            .collection('children')
+            .doc(childId)
+            .collection('schedules')
+            .doc(schedule.id);
+
+    await docRef.set(schedule.toJson());
+  }
+
+  Future<void> deleteSchedule(
+    String familyId,
+    String childId,
+    String scheduleId,
+  ) async {
+    await _firestore
+        .collection('families')
+        .doc(familyId)
+        .collection('children')
+        .doc(childId)
+        .collection('schedules')
+        .doc(scheduleId)
+        .delete();
+  }
+
+  // Smart Lock Settings methods
+
+  Future<SmartLockSettingsModel?> getSmartLockSettings(
+    String familyId,
+    String childId,
+  ) async {
+    final doc = await _firestore
+        .collection('families')
+        .doc(familyId)
+        .collection('children')
+        .doc(childId)
+        .collection('settings')
+        .doc('smartLock')
+        .get();
+
+    if (!doc.exists) return null;
+    return SmartLockSettingsModel.fromJson(doc.data()!);
+  }
+
+  Future<void> saveSmartLockSettings(
+    String familyId,
+    String childId,
+    SmartLockSettingsModel settings,
+  ) async {
+    await _firestore
+        .collection('families')
+        .doc(familyId)
+        .collection('children')
+        .doc(childId)
+        .collection('settings')
+        .doc('smartLock')
+        .set(settings.copyWith(updatedAt: DateTime.now()).toJson());
+  }
+
+  // Lock History methods
+
+  Future<List<LockHistoryEntryModel>> getLockHistory(
+    String familyId,
+    String childId, {
+    int limit = 50,
+  }) async {
+    final snapshot = await _firestore
+        .collection('families')
+        .doc(familyId)
+        .collection('children')
+        .doc(childId)
+        .collection('lockHistory')
+        .orderBy('lockedAt', descending: true)
+        .limit(limit)
+        .get();
+
+    return snapshot.docs
+        .map((doc) => LockHistoryEntryModel.fromJson({
+              ...doc.data(),
+              'id': doc.id,
+            }))
+        .toList();
+  }
+
+  Future<void> addLockHistoryEntry(
+    String familyId,
+    String childId,
+    LockHistoryEntryModel entry,
+  ) async {
+    await _firestore
+        .collection('families')
+        .doc(familyId)
+        .collection('children')
+        .doc(childId)
+        .collection('lockHistory')
+        .add(entry.toJson());
   }
 
   List<MonitoredAppModel> getPopularMonitoredApps() {

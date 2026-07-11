@@ -5,9 +5,12 @@ import 'package:flutter/foundation.dart';
 import 'package:kidguardian/platform/android/accessibility_channel.dart';
 import 'package:kidguardian/domain/usecases/smart_lock/check_app_access_usecase.dart';
 import 'package:kidguardian/domain/usecases/smart_lock/block_app_usecase.dart';
+import 'package:kidguardian/domain/usecases/smart_lock/schedule_checker.dart';
 import 'package:kidguardian/domain/entities/usage_log.dart';
 import 'package:kidguardian/domain/repositories/usage_repository.dart';
+import 'package:kidguardian/domain/repositories/alert_repository.dart';
 import 'package:kidguardian/data/repositories/smart_lock_repository.dart';
+import 'package:kidguardian/data/models/smart_lock_settings_model.dart';
 import 'package:intl/intl.dart';
 
 // Events
@@ -36,6 +39,21 @@ class AppEventReceived extends AppMonitorEvent {
   List<Object> get props => [event];
 }
 
+class KeywordDetectedEvent extends AppMonitorEvent {
+  final String keyword;
+  final String packageName;
+  final String textContext;
+
+  const KeywordDetectedEvent({
+    required this.keyword,
+    required this.packageName,
+    required this.textContext,
+  });
+
+  @override
+  List<Object> get props => [keyword, packageName, textContext];
+}
+
 class CheckCurrentAppLimit extends AppMonitorEvent {
   const CheckCurrentAppLimit();
 }
@@ -50,6 +68,20 @@ abstract class AppMonitorState extends Equatable {
 
 class AppMonitorInitial extends AppMonitorState {}
 class AppMonitorRunning extends AppMonitorState {}
+class KeywordAlertEmitted extends AppMonitorState {
+  final String keyword;
+  final String packageName;
+  final String textContext;
+
+  const KeywordAlertEmitted({
+    required this.keyword,
+    required this.packageName,
+    required this.textContext,
+  });
+
+  @override
+  List<Object?> get props => [keyword, packageName, textContext];
+}
 class AppBlockedState extends AppMonitorState {
   final String appPackageName;
   final String appName;
@@ -59,6 +91,9 @@ class AppBlockedState extends AppMonitorState {
   final DateTime resetTime;
   final String? familyId;
   final String? childUid;
+  final String? parentUid;
+  final String? blockReason;
+  final String? scheduleName;
 
   const AppBlockedState({
     required this.appPackageName,
@@ -69,6 +104,9 @@ class AppBlockedState extends AppMonitorState {
     required this.resetTime,
     this.familyId,
     this.childUid,
+    this.parentUid,
+    this.blockReason,
+    this.scheduleName,
   });
 
   @override
@@ -81,6 +119,9 @@ class AppBlockedState extends AppMonitorState {
         resetTime,
         familyId,
         childUid,
+        parentUid,
+        blockReason,
+        scheduleName,
       ];
 }
 
@@ -100,6 +141,8 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
   final BlockAppUseCase blockAppUseCase;
   final UsageRepository usageRepository;
   final SmartLockRepository smartLockRepository;
+  final ScheduleChecker scheduleChecker;
+  final AlertRepository alertRepository;
 
   StreamSubscription? _accessibilitySubscription;
   // P2: Timer for continuous time checking
@@ -111,15 +154,19 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
   DateTime? _currentAppStartTime;
   // P11: Cache last known limits
   bool _isMonitoring = false;
+  SmartLockSettingsModel? _settings;
 
   AppMonitorBloc({
     required this.checkAppAccessUseCase,
     required this.blockAppUseCase,
     required this.usageRepository,
     required this.smartLockRepository,
+    required this.scheduleChecker,
+    required this.alertRepository,
   }) : super(AppMonitorInitial()) {
     on<StartMonitoring>(_onStartMonitoring);
     on<AppEventReceived>(_onAppEventReceived);
+    on<KeywordDetectedEvent>(_onKeywordDetected);
     on<CheckCurrentAppLimit>(_onCheckCurrentAppLimit);
   }
 
@@ -128,9 +175,19 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
     _childUid = event.childUid;
     _isMonitoring = true;
 
+    _loadSettings();
+
     _accessibilitySubscription?.cancel();
     _accessibilitySubscription = AccessibilityChannel.accessibilityEvents.listen((data) {
-      add(AppEventReceived(data));
+      if (data['type'] == 'keyword_detected') {
+        add(KeywordDetectedEvent(
+          keyword: data['keyword'] as String? ?? '',
+          packageName: data['packageName'] as String? ?? '',
+          textContext: data['textContext'] as String? ?? '',
+        ));
+      } else {
+        add(AppEventReceived(data));
+      }
     });
 
     // P2: Start periodic limit check every 30 seconds
@@ -144,11 +201,24 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
     emit(AppMonitorRunning());
   }
 
+  Future<void> _loadSettings() async {
+    if (_familyId == null || _childUid == null) return;
+    try {
+      _settings = await smartLockRepository.getSmartLockSettings(_familyId!, _childUid!);
+    } catch (e) {
+      debugPrint('AppMonitorBloc._loadSettings error: $e');
+    }
+  }
+
   // P2: Continuous time checking
   Future<void> _onCheckCurrentAppLimit(CheckCurrentAppLimit event, Emitter<AppMonitorState> emit) async {
     if (_currentAppPackage == null || _familyId == null || _childUid == null) return;
 
+    // Check if Smart Lock is enabled
+    if (_settings != null && !_settings!.isEnabled) return;
+
     try {
+      // Check time limits
       final isAllowed = await checkAppAccessUseCase.execute(
         familyId: _familyId!,
         childUid: _childUid!,
@@ -161,7 +231,24 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
         await blockAppUseCase.execute(appPackageName: _currentAppPackage!);
         // D1: Tell native to move task to back
         await AccessibilityChannel.moveTaskToBack();
-        final blockedState = await _buildBlockedState(_currentAppPackage!);
+        final blockedState = await _buildBlockedState(_currentAppPackage!, blockReason: 'time_limit');
+        emit(blockedState);
+        return;
+      }
+
+      // Check schedules
+      final schedules = await smartLockRepository.getSchedules(_familyId!, _childUid!);
+      final activeSchedule = scheduleChecker.getActiveSchedule(schedules, DateTime.now());
+      if (activeSchedule != null) {
+        _logCurrentAppUsage();
+        await blockAppUseCase.execute(appPackageName: _currentAppPackage!);
+        await AccessibilityChannel.moveTaskToBack();
+        final blockedState = await _buildBlockedState(
+          _currentAppPackage!,
+          blockReason: 'schedule',
+          scheduleName: activeSchedule.name,
+          scheduleEndTime: scheduleChecker.getScheduleEndTime(activeSchedule, DateTime.now()),
+        );
         emit(blockedState);
       }
     } catch (e) {
@@ -195,7 +282,11 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
 
         // Check if new app is allowed
         if (_familyId != null && _childUid != null) {
+          // Check if Smart Lock is enabled
+          if (_settings != null && !_settings!.isEnabled) return;
+
           try {
+            // Check time limits
             final isAllowed = await checkAppAccessUseCase.execute(
               familyId: _familyId!,
               childUid: _childUid!,
@@ -208,8 +299,26 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
               await blockAppUseCase.execute(appPackageName: packageName);
               // D1: Tell native to move task to back
               await AccessibilityChannel.moveTaskToBack();
-              final blockedState = await _buildBlockedState(packageName);
+              final blockedState = await _buildBlockedState(packageName, blockReason: 'time_limit');
               emit(blockedState);
+              return;
+            }
+
+            // Check schedules
+            final schedules = await smartLockRepository.getSchedules(_familyId!, _childUid!);
+            final activeSchedule = scheduleChecker.getActiveSchedule(schedules, DateTime.now());
+            if (activeSchedule != null) {
+              _logCurrentAppUsage();
+              await blockAppUseCase.execute(appPackageName: packageName);
+              await AccessibilityChannel.moveTaskToBack();
+              final blockedState = await _buildBlockedState(
+                packageName,
+                blockReason: 'schedule',
+                scheduleName: activeSchedule.name,
+                scheduleEndTime: scheduleChecker.getScheduleEndTime(activeSchedule, DateTime.now()),
+              );
+              emit(blockedState);
+              return;
             }
           } catch (e) {
             // P8: Log error, fail-open for UX
@@ -226,40 +335,70 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
     }
   }
 
-  Future<AppBlockedState> _buildBlockedState(String packageName) async {
+  Future<void> _onKeywordDetected(KeywordDetectedEvent event, Emitter<AppMonitorState> emit) async {
+    if (_familyId == null || _childUid == null) return;
+    if (event.keyword.isEmpty || event.packageName.isEmpty) return;
+    
+    try {
+      await alertRepository.createKeywordAlert(
+        familyId: _familyId!,
+        childUid: _childUid!,
+        keyword: event.keyword,
+        packageName: event.packageName,
+        textContext: event.textContext,
+      );
+      debugPrint('Keyword alert saved: ${event.keyword} in ${event.packageName}');
+      emit(KeywordAlertEmitted(
+        keyword: event.keyword,
+        packageName: event.packageName,
+        textContext: event.textContext,
+      ));
+    } catch (e) {
+      debugPrint('Error saving keyword alert: $e');
+    }
+  }
+
+  Future<AppBlockedState> _buildBlockedState(
+    String packageName, {
+    String? blockReason,
+    String? scheduleName,
+    DateTime? scheduleEndTime,
+  }) async {
     final appName = _appNameMap[packageName] ?? packageName;
     final now = DateTime.now();
     // P1: Use add() instead of day+1 to avoid Dec 31 crash
-    final resetTime = DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
+    final resetTime = scheduleEndTime ?? DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
 
     int limitMinutes = 0;
     int usedMinutes = 0;
 
     try {
       if (_familyId != null && _childUid != null) {
-        final limits = await smartLockRepository.getAppTimeLimits(
-          _familyId!,
-          _childUid!,
-        );
-        for (final limit in limits) {
-          if (limit.appPackageName == packageName) {
-            final dayKeys = [
-              'monday', 'tuesday', 'wednesday', 'thursday',
-              'friday', 'saturday', 'sunday',
-            ];
-            final dayOfWeek = dayKeys[now.weekday - 1];
-            if (limit.limits.containsKey(dayOfWeek)) {
-              limitMinutes = limit.limits[dayOfWeek]!;
-            } else if (limit.limits.containsKey('everyday')) {
-              limitMinutes = limit.limits['everyday']!;
+        if (blockReason != 'schedule') {
+          final limits = await smartLockRepository.getAppTimeLimits(
+            _familyId!,
+            _childUid!,
+          );
+          for (final limit in limits) {
+            if (limit.appPackageName == packageName) {
+              final dayKeys = [
+                'monday', 'tuesday', 'wednesday', 'thursday',
+                'friday', 'saturday', 'sunday',
+              ];
+              final dayOfWeek = dayKeys[now.weekday - 1];
+              if (limit.limits.containsKey(dayOfWeek)) {
+                limitMinutes = limit.limits[dayOfWeek]!;
+              } else if (limit.limits.containsKey('everyday')) {
+                limitMinutes = limit.limits['everyday']!;
+              }
+              break;
             }
-            break;
           }
-        }
 
-        final dateStr = DateFormat('yyyy-MM-dd').format(now);
-        final appUsages = await usageRepository.getUsageByApp(_childUid!, dateStr);
-        usedMinutes = appUsages[packageName] ?? 0;
+          final dateStr = DateFormat('yyyy-MM-dd').format(now);
+          final appUsages = await usageRepository.getUsageByApp(_childUid!, dateStr);
+          usedMinutes = appUsages[packageName] ?? 0;
+        }
       }
     } catch (e) {
       // P8: Log error for debugging instead of silent swallow
@@ -274,7 +413,21 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
       resetTime: resetTime,
       familyId: _familyId,
       childUid: _childUid,
+      parentUid: await _getParentUid(),
+      blockReason: blockReason,
+      scheduleName: scheduleName,
     );
+  }
+
+  Future<String?> _getParentUid() async {
+    if (_familyId == null) return null;
+    try {
+      final family = await smartLockRepository.getFamily(_familyId!);
+      return family?.parentUid;
+    } catch (e) {
+      debugPrint('AppMonitorBloc._getParentUid error: $e');
+      return null;
+    }
   }
 
   void _logCurrentAppUsage() {

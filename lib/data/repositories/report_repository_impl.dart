@@ -3,16 +3,20 @@ import '../../domain/entities/weekly_report.dart';
 import '../../domain/repositories/report_repository.dart';
 import '../../domain/repositories/usage_repository.dart';
 import '../models/weekly_report_model.dart';
+import '../services/email_service.dart';
 
 class ReportRepositoryImpl implements ReportRepository {
   final FirebaseFirestore _firestore;
   final UsageRepository _usageRepository;
+  final EmailService _emailService;
 
   ReportRepositoryImpl({
     FirebaseFirestore? firestore,
     required UsageRepository usageRepository,
+    EmailService? emailService,
   })  : _firestore = firestore ?? FirebaseFirestore.instance,
-        _usageRepository = usageRepository;
+        _usageRepository = usageRepository,
+        _emailService = emailService ?? EmailService();
 
   @override
   Future<WeeklyReport> generateWeeklyReport(
@@ -196,6 +200,44 @@ class ReportRepositoryImpl implements ReportRepository {
   Future<WeeklyReport?> getLatestReport(String childUid) async {
     final reports = await getReportsByChild(childUid, limit: 1);
     return reports.isNotEmpty ? reports.first : null;
+  }
+
+  @override
+  Future<bool> sendReportByEmail({
+    required String recipientEmail,
+    required WeeklyReport report,
+    required String childName,
+  }) async {
+    return await _emailService.sendWeeklyReport(
+      recipientEmail: recipientEmail,
+      report: report,
+      childName: childName,
+    );
+  }
+
+  @override
+  Future<bool> updateEmailPreference({
+    required String uid,
+    required bool enabled,
+  }) async {
+    return await _emailService.updateEmailPreference(
+      uid: uid,
+      enabled: enabled,
+    );
+  }
+
+  @override
+  Future<bool> getEmailPreference(String uid) async {
+    try {
+      final doc = await _firestore.collection('users').doc(uid).get();
+      if (doc.exists) {
+        final data = doc.data();
+        return data?['emailReportEnabled'] ?? false;
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
   }
 
   String _getDateString(DateTime date) {

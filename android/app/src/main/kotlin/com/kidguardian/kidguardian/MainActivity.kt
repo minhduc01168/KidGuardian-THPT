@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.EventChannel
@@ -16,6 +17,7 @@ class MainActivity: FlutterActivity() {
     private val EVENT_CHANNEL = "com.kidguardian/accessibility_events"
     private var eventSink: EventChannel.EventSink? = null
     private var isReceiverRegistered = false
+    private var isLocalReceiverRegistered = false
 
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -26,6 +28,22 @@ class MainActivity: FlutterActivity() {
                 val packageName = intent.getStringExtra(AppMonitorService.EXTRA_PACKAGE_NAME)
                 val eventType = intent.getStringExtra(AppMonitorService.EXTRA_EVENT_TYPE)
                 eventSink?.success(mapOf("type" to "app_event", "event_type" to eventType, "packageName" to packageName))
+            }
+        }
+    }
+
+    private val keywordReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == AppMonitorService.ACTION_KEYWORD_DETECTED) {
+                val keyword = intent.getStringExtra(AppMonitorService.EXTRA_KEYWORD) ?: return
+                val packageName = intent.getStringExtra(AppMonitorService.EXTRA_PACKAGE_NAME) ?: return
+                val textContext = intent.getStringExtra(AppMonitorService.EXTRA_TEXT_CONTEXT) ?: ""
+                eventSink?.success(mapOf(
+                    "type" to "keyword_detected",
+                    "keyword" to keyword,
+                    "packageName" to packageName,
+                    "textContext" to textContext,
+                ))
             }
         }
     }
@@ -55,6 +73,16 @@ class MainActivity: FlutterActivity() {
                         result.error("INVALID_ARGS", "Limits map is null", null)
                     }
                 }
+                "updateKeywords" -> {
+                    val keywords = call.argument<List<String>>("keywords")
+                    if (keywords != null) {
+                        val filtered = keywords.filter { it.isNotBlank() }
+                        AppMonitorService.monitoredKeywords = filtered.toSet()
+                        result.success(true)
+                    } else {
+                        result.error("INVALID_ARGS", "Keywords list is null", null)
+                    }
+                }
                 "moveTaskToBack" -> {
                     moveTaskToBack(true)
                     result.success(true)
@@ -77,7 +105,6 @@ class MainActivity: FlutterActivity() {
         )
     }
 
-    // P3: Register in onStart instead of onResume to avoid missing events when paused
     override fun onStart() {
         super.onStart()
         if (!isReceiverRegistered) {
@@ -92,6 +119,11 @@ class MainActivity: FlutterActivity() {
             }
             isReceiverRegistered = true
         }
+        if (!isLocalReceiverRegistered) {
+            val localFilter = IntentFilter(AppMonitorService.ACTION_KEYWORD_DETECTED)
+            LocalBroadcastManager.getInstance(this).registerReceiver(keywordReceiver, localFilter)
+            isLocalReceiverRegistered = true
+        }
     }
 
     override fun onStop() {
@@ -101,6 +133,10 @@ class MainActivity: FlutterActivity() {
                 unregisterReceiver(receiver)
             } catch (_: IllegalArgumentException) {}
             isReceiverRegistered = false
+        }
+        if (isLocalReceiverRegistered) {
+            LocalBroadcastManager.getInstance(this).unregisterReceiver(keywordReceiver)
+            isLocalReceiverRegistered = false
         }
     }
 }

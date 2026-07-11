@@ -19,7 +19,18 @@ class AuthRepositoryImpl implements AuthRepository {
   Stream<User?> get authStateChanges {
     return _firebaseAuth.authStateChanges().asyncMap((firebaseUser) async {
       if (firebaseUser == null) return null;
-      return await _getUserFromFirestore(firebaseUser.uid);
+      try {
+        return await _getUserFromFirestore(firebaseUser.uid);
+      } catch (e) {
+        print('Error in authStateChanges stream: $e');
+        return UserModel(
+          uid: firebaseUser.uid,
+          email: firebaseUser.email ?? '',
+          displayName: firebaseUser.displayName ?? 'User',
+          role: UserRole.parent,
+          createdAt: DateTime.now(),
+        );
+      }
     });
   }
   
@@ -39,17 +50,38 @@ class AuthRepositoryImpl implements AuthRepository {
       );
       
       if (credential.user == null) {
-        throw Exception('Login failed');
+        throw Exception('Đăng nhập thất bại: Không nhận được thông tin người dùng');
       }
+      
+      print('Firebase Auth successful for uid: ${credential.user!.uid}');
       
       final user = await _getUserFromFirestore(credential.user!.uid);
       if (user == null) {
-        throw Exception('User data not found');
+        // User exists in Auth but not in Firestore - create the document
+        print('User document not found in Firestore, creating...');
+        final newUser = UserModel(
+          uid: credential.user!.uid,
+          email: credential.user!.email ?? email,
+          displayName: credential.user!.displayName ?? 'User',
+          role: UserRole.parent, // Default role
+          createdAt: DateTime.now(),
+        );
+        
+        await _firestore
+            .collection('users')
+            .doc(credential.user!.uid)
+            .set(newUser.toMap());
+        
+        return newUser;
       }
       
       return user;
     } on firebase.FirebaseAuthException catch (e) {
+      print('FirebaseAuthException during login: ${e.code} - ${e.message}');
       throw _handleAuthException(e);
+    } catch (e) {
+      print('Unexpected error during login: $e');
+      throw Exception('Đăng nhập thất bại: $e');
     }
   }
   
@@ -62,8 +94,10 @@ class AuthRepositoryImpl implements AuthRepository {
       );
       
       if (credential.user == null) {
-        throw Exception('Registration failed');
+        throw Exception('Đăng ký thất bại: Không tạo được tài khoản');
       }
+      
+      print('Firebase Auth user created: ${credential.user!.uid}');
       
       // Update display name
       await credential.user!.updateDisplayName(name);
@@ -82,9 +116,15 @@ class AuthRepositoryImpl implements AuthRepository {
           .doc(credential.user!.uid)
           .set(userModel.toMap());
       
+      print('User document created in Firestore');
+      
       return userModel;
     } on firebase.FirebaseAuthException catch (e) {
+      print('FirebaseAuthException during register: ${e.code} - ${e.message}');
       throw _handleAuthException(e);
+    } catch (e) {
+      print('Unexpected error during register: $e');
+      throw Exception('Đăng ký thất bại: $e');
     }
   }
   
@@ -168,10 +208,16 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<User?> _getUserFromFirestore(String uid) async {
     try {
       final doc = await _firestore.collection('users').doc(uid).get();
-      if (!doc.exists) return null;
+      if (!doc.exists) {
+        print('User document does not exist for uid: $uid');
+        return null;
+      }
       return UserModel.fromFirestore(doc);
+    } on firebase.FirebaseAuthException {
+      rethrow;
     } catch (e) {
-      return null;
+      print('Error getting user from Firestore: $e');
+      throw Exception('Không thể đọc thông tin người dùng: $e');
     }
   }
   

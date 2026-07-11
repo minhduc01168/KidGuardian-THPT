@@ -1,0 +1,26 @@
+Launching lib/main.dart on WayDroid x86 64 Device in debug mode...
+Running Gradle task 'assembleDebug'...                          
+lib/main.dart:101:48: Error: Required named parameter 'alertRepository' must be provided.
+            create: (context) => AppMonitorBloc(
+                                               ^
+lib/presentation/blocs/smart_lock/app_monitor_bloc.dart:145:3: Context: Found this candidate, but the arguments don't match.
+  AppMonitorBloc({
+  ^^^^^^^^^^^^^^
+Target kernel_snapshot_program failed: Exception
+
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:compileFlutterBuildDebug'.
+> Process 'command '/home/minh/development/flutter/bin/flutter'' finished with non-zero exit value 1
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 1m 40s
+Running Gradle task 'assembleDebug'...                            102.2s
+Error: Gradle task assembleDebug failed with exit code 1

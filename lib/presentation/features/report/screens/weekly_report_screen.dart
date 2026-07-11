@@ -45,66 +45,221 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Báo cáo tuần'),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
+  void _showEmailDialog(WeeklyReport report) {
+    final authState = context.read<AuthBloc>().state;
+    final emailController = TextEditingController(
+      text: authState is AuthAuthenticated ? authState.user.email : '',
+    );
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('Gửi báo cáo qua email'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Gửi báo cáo tuần ${_formatDate(report.weekStartDate)} - ${_formatDate(report.weekEndDate)}',
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
+            SizedBox(height: 16),
+            TextField(
+              controller: emailController,
+              keyboardType: TextInputType.emailAddress,
+              decoration: InputDecoration(
+                labelText: 'Email người nhận',
+                prefixIcon: Icon(Icons.email),
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
         actions: [
-          IconButton(
-            icon: Icon(Icons.refresh),
-            onPressed: _loadReports,
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text('Hủy'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final email = emailController.text.trim();
+              if (email.isNotEmpty && email.contains('@')) {
+                final authState = context.read<AuthBloc>().state;
+                final childName = authState is AuthAuthenticated
+                    ? authState.user.displayName
+                    : 'Con';
+                context.read<ReportBloc>().add(
+                      SendReportByEmail(
+                        recipientEmail: email,
+                        report: report,
+                        childName: childName,
+                      ),
+                    );
+                Navigator.pop(dialogContext);
+              }
+            },
+            child: Text('Gửi'),
           ),
         ],
       ),
-      body: BlocBuilder<ReportBloc, ReportState>(
+    );
+  }
+
+  void _showEmailSettingsDialog() {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is! AuthAuthenticated) return;
+
+    // Load current email preference
+    context.read<ReportBloc>().add(
+          LoadEmailPreference(uid: authState.user.uid),
+        );
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => BlocBuilder<ReportBloc, ReportState>(
         builder: (context, state) {
-          if (state is ReportLoading) {
-            return Center(
-              child: CircularProgressIndicator(color: AppColors.primary),
-            );
+          bool emailEnabled = false;
+          if (state is EmailPreferenceLoaded) {
+            emailEnabled = state.enabled;
+          } else if (state is EmailPreferenceUpdated) {
+            emailEnabled = state.enabled;
           }
 
-          if (state is ReportError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.error_outline, size: 48, color: AppColors.error),
-                  SizedBox(height: 16),
-                  Text(state.message),
-                  SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: _loadReports,
-                    child: Text('Thử lại'),
+          return AlertDialog(
+            title: Text('Cài đặt email báo cáo'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Nhận báo cáo tự động qua email mỗi tuần',
+                  style: TextStyle(color: AppColors.textSecondary),
+                ),
+                SizedBox(height: 16),
+                ListTile(
+                  leading: Icon(Icons.email, color: AppColors.primary),
+                  title: Text('Gửi báo cáo tự động'),
+                  subtitle: Text('Nhận báo cáo vào mỗi Chủ nhật'),
+                  trailing: Switch(
+                    value: emailEnabled,
+                    onChanged: (value) {
+                      context.read<ReportBloc>().add(
+                            UpdateEmailPreference(
+                              uid: authState.user.uid,
+                              enabled: value,
+                            ),
+                          );
+                    },
+                    activeColor: AppColors.primary,
                   ),
-                ],
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: Text('Đóng'),
               ),
-            );
-          }
-
-          if (state is ReportHistoryLoaded) {
-            return _buildReportList(state.reports);
-          }
-
-          if (state is ReportLoaded) {
-            return _buildReportDetail(state.report);
-          }
-
-          if (state is ReportGenerated) {
-            return _buildReportDetail(state.report);
-          }
-
-          return _buildEmptyState();
+            ],
+          );
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _generateReport,
-        icon: Icon(Icons.add_chart),
-        label: Text('Tạo báo cáo'),
-        backgroundColor: AppColors.primary,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<ReportBloc, ReportState>(
+      listener: (context, state) {
+        if (state is ReportEmailSent) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Đã gửi báo cáo qua email'),
+              backgroundColor: AppColors.success,
+            ),
+          );
+        } else if (state is EmailPreferenceUpdated) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                state.enabled
+                    ? 'Đã bật gửi báo cáo tự động'
+                    : 'Đã tắt gửi báo cáo tự động',
+              ),
+              backgroundColor: AppColors.primary,
+            ),
+          );
+        } else if (state is ReportError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('Báo cáo tuần'),
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          actions: [
+            IconButton(
+              icon: Icon(Icons.settings_outlined),
+              onPressed: _showEmailSettingsDialog,
+              tooltip: 'Cài đặt email',
+            ),
+            IconButton(
+              icon: Icon(Icons.refresh),
+              onPressed: _loadReports,
+            ),
+          ],
+        ),
+        body: BlocBuilder<ReportBloc, ReportState>(
+          builder: (context, state) {
+            if (state is ReportLoading) {
+              return Center(
+                child: CircularProgressIndicator(color: AppColors.primary),
+              );
+            }
+
+            if (state is ReportError) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.error_outline, size: 48, color: AppColors.error),
+                    SizedBox(height: 16),
+                    Text(state.message),
+                    SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _loadReports,
+                      child: Text('Thử lại'),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            if (state is ReportHistoryLoaded) {
+              return _buildReportList(state.reports);
+            }
+
+            if (state is ReportLoaded) {
+              return _buildReportDetail(state.report);
+            }
+
+            if (state is ReportGenerated) {
+              return _buildReportDetail(state.report);
+            }
+
+            return _buildEmptyState();
+          },
+        ),
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: _generateReport,
+          icon: Icon(Icons.add_chart),
+          label: Text('Tạo báo cáo'),
+          backgroundColor: AppColors.primary,
+        ),
       ),
     );
   }
@@ -168,7 +323,13 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => _ReportDetailSheet(report: report),
+      builder: (context) => _ReportDetailSheet(
+        report: report,
+        onEmail: () {
+          Navigator.pop(context);
+          _showEmailDialog(report);
+        },
+      ),
     );
   }
 
@@ -216,6 +377,36 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
                 ),
               ],
             ),
+          ),
+          SizedBox(height: 24),
+
+          // Action buttons
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _showEmailDialog(report),
+                  icon: Icon(Icons.email_outlined),
+                  label: Text('Gửi email'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+              SizedBox(width: 16),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _loadReports,
+                  icon: Icon(Icons.list),
+                  label: Text('Xem tất cả'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+            ],
           ),
           SizedBox(height: 24),
 
@@ -515,11 +706,13 @@ class _ReportCard extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    '${_formatDate(report.weekStartDate)} - ${_formatDate(report.weekEndDate)}',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                  Expanded(
+                    child: Text(
+                      '${_formatDate(report.weekStartDate)} - ${_formatDate(report.weekEndDate)}',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   Container(
@@ -577,6 +770,26 @@ class _ReportCard extends StatelessWidget {
                   ),
                 ],
               ),
+              if (report.improvements.isNotEmpty || report.concerns.isNotEmpty) ...[
+                SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    if (report.improvements.isNotEmpty)
+                      Chip(
+                        avatar: Icon(Icons.check_circle, size: 16, color: AppColors.success),
+                        label: Text('${report.improvements.length} cải thiện'),
+                        backgroundColor: AppColors.success.withOpacity(0.1),
+                      ),
+                    if (report.concerns.isNotEmpty)
+                      Chip(
+                        avatar: Icon(Icons.warning, size: 16, color: AppColors.warning),
+                        label: Text('${report.concerns.length} lưu ý'),
+                        backgroundColor: AppColors.warning.withOpacity(0.1),
+                      ),
+                  ],
+                ),
+              ],
               if (report.topApps.isNotEmpty) ...[
                 SizedBox(height: 12),
                 Wrap(
@@ -613,8 +826,9 @@ class _ReportCard extends StatelessWidget {
 
 class _ReportDetailSheet extends StatelessWidget {
   final WeeklyReport report;
+  final VoidCallback? onEmail;
 
-  const _ReportDetailSheet({required this.report});
+  const _ReportDetailSheet({required this.report, this.onEmail});
 
   @override
   Widget build(BuildContext context) {
@@ -725,12 +939,27 @@ class _ReportDetailSheet extends StatelessWidget {
               ],
 
               SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text('Đóng'),
-                ),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: onEmail,
+                      icon: Icon(Icons.email_outlined),
+                      label: Text('Gửi email'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.primary,
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text('Đóng'),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

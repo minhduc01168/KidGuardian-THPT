@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kidguardian/data/repositories/smart_lock_repository.dart';
 import 'package:kidguardian/data/models/app_time_limit_model.dart';
 import 'package:kidguardian/data/models/monitored_app_model.dart';
+import 'package:kidguardian/data/models/schedule_model.dart';
+import 'package:kidguardian/data/models/smart_lock_settings_model.dart';
 import 'package:kidguardian/platform/android/accessibility_channel.dart';
 import 'smart_lock_event.dart';
 import 'smart_lock_state.dart';
@@ -12,6 +14,7 @@ class SmartLockBloc extends Bloc<SmartLockEvent, SmartLockState> {
 
   List<AppTimeLimitModel> _currentApps = [];
   List<MonitoredAppModel> _currentMonitoredApps = [];
+  List<ScheduleModel> _currentSchedules = [];
 
   // P6: Debounce timer for native sync
   Timer? _syncDebounceTimer;
@@ -25,6 +28,12 @@ class SmartLockBloc extends Bloc<SmartLockEvent, SmartLockState> {
     on<LoadMonitoredApps>(_onLoadMonitoredApps);
     on<ToggleMonitoredApp>(_onToggleMonitoredApp);
     on<AddCustomApp>(_onAddCustomApp);
+    on<LoadSchedules>(_onLoadSchedules);
+    on<SaveSchedule>(_onSaveSchedule);
+    on<DeleteSchedule>(_onDeleteSchedule);
+    on<LoadSmartLockSettings>(_onLoadSmartLockSettings);
+    on<SaveSmartLockSettings>(_onSaveSmartLockSettings);
+    on<LoadLockHistory>(_onLoadLockHistory);
   }
 
   Future<void> _onLoadAppTimeLimits(
@@ -245,6 +254,134 @@ class SmartLockBloc extends Bloc<SmartLockEvent, SmartLockState> {
         .map((app) => app.appPackageName)
         .toList();
     await AccessibilityChannel.updateBlockedApps(monitoredPackageNames);
+  }
+
+  // Schedule handlers
+
+  Future<void> _onLoadSchedules(
+    LoadSchedules event,
+    Emitter<SmartLockState> emit,
+  ) async {
+    emit(SmartLockLoading());
+    try {
+      _currentSchedules = await repository.getSchedules(
+        event.familyId,
+        event.childId,
+      );
+      emit(SchedulesLoaded(List.from(_currentSchedules)));
+    } catch (e) {
+      emit(SmartLockError(e.toString()));
+    }
+  }
+
+  Future<void> _onSaveSchedule(
+    SaveSchedule event,
+    Emitter<SmartLockState> emit,
+  ) async {
+    try {
+      await repository.saveSchedule(
+        event.familyId,
+        event.childId,
+        event.schedule,
+      );
+
+      final index = _currentSchedules.indexWhere(
+        (s) => s.id == event.schedule.id,
+      );
+
+      bool isUpdate = false;
+      if (index != -1) {
+        isUpdate = true;
+        _currentSchedules[index] = event.schedule;
+      } else {
+        _currentSchedules.add(event.schedule);
+      }
+
+      if (isUpdate) {
+        emit(const SmartLockActionSuccess('Đã cập nhật lịch trình thành công'));
+      } else {
+        emit(const SmartLockActionSuccess('Đã lưu lịch trình thành công'));
+      }
+      emit(SchedulesLoaded(List.from(_currentSchedules)));
+    } catch (e) {
+      emit(SmartLockError(e.toString()));
+      emit(SchedulesLoaded(List.from(_currentSchedules)));
+    }
+  }
+
+  Future<void> _onDeleteSchedule(
+    DeleteSchedule event,
+    Emitter<SmartLockState> emit,
+  ) async {
+    try {
+      await repository.deleteSchedule(
+        event.familyId,
+        event.childId,
+        event.scheduleId,
+      );
+
+      _currentSchedules.removeWhere((s) => s.id == event.scheduleId);
+
+      emit(const SmartLockActionSuccess('Đã xoá lịch trình thành công'));
+      emit(SchedulesLoaded(List.from(_currentSchedules)));
+    } catch (e) {
+      emit(SmartLockError(e.toString()));
+      emit(SchedulesLoaded(List.from(_currentSchedules)));
+    }
+  }
+
+  // Smart Lock Settings handlers
+
+  Future<void> _onLoadSmartLockSettings(
+    LoadSmartLockSettings event,
+    Emitter<SmartLockState> emit,
+  ) async {
+    emit(SmartLockLoading());
+    try {
+      final settings = await repository.getSmartLockSettings(
+        event.familyId,
+        event.childId,
+      );
+      emit(SmartLockSettingsLoaded(
+        settings ?? const SmartLockSettingsModel(),
+      ));
+    } catch (e) {
+      emit(SmartLockError(e.toString()));
+    }
+  }
+
+  Future<void> _onSaveSmartLockSettings(
+    SaveSmartLockSettings event,
+    Emitter<SmartLockState> emit,
+  ) async {
+    try {
+      await repository.saveSmartLockSettings(
+        event.familyId,
+        event.childId,
+        event.settings,
+      );
+      emit(const SmartLockActionSuccess('Đã lưu cài đặt Smart Lock thành công'));
+      emit(SmartLockSettingsLoaded(event.settings));
+    } catch (e) {
+      emit(SmartLockError(e.toString()));
+      emit(SmartLockSettingsLoaded(event.settings));
+    }
+  }
+
+  Future<void> _onLoadLockHistory(
+    LoadLockHistory event,
+    Emitter<SmartLockState> emit,
+  ) async {
+    emit(SmartLockLoading());
+    try {
+      final history = await repository.getLockHistory(
+        event.familyId,
+        event.childId,
+      );
+      emit(LockHistoryLoaded(history));
+    } catch (e) {
+      emit(SmartLockError(e.toString()));
+    }
   }
 
   @override

@@ -61,3 +61,16 @@ class LinkChildToFamilyRequested extends FamilyEvent {
   @override
   List<Object?> get props => [linkingCode, childUid];
 }
+
+class RemoveChildFromFamilyRequested extends FamilyEvent {
+  final String familyId;
+  final String childUid;
+
+  const RemoveChildFromFamilyRequested({
+    required this.familyId,
+    required this.childUid,
+  });
+
+  @override
+  List<Object?> get props => [familyId, childUid];
+}

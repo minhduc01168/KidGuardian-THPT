@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../domain/entities/user.dart';
 import '../../../../domain/repositories/auth_repository.dart';
+import '../../../../domain/repositories/family_repository.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
+import 'change_password_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final User user;
@@ -21,11 +24,79 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _nameController = TextEditingController();
   bool _isEditing = false;
   bool _isLoading = false;
+  List<User> _familyMembers = [];
+  bool _isLoadingFamily = false;
 
   @override
   void initState() {
     super.initState();
     _nameController.text = widget.user.displayName;
+    _loadFamilyMembers();
+  }
+
+  Future<void> _loadFamilyMembers() async {
+    if (widget.user.familyId == null) return;
+
+    setState(() {
+      _isLoadingFamily = true;
+    });
+
+    try {
+      final familyRepo = context.read<FamilyRepository>();
+      final family = await familyRepo.getFamily(widget.user.familyId!);
+
+      if (family != null && mounted) {
+        final List<User> members = [];
+        final firestore = FirebaseFirestore.instance;
+
+        if (widget.user.role == UserRole.parent) {
+          for (final childUid in family.childUids) {
+            final doc = await firestore.collection('users').doc(childUid).get();
+            if (doc.exists) {
+              members.add(User(
+                uid: doc.id,
+                email: doc['email'] ?? '',
+                displayName: doc['displayName'] ?? '',
+                role: UserRole.child,
+                familyId: doc['familyId'],
+                linkedTo: doc['linkedTo'],
+                createdAt: (doc['createdAt'] as Timestamp).toDate(),
+              ));
+            }
+          }
+        } else {
+          final parentDoc = await firestore.collection('users').doc(family.parentUid).get();
+          if (parentDoc.exists) {
+            members.add(User(
+              uid: parentDoc.id,
+              email: parentDoc['email'] ?? '',
+              displayName: parentDoc['displayName'] ?? '',
+              role: UserRole.parent,
+              familyId: parentDoc['familyId'],
+              linkedTo: parentDoc['linkedTo'],
+              createdAt: (parentDoc['createdAt'] as Timestamp).toDate(),
+            ));
+          }
+        }
+
+        if (mounted) {
+          setState(() {
+            _familyMembers = members;
+            _isLoadingFamily = false;
+          });
+        }
+      } else if (mounted) {
+        setState(() {
+          _isLoadingFamily = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingFamily = false;
+        });
+      }
+    }
   }
 
   @override
@@ -267,9 +338,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         title: Text('Đổi mật khẩu'),
                         trailing: Icon(Icons.chevron_right),
                         onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Tính năng đang phát triển'),
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const ChangePasswordScreen(),
                             ),
                           );
                         },
@@ -278,6 +350,119 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
               ),
+              if (widget.user.familyId != null) ...[
+                SizedBox(height: 24),
+                Card(
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.family_restroom, color: AppColors.primary),
+                            SizedBox(width: 8),
+                            Text(
+                              'Thành viên gia đình',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 16),
+                        if (_isLoadingFamily)
+                          Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(16),
+                              child: CircularProgressIndicator(),
+                            ),
+                          )
+                        else if (_familyMembers.isEmpty)
+                          Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Column(
+                                children: [
+                                  Icon(
+                                    Icons.people_outline,
+                                    size: 48,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                  SizedBox(height: 8),
+                                  Text(
+                                    widget.user.role == UserRole.parent
+                                        ? 'Chưa có thành viên nào'
+                                        : 'Chưa liên kết gia đình',
+                                    style: TextStyle(
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        else
+                          ListView.separated(
+                            shrinkWrap: true,
+                            physics: NeverScrollableScrollPhysics(),
+                            itemCount: _familyMembers.length,
+                            separatorBuilder: (_, __) => Divider(),
+                            itemBuilder: (context, index) {
+                              final member = _familyMembers[index];
+                              return ListTile(
+                                leading: CircleAvatar(
+                                  backgroundColor: member.role == UserRole.parent
+                                      ? AppColors.primaryLight
+                                      : AppColors.childPrimary.withOpacity(0.2),
+                                  child: Icon(
+                                    member.role == UserRole.parent
+                                        ? Icons.person
+                                        : Icons.child_care,
+                                    color: member.role == UserRole.parent
+                                        ? AppColors.primary
+                                        : AppColors.childPrimary,
+                                  ),
+                                ),
+                                title: Text(
+                                  member.displayName,
+                                  style: TextStyle(fontWeight: FontWeight.w500),
+                                ),
+                                subtitle: Text(
+                                  member.role == UserRole.parent
+                                      ? 'Phụ huynh'
+                                      : 'Học sinh',
+                                  style: TextStyle(
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                                trailing: Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.success.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    'Đã liên kết',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.success,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
               SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,

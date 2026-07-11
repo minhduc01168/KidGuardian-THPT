@@ -2,17 +2,21 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/entities/daily_summary.dart';
 import '../../domain/repositories/summary_repository.dart';
 import '../../domain/repositories/usage_repository.dart';
+import '../../domain/repositories/alert_repository.dart';
 import '../models/daily_summary_model.dart';
 
 class SummaryRepositoryImpl implements SummaryRepository {
   final FirebaseFirestore _firestore;
   final UsageRepository _usageRepository;
+  final AlertRepository? _alertRepository;
 
   SummaryRepositoryImpl({
     FirebaseFirestore? firestore,
     required UsageRepository usageRepository,
+    AlertRepository? alertRepository,
   })  : _firestore = firestore ?? FirebaseFirestore.instance,
-        _usageRepository = usageRepository;
+        _usageRepository = usageRepository,
+        _alertRepository = alertRepository;
 
   @override
   Future<DailySummary> generateDailySummary(
@@ -42,6 +46,25 @@ class SummaryRepositoryImpl implements SummaryRepository {
       ..sort((a, b) => b.value.compareTo(a.value));
     final topApps = sortedApps.take(3).map((e) => e.key).toList();
 
+    // Get alert count for the day
+    int alertCount = 0;
+    if (_alertRepository != null) {
+      try {
+        final alertsStream = _alertRepository!.watchAllAlerts(
+          familyId: familyId,
+          childUid: childUid,
+        );
+        final alerts = await alertsStream.first;
+        alertCount = alerts.where((alert) {
+          if (alert.timestamp == null) return false;
+          final alertDate = '${alert.timestamp!.year}-${alert.timestamp!.month.toString().padLeft(2, '0')}-${alert.timestamp!.day.toString().padLeft(2, '0')}';
+          return alertDate == date;
+        }).length;
+      } catch (e) {
+        alertCount = 0;
+      }
+    }
+
     // Create summary
     final summary = DailySummaryModel(
       summaryId: '',
@@ -51,8 +74,8 @@ class SummaryRepositoryImpl implements SummaryRepository {
       totalMinutes: totalMinutes,
       usageByApp: usageByApp,
       topApps: topApps,
-      alertCount: 0, // TODO: integrate with alerts
-      violationCount: 0, // TODO: integrate with violations
+      alertCount: alertCount,
+      violationCount: 0,
       sent: false,
     );
 

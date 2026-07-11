@@ -12,6 +12,9 @@ class ReportBloc extends Bloc<ReportEvent, ReportState> {
     on<GenerateWeeklyReport>(_onGenerateWeeklyReport);
     on<LoadReportHistory>(_onLoadReportHistory);
     on<LoadLatestReport>(_onLoadLatestReport);
+    on<SendReportByEmail>(_onSendReportByEmail);
+    on<UpdateEmailPreference>(_onUpdateEmailPreference);
+    on<LoadEmailPreference>(_onLoadEmailPreference);
   }
 
   Future<void> _onGenerateWeeklyReport(
@@ -59,6 +62,57 @@ class ReportBloc extends Bloc<ReportEvent, ReportState> {
       }
     } catch (e) {
       emit(ReportError(message: e.toString().replaceAll('Exception: ', '')));
+    }
+  }
+
+  Future<void> _onSendReportByEmail(
+    SendReportByEmail event,
+    Emitter<ReportState> emit,
+  ) async {
+    try {
+      final success = await _reportRepository.sendReportByEmail(
+        recipientEmail: event.recipientEmail,
+        report: event.report,
+        childName: event.childName,
+      );
+      if (success) {
+        emit(const ReportEmailSent());
+      } else {
+        emit(const ReportError(message: 'Không thể gửi email'));
+      }
+    } catch (e) {
+      emit(ReportError(message: e.toString().replaceAll('Exception: ', '')));
+    }
+  }
+
+  Future<void> _onUpdateEmailPreference(
+    UpdateEmailPreference event,
+    Emitter<ReportState> emit,
+  ) async {
+    try {
+      final success = await _reportRepository.updateEmailPreference(
+        uid: event.uid,
+        enabled: event.enabled,
+      );
+      if (success) {
+        emit(EmailPreferenceUpdated(enabled: event.enabled));
+      } else {
+        emit(const ReportError(message: 'Không thể cập nhật cài đặt'));
+      }
+    } catch (e) {
+      emit(ReportError(message: e.toString().replaceAll('Exception: ', '')));
+    }
+  }
+
+  Future<void> _onLoadEmailPreference(
+    LoadEmailPreference event,
+    Emitter<ReportState> emit,
+  ) async {
+    try {
+      final enabled = await _reportRepository.getEmailPreference(event.uid);
+      emit(EmailPreferenceLoaded(enabled: enabled));
+    } catch (e) {
+      emit(EmailPreferenceLoaded(enabled: false));
     }
   }
 }

@@ -22,6 +22,14 @@ class AccessibilityChannel {
     }
   }
 
+  static Future<void> updateKeywords(List<String> keywords) async {
+    try {
+      await _methodChannel.invokeMethod('updateKeywords', {'keywords': keywords});
+    } on PlatformException catch (e) {
+      print('Failed to update keywords: ${e.message}');
+    }
+  }
+
   // D1: Tell native to move task to back
   static Future<void> moveTaskToBack() async {
     try {
