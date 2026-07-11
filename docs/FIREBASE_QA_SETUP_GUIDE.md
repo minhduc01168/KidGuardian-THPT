@@ -101,14 +101,20 @@ Khi phụ huynh xem Lịch sử Cảnh báo, app thực hiện truy vấn `colle
      - Trường 2: `timestamp` $\rightarrow$ **Descending**
 3. Bấm **Create**.
 
-### 4. Tích hợp Chính sách tự động xóa (TTL - Time-To-Live Policy) tiết kiệm Quota
-Để ngăn các Collection `alerts` và `notifications` phình to lên hàng ngàn tài liệu sau nhiều ngày test (khiến mỗi lần query/sort tốn thêm tài nguyên), hãy thiết lập chính sách tự động xóa ngầm:
-1. Tại tab **Indexes**, cuộn xuống hoặc chuyển sang phần **TTL Policies**.
-2. Bấm **Create Policy**:
-   - **Collection group:** Nhập `alerts`
-   - **Timestamp field:** Nhập `timestamp`
-3. Bấm **Create Policy** tiếp cho `notifications` với trường `timestamp`.
-*(Firebase sẽ tự động dọn dẹp các tài liệu cũ sau thời hạn mà hoàn toàn miễn phí, không tính vào lượt Deletes/Reads hàng ngày của gói Spark Plan).*
+### 4. Tích hợp Chính sách tự động xóa (TTL - Time-To-Live Policy) [TÙY CHỌN BỔ SUNG]
+> [!NOTE]
+> **Lưu ý quan trọng cho người kiểm thử:** Tính năng TTL (tự động xóa dữ liệu sau 30 ngày) là **bước tối ưu tùy chọn (Optional)** dành cho hệ thống chạy dài hạn hàng tháng/hàng năm. Khi tạo dự án QA để test thủ công trong vài ngày tới, **bạn HOÀN TOÀN KHÔNG BẮT BUỘC phải bật TTL**! Chỉ cần làm xong Composite Indexes ở mục 1, 2, 3 là app đã chạy siêu nhanh và tiết kiệm tối đa lượt đọc!
+
+Nếu bạn muốn bật TTL cho dự án Production dài hạn, do giao diện Firebase Console mới đã tách hoặc ẩn tab này tùy tài khoản, có 2 cách tìm nhanh nhất:
+- **Cách 1 (Tìm trên Firebase Console):** Vào **Firestore Database** $\rightarrow$ Nhìn hàng tab phía trên (`Data`, `Rules`, `Indexes`...) $\rightarrow$ Tìm tab **`TTL` (hoặc Thời gian tồn tại)** nằm kế bên tab `Indexes`. Bấm nút **Create Policy** $\rightarrow$ Nhập Collection `alerts`, trường `timestamp`.
+- **Cách 2 (Trang quản trị gốc Google Cloud Console - Chắc chắn có 100%):**
+  1. Truy cập thẳng vào đường dẫn: [Google Cloud Console - Firestore TTL](https://console.cloud.google.com/firestore/ttl).
+  2. Chọn đúng tên dự án của bạn ở góc trên bên trái (`KidGuardian-QA` hoặc `KidGuardian-Production`).
+  3. Bấm nút xanh **Create Policy (Tạo chính sách)**:
+     - **Collection group:** Nhập `alerts`
+     - **Timestamp field:** Nhập `timestamp`
+  4. Bấm **Create (Tạo)**. Làm tương tự thêm 1 lần cho `notifications` với trường `timestamp`.
+*(Firebase/Google Cloud sẽ tự động xóa ngầm các tài liệu cũ sau 24h-48h kể từ thời điểm hết hạn mà không tốn Quota).*
 
 ### 5. Cấu trúc phân tầng Collection chuẩn của KidGuardian
 Khi bạn chạy app lần đầu với tài khoản mới, hệ thống tự động sinh ra cấu trúc cây Collection tối ưu hóa lượt gửi như sau:
