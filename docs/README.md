@@ -38,7 +38,10 @@ docs/
 | Document | Location | Description |
 |----------|----------|-------------|
 | [Architecture](architecture/ARCHITECTURE.md) | `docs/architecture/ARCHITECTURE.md` | System architecture and design |
+| [Firebase Quota Optimization](technical/FIREBASE_QUOTA_OPTIMIZATION.md) | `docs/technical/FIREBASE_QUOTA_OPTIMIZATION.md` | Firebase quota design patterns & OOM prevention |
+| [Developer Guide](technical/DEVELOPER_GUIDE.md) | `docs/technical/DEVELOPER_GUIDE.md` | Clean Architecture, BLoC & Accessibility bridge guide |
 | [Smart Lock Research](technical/SMART-LOCK-RESEARCH.md) | `docs/technical/SMART-LOCK-RESEARCH.md` | Technical research on Android Smart Lock |
+| [UML & Technical Diagrams](../TECHNICAL_REPORT_DIAGRAMS.md) | `docs/TECHNICAL_REPORT_DIAGRAMS.md` | Mermaid UML diagrams (UC, Activity, Sequence, ERD) |
 
 ---
 
@@ -50,9 +53,11 @@ docs/
 - [Sprint Timeline](epics/SPRINT-PLAN.md#sprint-summary)
 
 ### For Developers
+- [Firebase Quota & Crash Prevention](technical/FIREBASE_QUOTA_OPTIMIZATION.md)
+- [Clean Architecture & BLoC Workflow](technical/DEVELOPER_GUIDE.md)
 - [Architecture Overview](architecture/ARCHITECTURE.md#1-tổng-quan-kiến-trúc)
 - [Folder Structure](architecture/ARCHITECTURE.md#3-folder-structure)
-- [Database Schema](architecture/ARCHITECTURE.md#4-database-schema-firestore)
+- [Database Schema & ERD](../TECHNICAL_REPORT_DIAGRAMS.md#5-biểu-đồ-cơ-sở-dữ-liệu-database-schema--entity-relationship-diagram-erd)
 - [Smart Lock Implementation](technical/SMART-LOCK-RESEARCH.md#4-recommended-approach)
 
 ### For Designers
