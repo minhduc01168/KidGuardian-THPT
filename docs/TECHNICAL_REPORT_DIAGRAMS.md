@@ -243,17 +243,21 @@ stateDiagram-v2
     UnlockDevice --> LogAutoApproval: Ghi nhật ký tự động duyệt lên Firestore
 
     state "Chờ Phụ huynh Duyệt thủ công (Pending Request)" as ManualPending
-    ManualPending --> NotifyParent: Gửi Push Notification / Stream tới Phụ huynh
+    ManualPending --> NotifyParent: Gửi Push Notification / Realtime Stream tới Phụ huynh
     NotifyParent --> ParentDecision: Phụ huynh kiểm tra yêu cầu trên App
 
     state "Phụ huynh quyết định" as ParentDecision
     ParentDecision --> ParentApproved: Bấm Phê duyệt (Approved)
     ParentDecision --> ParentRejected: Bấm Từ chối (Rejected)
 
-    ParentApproved --> UpdateLocalCache: Đồng bộ giờ mới từ Firestore về máy Trẻ
-    ParentRejected --> NotifyChildReject: Thông báo từ chối trên màn hình Trẻ
+    ParentApproved --> UpdateFirestoreStatus: Cập nhật status = approved trên Firestore
+    UpdateFirestoreStatus --> ChildStreamUpdates: Stream Firestore phát về máy Trẻ
+    ChildStreamUpdates --> ChildSeesApproval: Trẻ thấy thông báo Đã duyệt trên màn hình khóa
+    note right of ChildSeesApproval: LockScreen KHÔNG tự unlock ngay\nTrẻ phải mở lại app thủ công
+    ParentRejected --> NotifyChildReject: Cập nhật status = rejected trên Firestore
 
     LogAutoApproval --> [*]
+    ChildSeesApproval --> [*]
     NotifyChildReject --> [*]
 ```
 
@@ -353,6 +357,8 @@ erDiagram
         string role "parent hoặc child"
         string familyId FK "ID của gia đình liên kết"
         string linkedTo "ID tài khoản đối tác liên kết"
+        string fcmToken "Token FCM cho Push Notification"
+        timestamp fcmTokenUpdatedAt "Thời gian cập nhật FCM token"
         timestamp createdAt "Thời gian tạo"
     }
 
@@ -362,6 +368,7 @@ erDiagram
         array childUids "Danh sách ID các con trong nhà"
         string linkingCode "Mã liên kết hiện tại"
         timestamp createdAt "Thời gian tạo gia đình"
+        timestamp updatedAt "Thời gian cập nhật cuối"
     }
 
     LINK_CODE {
@@ -371,12 +378,15 @@ erDiagram
     }
 
     MONITORED_APP {
-        string appId PK "ID tài liệu trong collection"
-        string childUid FK "ID của trẻ được giám sát"
-        string packageName "Tên gói (com.facebook.katana...)"
+        string appPackageName PK "Tên gói ứng dụng (packageName làm key)"
         string appName "Tên hiển thị ứng dụng"
-        int timeLimitMinutes "Hạn mức tối đa phút/ngày"
-        boolean isBlocked "Trạng thái khóa thủ công"
+        string iconUrl "URL icon ứng dụng (optional)"
+        boolean isMonitored "Trạng thái bật/tắt theo dõi"
+    }
+
+    APP_TIME_LIMIT {
+        string appPackageName PK "Tên gói ứng dụng (packageName làm key)"
+        map limits "Hạn mức phân theo ngày (monday: 60, everyday: 90...)"
     }
 
     USAGE_LOG {
