@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
+import '../../../../domain/entities/user.dart';
 import 'login_screen.dart';
 
 class RoleSelectionScreen extends StatefulWidget {
@@ -130,7 +131,9 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> with SingleTi
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const LoginScreen(),
+                            builder: (context) => const LoginScreen(
+                              initialRole: UserRole.parent,
+                            ),
                           ),
                         );
                       },
@@ -149,7 +152,9 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> with SingleTi
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const LoginScreen(),
+                            builder: (context) => const LoginScreen(
+                              initialRole: UserRole.child,
+                            ),
                           ),
                         );
                       },

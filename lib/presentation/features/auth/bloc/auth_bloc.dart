@@ -50,7 +50,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     try {
       print('Attempting login for: ${event.email}');
-      var user = await _authRepository.login(event.email, event.password);
+      var user = await _authRepository.login(event.email, event.password, event.role);
       print('Login successful for user: ${user.uid}');
       
       // Restore or auto-create family for parent

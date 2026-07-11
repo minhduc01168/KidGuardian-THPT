@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:kidguardian/domain/repositories/time_request_repository.dart';
+import 'package:kidguardian/domain/repositories/rules_repository.dart';
 import 'package:kidguardian/presentation/blocs/time_request/time_request_bloc.dart';
 
 class RequestHistoryScreen extends StatelessWidget {
@@ -14,6 +15,7 @@ class RequestHistoryScreen extends StatelessWidget {
     return BlocProvider(
       create: (context) => TimeRequestBloc(
         repository: context.read<TimeRequestRepository>(),
+        rulesRepository: context.read<RulesRepository>(),
       )..add(LoadAllRequests(familyId)),
       child: Scaffold(
         appBar: AppBar(

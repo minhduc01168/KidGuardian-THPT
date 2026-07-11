@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kidguardian/domain/repositories/time_request_repository.dart';
 import 'package:kidguardian/domain/repositories/alert_repository.dart';
+import 'package:kidguardian/domain/repositories/rules_repository.dart';
 import 'package:kidguardian/presentation/blocs/time_request/time_request_bloc.dart';
 
 class RequestTimeDialog extends StatefulWidget {
@@ -40,6 +41,7 @@ class _RequestTimeDialogState extends State<RequestTimeDialog> {
       create: (context) => TimeRequestBloc(
         repository: context.read<TimeRequestRepository>(),
         alertRepository: context.read<AlertRepository>(),
+        rulesRepository: context.read<RulesRepository>(),
       ),
       child: BlocConsumer<TimeRequestBloc, TimeRequestState>(
         listener: (context, state) {

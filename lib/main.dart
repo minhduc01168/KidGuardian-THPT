@@ -45,6 +45,7 @@ import 'data/repositories/help_repository_impl.dart';
 import 'domain/repositories/alert_repository.dart';
 import 'domain/repositories/notification_repository.dart';
 import 'domain/repositories/time_request_repository.dart';
+import 'domain/repositories/rules_repository.dart';
 import 'domain/repositories/help_repository.dart';
 import 'domain/entities/user.dart';
 import 'presentation/features/help/bloc/help_bloc.dart';
@@ -113,6 +114,9 @@ class _KidGuardianAppState extends State<KidGuardianApp> {
         ),
         RepositoryProvider<TimeRequestRepository>(
           create: (_) => TimeRequestRepositoryImpl(),
+        ),
+        RepositoryProvider<RulesRepository>(
+          create: (_) => RulesRepositoryImpl(),
         ),
         RepositoryProvider<NotificationService>(
           create: (context) => NotificationService(

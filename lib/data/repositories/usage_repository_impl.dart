@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/entities/usage_log.dart';
 import '../../domain/repositories/usage_repository.dart';
@@ -16,11 +17,13 @@ class UsageRepositoryImpl implements UsageRepository {
           .collection('usage_logs')
           .where('childUid', isEqualTo: childUid)
           .where('date', isEqualTo: date)
-          .orderBy('startTime', descending: true)
           .get();
 
-      return query.docs.map((doc) => UsageLogModel.fromFirestore(doc)).toList();
+      final logs = query.docs.map((doc) => UsageLogModel.fromFirestore(doc)).toList();
+      logs.sort((a, b) => b.startTime.compareTo(a.startTime));
+      return logs;
     } catch (e) {
+      debugPrint('Error getting usage by child ($childUid, $date): $e');
       return [];
     }
   }
@@ -32,11 +35,13 @@ class UsageRepositoryImpl implements UsageRepository {
           .collection('usage_logs')
           .where('familyId', isEqualTo: familyId)
           .where('date', isEqualTo: date)
-          .orderBy('startTime', descending: true)
           .get();
 
-      return query.docs.map((doc) => UsageLogModel.fromFirestore(doc)).toList();
+      final logs = query.docs.map((doc) => UsageLogModel.fromFirestore(doc)).toList();
+      logs.sort((a, b) => b.startTime.compareTo(a.startTime));
+      return logs;
     } catch (e) {
+      debugPrint('Error getting usage by family ($familyId, $date): $e');
       return [];
     }
   }
@@ -53,11 +58,13 @@ class UsageRepositoryImpl implements UsageRepository {
           .where('childUid', isEqualTo: childUid)
           .where('date', isGreaterThanOrEqualTo: startDate)
           .where('date', isLessThanOrEqualTo: endDate)
-          .orderBy('date', descending: true)
           .get();
 
-      return query.docs.map((doc) => UsageLogModel.fromFirestore(doc)).toList();
+      final logs = query.docs.map((doc) => UsageLogModel.fromFirestore(doc)).toList();
+      logs.sort((a, b) => b.date.compareTo(a.date));
+      return logs;
     } catch (e) {
+      debugPrint('Error getting usage by date range: $e');
       return [];
     }
   }

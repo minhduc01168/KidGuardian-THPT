@@ -297,6 +297,16 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
     if (_settings != null && !_settings!.isEnabled) return;
 
     try {
+      // P13: Tự động ghi log định kỳ mỗi 3 phút (>= 180s) khi con sử dụng ứng dụng liên tục
+      // Tối ưu Firebase Write Quota (~20 lần ghi/giờ thay vì 60 lần) mà vẫn cập nhật kịp thời cho phụ huynh
+      if (_currentAppStartTime != null) {
+        final elapsedSeconds = DateTime.now().difference(_currentAppStartTime!).inSeconds;
+        if (elapsedSeconds >= 180) {
+          _logCurrentAppUsage();
+          _currentAppStartTime = DateTime.now();
+        }
+      }
+
       // Check time limits
       final isAllowed = await checkAppAccessUseCase.execute(
         familyId: _familyId!,

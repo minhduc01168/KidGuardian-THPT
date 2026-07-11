@@ -48,7 +48,7 @@ class AuthRepositoryImpl implements AuthRepository {
   }
   
   @override
-  Future<User> login(String email, String password) async {
+  Future<User> login(String email, String password, [UserRole? expectedRole]) async {
     try {
       final credential = await _firebaseAuth.signInWithEmailAndPassword(
         email: email,
@@ -69,7 +69,7 @@ class AuthRepositoryImpl implements AuthRepository {
           uid: credential.user!.uid,
           email: credential.user!.email ?? email,
           displayName: credential.user!.displayName ?? 'User',
-          role: UserRole.parent, // Default role
+          role: expectedRole ?? UserRole.parent, // Use expected role fallback
           createdAt: DateTime.now(),
         );
         
