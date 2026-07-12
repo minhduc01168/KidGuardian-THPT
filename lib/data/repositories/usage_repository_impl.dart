@@ -100,40 +100,21 @@ class UsageRepositoryImpl implements UsageRepository {
   ) async {
     try {
       debugPrint('[Debug Read] getUsageByDateRange -> childUid: $childUid, range: $startDate -> $endDate');
-      try {
-        final query = await _firestore
-            .collection('usage_logs')
-            .where('childUid', isEqualTo: childUid)
-            .where('date', isGreaterThanOrEqualTo: startDate)
-            .where('date', isLessThanOrEqualTo: endDate)
-            .get();
+      // FIX: Không dùng orderBy để tránh cần Firestore composite index
+      // Chỉ filter theo childUid và date range, sort trong Dart
+      final query = await _firestore
+          .collection('usage_logs')
+          .where('childUid', isEqualTo: childUid)
+          .where('date', isGreaterThanOrEqualTo: startDate)
+          .where('date', isLessThanOrEqualTo: endDate)
+          .get();
 
-        final logs = query.docs
-            .map((doc) => UsageLogModel.fromFirestore(doc))
-            .toList();
-        logs.sort((a, b) => b.date.compareTo(a.date));
-        debugPrint('[Debug Read] getUsageByDateRange (Server-Side Index) -> Found ${logs.length} logs');
-        return logs;
-      } on FirebaseException catch (fe) {
-        if (fe.code == 'failed-precondition' || fe.message?.contains('index') == true) {
-          debugPrint('[Debug Read Warning] Composite Index chưa tạo cho date range. Fallback sang RAM filtering.');
-          final query = await _firestore
-              .collection('usage_logs')
-              .where('childUid', isEqualTo: childUid)
-              .get();
-
-          final logs = query.docs
-              .map((doc) => UsageLogModel.fromFirestore(doc))
-              .where((log) =>
-                  log.date.compareTo(startDate) >= 0 &&
-                  log.date.compareTo(endDate) <= 0)
-              .toList();
-          logs.sort((a, b) => b.date.compareTo(a.date));
-          debugPrint('[Debug Read] getUsageByDateRange (RAM Fallback) -> Found ${logs.length} logs');
-          return logs;
-        }
-        rethrow;
-      }
+      final logs = query.docs
+          .map((doc) => UsageLogModel.fromFirestore(doc))
+          .toList();
+      logs.sort((a, b) => b.date.compareTo(a.date));
+      debugPrint('[Debug Read] getUsageByDateRange -> Found ${logs.length} logs');
+      return logs;
     } catch (e) {
       debugPrint('[Debug Read Error] getUsageByDateRange: $e');
       return [];
