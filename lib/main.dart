@@ -150,6 +150,7 @@ class _KidGuardianAppState extends State<KidGuardianApp> {
             create: (context) => DashboardBloc(
               usageRepository: context.read<UsageRepository>(),
               familyRepository: context.read<FamilyRepository>(),
+              smartLockRepository: context.read<SmartLockRepository>(),
             ),
           ),
           BlocProvider<SummaryBloc>(

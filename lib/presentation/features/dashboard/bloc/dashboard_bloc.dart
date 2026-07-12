@@ -2,18 +2,23 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../domain/entities/usage_log.dart';
 import '../../../../domain/repositories/family_repository.dart';
 import '../../../../domain/repositories/usage_repository.dart';
+import '../../../../data/repositories/smart_lock_repository.dart';
+import '../../../../core/utils/app_utils.dart';
 import 'dashboard_event.dart';
 import 'dashboard_state.dart';
 
 class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   final UsageRepository _usageRepository;
   final FamilyRepository _familyRepository;
+  final SmartLockRepository? _smartLockRepository;
 
   DashboardBloc({
     required UsageRepository usageRepository,
     required FamilyRepository familyRepository,
+    SmartLockRepository? smartLockRepository,
   })  : _usageRepository = usageRepository,
         _familyRepository = familyRepository,
+        _smartLockRepository = smartLockRepository,
         super(DashboardInitial()) {
     on<LoadDashboard>(_onLoadDashboard);
     on<LoadChildUsage>(_onLoadChildUsage);
@@ -47,6 +52,14 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
       Map<String, int> usageByApp = {};
       final List<UsageLog> allLogs = [];
       final Map<String, int> dailyTotals = {};
+      final Map<String, int> appTimeLimits = {};
+
+      final now = DateTime.now();
+      final dayKeys = [
+        'monday', 'tuesday', 'wednesday', 'thursday',
+        'friday', 'saturday', 'sunday',
+      ];
+      final dayOfWeek = dayKeys[now.weekday - 1];
 
       final weekAgo = _getDateString(
         DateTime.now().subtract(const Duration(days: 7)),
@@ -61,23 +74,61 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
           _usageRepository.getUsageByDateRange(childUid, weekAgo, today),
         ]);
 
-        totalToday += results[0] as int;
         totalYesterday += results[1] as int;
+        totalToday += results[0] as int;
 
         final childUsage = results[2] as Map<String, int>;
         childUsage.forEach((app, minutes) {
-          usageByApp[app] = (usageByApp[app] ?? 0) + minutes;
+          if (!AppUtils.isSystemOrUnmonitoredApp(app)) {
+            final cleanName = AppUtils.getAppName(app);
+            usageByApp[cleanName] = (usageByApp[cleanName] ?? 0) + minutes;
+          }
         });
 
         final logs = results[3] as List<UsageLog>;
-        allLogs.addAll(logs);
+        for (final log in logs) {
+          final pkg = log.appPackage.isNotEmpty ? log.appPackage : log.appName;
+          if (!AppUtils.isSystemOrUnmonitoredApp(pkg)) {
+            allLogs.add(log.copyWith(appName: AppUtils.getAppNameFromLog(log.appPackage, log.appName)));
+          }
+        }
 
         final weekLogs = results[4] as List<UsageLog>;
         for (final log in weekLogs) {
-          dailyTotals[log.date] =
-              (dailyTotals[log.date] ?? 0) + log.durationMinutes;
+          final pkg = log.appPackage.isNotEmpty ? log.appPackage : log.appName;
+          if (!AppUtils.isSystemOrUnmonitoredApp(pkg)) {
+            dailyTotals[log.date] =
+                (dailyTotals[log.date] ?? 0) + log.durationMinutes;
+          }
+        }
+
+        if (_smartLockRepository != null) {
+          try {
+            final limits = await _smartLockRepository.getAppTimeLimits(
+              event.familyId,
+              childUid,
+            );
+            for (final limit in limits) {
+              int limitMin = 0;
+              if (limit.limits.containsKey(dayOfWeek)) {
+                limitMin = limit.limits[dayOfWeek]!;
+              } else if (limit.limits.containsKey('everyday')) {
+                limitMin = limit.limits['everyday']!;
+              }
+              if (limitMin > 0) {
+                appTimeLimits[limit.appPackageName] = limitMin;
+                appTimeLimits[AppUtils.getAppName(limit.appPackageName)] = limitMin;
+              }
+            }
+          } catch (e) {
+            // Ignore error when loading time limits
+          }
         }
       }));
+
+      if (usageByApp.isNotEmpty) {
+        totalToday = usageByApp.values.fold(0, (sum, val) => sum + val);
+      }
 
       emit(DashboardLoaded(
         totalMinutesToday: totalToday,
@@ -86,6 +137,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
         recentLogs: allLogs,
         childUids: family.childUids,
         dailyTotals: dailyTotals,
+        appTimeLimits: appTimeLimits,
       ));
     } catch (e) {
       emit(DashboardError(message: e.toString().replaceAll('Exception: ', '')));
@@ -114,16 +166,69 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
         _usageRepository.getUsageByDateRange(event.childUid, weekAgo, event.date),
       ]);
 
-      final totalMinutes = results[0] as int;
-      final usageByApp = results[1] as Map<String, int>;
-      final logs = results[2] as List<UsageLog>;
+      final usageByAppRaw = results[1] as Map<String, int>;
+      final logsRaw = results[2] as List<UsageLog>;
       final totalYesterday = results[3] as int;
       final weekLogs = results[4] as List<UsageLog>;
 
+      final Map<String, int> usageByApp = {};
+      usageByAppRaw.forEach((app, minutes) {
+        if (!AppUtils.isSystemOrUnmonitoredApp(app)) {
+          final cleanName = AppUtils.getAppName(app);
+          usageByApp[cleanName] = (usageByApp[cleanName] ?? 0) + minutes;
+        }
+      });
+
+      final List<UsageLog> logs = [];
+      for (final log in logsRaw) {
+        final pkg = log.appPackage.isNotEmpty ? log.appPackage : log.appName;
+        if (!AppUtils.isSystemOrUnmonitoredApp(pkg)) {
+          logs.add(log.copyWith(appName: AppUtils.getAppNameFromLog(log.appPackage, log.appName)));
+        }
+      }
+
+      int totalMinutes = results[0] as int;
+      if (usageByApp.isNotEmpty) {
+        totalMinutes = usageByApp.values.fold(0, (sum, val) => sum + val);
+      }
+
       final Map<String, int> dailyTotals = {};
       for (final log in weekLogs) {
-        dailyTotals[log.date] =
-            (dailyTotals[log.date] ?? 0) + log.durationMinutes;
+        final pkg = log.appPackage.isNotEmpty ? log.appPackage : log.appName;
+        if (!AppUtils.isSystemOrUnmonitoredApp(pkg)) {
+          dailyTotals[log.date] =
+              (dailyTotals[log.date] ?? 0) + log.durationMinutes;
+        }
+      }
+
+      final Map<String, int> appTimeLimits = {};
+      if (_smartLockRepository != null && event.familyId != null) {
+        try {
+          final now = DateTime.now();
+          final dayKeys = [
+            'monday', 'tuesday', 'wednesday', 'thursday',
+            'friday', 'saturday', 'sunday',
+          ];
+          final dayOfWeek = dayKeys[now.weekday - 1];
+          final limits = await _smartLockRepository.getAppTimeLimits(
+            event.familyId!,
+            event.childUid,
+          );
+          for (final limit in limits) {
+            int limitMin = 0;
+            if (limit.limits.containsKey(dayOfWeek)) {
+              limitMin = limit.limits[dayOfWeek]!;
+            } else if (limit.limits.containsKey('everyday')) {
+              limitMin = limit.limits['everyday']!;
+            }
+            if (limitMin > 0) {
+              appTimeLimits[limit.appPackageName] = limitMin;
+              appTimeLimits[AppUtils.getAppName(limit.appPackageName)] = limitMin;
+            }
+          }
+        } catch (e) {
+          // Ignore limit check error
+        }
       }
 
       emit(DashboardLoaded(
@@ -133,6 +238,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
         recentLogs: logs,
         childUids: [event.childUid],
         dailyTotals: dailyTotals,
+        appTimeLimits: appTimeLimits,
       ));
     } catch (e) {
       emit(DashboardError(message: e.toString().replaceAll('Exception: ', '')));
@@ -145,11 +251,19 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   ) async {
     emit(DashboardLoading());
     try {
-      final logs = await _usageRepository.getUsageByDateRange(
+      final logsRaw = await _usageRepository.getUsageByDateRange(
         event.childUid,
         event.startDate,
         event.endDate,
       );
+
+      final List<UsageLog> logs = [];
+      for (final log in logsRaw) {
+        final pkg = log.appPackage.isNotEmpty ? log.appPackage : log.appName;
+        if (!AppUtils.isSystemOrUnmonitoredApp(pkg)) {
+          logs.add(log.copyWith(appName: AppUtils.getAppNameFromLog(log.appPackage, log.appName)));
+        }
+      }
 
       // Calculate daily totals
       final Map<String, int> dailyTotals = {};

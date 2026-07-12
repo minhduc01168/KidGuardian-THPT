@@ -13,6 +13,7 @@ import 'package:kidguardian/domain/repositories/usage_repository.dart';
 import 'package:kidguardian/domain/repositories/alert_repository.dart';
 import 'package:kidguardian/data/repositories/smart_lock_repository.dart';
 import 'package:kidguardian/data/models/smart_lock_settings_model.dart';
+import 'package:kidguardian/core/utils/app_utils.dart';
 import 'package:intl/intl.dart';
 import 'package:installed_apps/installed_apps.dart';
 import 'package:installed_apps/app_info.dart';
@@ -128,17 +129,6 @@ class AppBlockedState extends AppMonitorState {
         scheduleName,
       ];
 }
-
-// P9: App name mapping for common apps
-const _appNameMap = {
-  'com.zhiliaoapp.musically': 'TikTok',
-  'com.facebook.katana': 'Facebook',
-  'com.google.android.youtube': 'YouTube',
-  'com.instagram.android': 'Instagram',
-  'com.zing.zalo': 'Zalo',
-  'com.roblox.client': 'Roblox',
-  'com.dts.freefireth': 'Free Fire',
-};
 
 class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
   final CheckAppAccessUseCase checkAppAccessUseCase;
@@ -367,7 +357,7 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
     final type = event.event['type'];
     final packageName = event.event['packageName'] as String?;
 
-    if (packageName == null) return;
+    if (packageName == null || AppUtils.isSystemOrUnmonitoredApp(packageName)) return;
 
     if (type == 'app_event') {
       final eventType = event.event['eventType'] ?? event.event['event_type'];
@@ -489,7 +479,7 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
     String? scheduleName,
     DateTime? scheduleEndTime,
   }) async {
-    final appName = _appNameMap[packageName] ?? packageName;
+    final appName = AppUtils.getAppName(packageName);
     final now = DateTime.now();
     // P1: Use add() instead of day+1 to avoid Dec 31 crash
     final resetTime = scheduleEndTime ?? DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
@@ -563,6 +553,7 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
         debugPrint('[Offline Sync] AppMonitorBloc: Tìm thấy ${offlineLogs.length} log sử dụng lúc tắt UI');
         for (final item in offlineLogs) {
           final packageName = item['packageName'] as String? ?? '';
+          if (AppUtils.isSystemOrUnmonitoredApp(packageName)) continue;
           final startTimeMs = item['startTime'] as int? ?? 0;
           final endTimeMs = item['endTime'] as int? ?? 0;
           final durationSec = item['durationSeconds'] as int? ?? 0;
@@ -575,7 +566,7 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
               childUid: _childUid!,
               familyId: _familyId!,
               appPackage: packageName,
-              appName: _appNameMap[packageName] ?? packageName,
+              appName: AppUtils.getAppName(packageName),
               startTime: startTime,
               endTime: endTime,
               durationMinutes: durationMinutes,
@@ -593,6 +584,7 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
 
   void _logCurrentAppUsage() {
     if (_currentAppPackage != null && _currentAppStartTime != null && _childUid != null && _familyId != null) {
+      if (AppUtils.isSystemOrUnmonitoredApp(_currentAppPackage!)) return;
       final now = DateTime.now();
       final durationSeconds = now.difference(_currentAppStartTime!).inSeconds;
       final durationMinutes = (durationSeconds / 60).ceil();
@@ -604,7 +596,7 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
           childUid: _childUid!,
           familyId: _familyId!,
           appPackage: _currentAppPackage!,
-          appName: _appNameMap[_currentAppPackage!] ?? _currentAppPackage!,
+          appName: AppUtils.getAppName(_currentAppPackage!),
           startTime: _currentAppStartTime!,
           endTime: now,
           durationMinutes: durationMinutes,

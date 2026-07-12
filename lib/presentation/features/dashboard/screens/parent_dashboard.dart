@@ -333,6 +333,7 @@ class _ParentDashboardState extends State<ParentDashboard> {
             // App usage list
             AppUsageListWidget(
               usageByApp: state.usageByApp,
+              appTimeLimits: state.appTimeLimits,
               onAppTap: (appName, minutes) {
                 if (state.childUids.isNotEmpty) {
                   Navigator.push(
@@ -531,21 +532,45 @@ class _ParentDashboardState extends State<ParentDashboard> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              SizedBox(height: 16),
-              ...state.recentLogs.take(5).map((log) => Card(
-                    child: ListTile(
-                      leading: Icon(
-                        AppUtils.getAppIcon(log.appName),
-                        color: AppUtils.getAppColor(log.appName),
+              SizedBox(height: 12),
+              Card(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  itemCount: state.recentLogs.length > 3 ? 3 : state.recentLogs.length,
+                  separatorBuilder: (context, index) => Divider(height: 1, indent: 56),
+                  itemBuilder: (context, index) {
+                    final log = state.recentLogs[index];
+                    final timeFormatted = '${log.startTime.hour}:${log.startTime.minute.toString().padLeft(2, '0')}';
+                    final cleanName = AppUtils.getAppName(log.appName);
+                    return ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                      leading: Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: AppUtils.getAppColor(cleanName).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          AppUtils.getAppIcon(cleanName),
+                          color: AppUtils.getAppColor(cleanName),
+                          size: 18,
+                        ),
                       ),
-                      title: Text(log.appName),
-                      subtitle: Text('${log.durationMinutes} phút'),
-                      trailing: Text(
-                        '${log.startTime.hour}:${log.startTime.minute.toString().padLeft(2, '0')}',
-                        style: TextStyle(color: AppColors.textSecondary),
+                      title: Text(
+                        cleanName,
+                        style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
                       ),
-                    ),
-                  )),
+                      subtitle: Text(
+                        'lúc $timeFormatted • ${AppUtils.formatMinutes(log.durationMinutes)}',
+                        style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                      ),
+                    );
+                  },
+                ),
+              ),
             ],
           ],
         ),

@@ -75,22 +75,14 @@ class _ChildDashboardState extends State<ChildDashboard> {
   }
 
   String _getAppName(String packageNameOrName) {
-    const map = {
-      'com.zhiliaoapp.musically': 'TikTok',
-      'com.facebook.katana': 'Facebook',
-      'com.google.android.youtube': 'YouTube',
-      'com.instagram.android': 'Instagram',
-      'com.zing.zalo': 'Zalo',
-      'com.roblox.client': 'Roblox',
-      'com.dts.freefireth': 'Free Fire',
-    };
-    return map[packageNameOrName] ?? packageNameOrName;
+    return AppUtils.getAppName(packageNameOrName);
   }
 
   int _getAppLimitMinutes(String packageName) {
     AppTimeLimitModel? appLimit;
     for (final limit in _appLimits) {
-      if (limit.appPackageName == packageName) {
+      if (limit.appPackageName == packageName ||
+          AppUtils.getAppName(limit.appPackageName) == packageName) {
         appLimit = limit;
         break;
       }
@@ -521,7 +513,7 @@ class _ChildDashboardState extends State<ChildDashboard> {
                     children: [
                       SizedBox(
                         height: 150,
-                        child: _buildPieChart(usageByApp),
+                        child: _buildPieChartAndLegend(usageByApp),
                       ),
                       SizedBox(height: 16),
                       ...usageByApp.entries.take(5).map((entry) {
@@ -655,40 +647,89 @@ class _ChildDashboardState extends State<ChildDashboard> {
     );
   }
 
-  Widget _buildPieChart(Map<String, int> usageByApp) {
-    final colors = [
-      AppColors.childPrimary,
-      AppColors.primary,
-      AppColors.warning,
-      AppColors.error,
-      AppColors.accent,
-    ];
+  Widget _buildPieChartAndLegend(Map<String, int> usageByApp) {
+    final sortedEntries = usageByApp.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final topEntries = sortedEntries.take(5).toList();
+    final total = usageByApp.values.fold(0, (sum, val) => sum + val);
+    if (total == 0) return SizedBox.shrink();
 
+    return Row(
+      children: [
+        SizedBox(
+          width: 140,
+          height: 140,
+          child: _buildPieChart(usageByApp),
+        ),
+        SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: topEntries.map((entry) {
+              final percent = (entry.value / total * 100).toStringAsFixed(0);
+              final appDisplayName = _getAppName(entry.key);
+              final color = AppUtils.getAppColor(appDisplayName);
+              return Padding(
+                padding: EdgeInsets.symmetric(vertical: 3),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: color,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        appDisplayName,
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Text(
+                      '$percent%',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPieChart(Map<String, int> usageByApp) {
     final total = usageByApp.values.fold(0, (sum, val) => sum + val);
     if (total == 0) return SizedBox.shrink();
 
     return PieChart(
       PieChartData(
-        sections: usageByApp.entries.toList().asMap().entries.map((entry) {
-          final index = entry.key;
-          final appEntry = entry.value;
+        sections: usageByApp.entries.toList().map((appEntry) {
           final percent = total > 0 ? (appEntry.value / total * 100) : 0;
+          final appDisplayName = _getAppName(appEntry.key);
           return PieChartSectionData(
             value: appEntry.value.toDouble() > 0
                 ? appEntry.value.toDouble()
                 : 0.1,
             title: '${percent.toStringAsFixed(0)}%',
-            color: colors[index % colors.length],
-            radius: 50,
+            color: AppUtils.getAppColor(appDisplayName),
+            radius: 45,
             titleStyle: TextStyle(
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
           );
         }).toList(),
         sectionsSpace: 2,
-        centerSpaceRadius: 30,
+        centerSpaceRadius: 25,
       ),
     );
   }

@@ -61,12 +61,20 @@ class AppMonitorService : AccessibilityService() {
             "com.android.inputmethod.latin",
             "com.google.android.inputmethod.latin",
             "com.android.inputmethod.lazyswipe",
+            "com.android.settings",
+            "com.android.vending",
+            "com.google.android.packageinstaller",
+            "com.android.packageinstaller",
+            "com.google.android.permissioncontroller",
+            "com.android.permissioncontroller",
+            "android"
         )
 
         private fun isSystemPackage(packageName: String): Boolean {
             if (SYSTEM_PACKAGES.contains(packageName)) return true
-            if (packageName.startsWith("com.android.") && !packageName.contains("kidguardian")) return true
+            if (packageName.startsWith("com.android.") && !packageName.contains("kidguardian") && !packageName.contains("chrome")) return true
             if (packageName.startsWith("com.google.android.inputmethod")) return true
+            if (packageName.contains("permissioncontroller") || packageName.contains("packageinstaller")) return true
             return false
         }
 

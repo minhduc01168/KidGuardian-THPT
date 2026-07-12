@@ -19,11 +19,12 @@ class LoadDashboard extends DashboardEvent {
 class LoadChildUsage extends DashboardEvent {
   final String childUid;
   final String date;
+  final String? familyId;
 
-  const LoadChildUsage({required this.childUid, required this.date});
+  const LoadChildUsage({required this.childUid, required this.date, this.familyId});
 
   @override
-  List<Object?> get props => [childUid, date];
+  List<Object?> get props => [childUid, date, familyId];
 }
 
 class LoadUsageChart extends DashboardEvent {

@@ -4,11 +4,13 @@ import '../../../../core/utils/app_utils.dart';
 
 class AppUsageListWidget extends StatelessWidget {
   final Map<String, int> usageByApp;
+  final Map<String, int> appTimeLimits;
   final Function(String appName, int minutes)? onAppTap;
 
   const AppUsageListWidget({
     super.key,
     required this.usageByApp,
+    this.appTimeLimits = const {},
     this.onAppTap,
   });
 
@@ -81,16 +83,14 @@ class AppUsageListWidget extends StatelessWidget {
               final percent = totalMinutes > 0
                   ? (entry.value / totalMinutes * 100)
                   : 0;
-              final hours = entry.value ~/ 60;
-              final minutes = entry.value % 60;
-              final timeStr = hours > 0
-                  ? '$hours giờ $minutes phút'
-                  : '$minutes phút';
+              final timeStr = AppUtils.formatMinutes(entry.value);
+              final limitMinutes = appTimeLimits[entry.key] ?? 0;
 
               return _AppUsageTile(
                 appName: entry.key,
                 minutes: entry.value,
                 timeStr: timeStr,
+                limitMinutes: limitMinutes,
                 percent: percent.toDouble(),
                 rank: index + 1,
                 onTap: onAppTap != null
@@ -113,7 +113,7 @@ class AppUsageListWidget extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    '${totalMinutes ~/ 60} giờ ${totalMinutes % 60} phút',
+                    AppUtils.formatMinutes(totalMinutes),
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -133,6 +133,7 @@ class _AppUsageTile extends StatelessWidget {
   final String appName;
   final int minutes;
   final String timeStr;
+  final int limitMinutes;
   final double percent;
   final int rank;
   final VoidCallback? onTap;
@@ -141,6 +142,7 @@ class _AppUsageTile extends StatelessWidget {
     required this.appName,
     required this.minutes,
     required this.timeStr,
+    this.limitMinutes = 0,
     required this.percent,
     required this.rank,
     this.onTap,
@@ -259,9 +261,26 @@ class _AppUsageTile extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
+                    color: minutes >= limitMinutes && limitMinutes > 0
+                        ? Colors.red.shade700
+                        : AppColors.primary,
                   ),
                 ),
+                if (limitMinutes > 0) ...[
+                  SizedBox(height: 2),
+                  Text(
+                    'Giới hạn: ${AppUtils.formatMinutes(limitMinutes)}',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: minutes >= limitMinutes
+                          ? Colors.red.shade700
+                          : AppColors.textSecondary,
+                      fontWeight: minutes >= limitMinutes
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                    ),
+                  ),
+                ],
               ],
             ),
 

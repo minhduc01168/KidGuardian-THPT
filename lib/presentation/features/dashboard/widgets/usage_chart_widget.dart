@@ -332,7 +332,7 @@ class _UsageChartWidgetState extends State<UsageChartWidget> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(entry.key),
+                    Text(AppUtils.getAppName(entry.key)),
                     Text(
                       '${entry.value} phút',
                       style: TextStyle(fontWeight: FontWeight.bold),
