@@ -6,12 +6,16 @@ import '../../../../core/utils/app_utils.dart';
 import '../../../../domain/entities/monthly_report.dart';
 import '../../../features/auth/bloc/auth_bloc.dart';
 import '../../../features/auth/bloc/auth_state.dart';
+import '../../dashboard/bloc/dashboard_bloc.dart';
+import '../../dashboard/bloc/dashboard_state.dart';
 import '../bloc/report_bloc.dart';
 import '../bloc/report_event.dart';
 import '../bloc/report_state.dart';
 
 class MonthlyReportScreen extends StatefulWidget {
-  const MonthlyReportScreen({super.key});
+  final String? childUid;
+
+  const MonthlyReportScreen({super.key, this.childUid});
 
   @override
   State<MonthlyReportScreen> createState() => _MonthlyReportScreenState();
@@ -22,6 +26,19 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
   void initState() {
     super.initState();
     _loadReports();
+  }
+
+  String _getTargetChildId(BuildContext context, AuthAuthenticated authState) {
+    if (widget.childUid != null && widget.childUid!.isNotEmpty) {
+      return widget.childUid!;
+    }
+    try {
+      final dashState = context.read<DashboardBloc>().state;
+      if (dashState is DashboardLoaded && dashState.childUids.isNotEmpty) {
+        return dashState.childUids.first;
+      }
+    } catch (_) {}
+    return authState.user.uid;
   }
 
   void _loadReports() {
@@ -42,9 +59,10 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
   void _generateReport() {
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthAuthenticated && authState.user.familyId != null) {
+      final targetChildUid = _getTargetChildId(context, authState);
       context.read<ReportBloc>().add(
             GenerateMonthlyReport(
-              childUid: authState.user.uid,
+              childUid: targetChildUid,
               familyId: authState.user.familyId!,
             ),
           );

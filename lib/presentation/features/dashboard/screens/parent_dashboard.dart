@@ -391,10 +391,11 @@ class _ParentDashboardState extends State<ParentDashboard> {
                     title: 'Tổng kết',
                     color: AppColors.primary,
                     onTap: () {
+                      final targetId = state.childUids.isNotEmpty ? state.childUids.first : null;
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => DailySummaryScreen(),
+                          builder: (context) => DailySummaryScreen(childUid: targetId),
                         ),
                       );
                     },
@@ -412,6 +413,7 @@ class _ParentDashboardState extends State<ParentDashboard> {
                     color: AppColors.warning,
                     onTap: () {
                       if (user.familyId != null) {
+                        final targetId = state.childUids.isNotEmpty ? state.childUids.first : user.uid;
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -421,7 +423,7 @@ class _ParentDashboardState extends State<ParentDashboard> {
                               ),
                               child: SmartLockSettingsScreen(
                                 familyId: user.familyId!,
-                                childId: user.uid,
+                                childId: targetId,
                                 childName: user.displayName,
                               ),
                             ),
@@ -440,10 +442,11 @@ class _ParentDashboardState extends State<ParentDashboard> {
                     title: 'Báo cáo tuần',
                     color: AppColors.accent,
                     onTap: () {
+                      final targetId = state.childUids.isNotEmpty ? state.childUids.first : null;
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => WeeklyReportScreen(),
+                          builder: (context) => WeeklyReportScreen(childUid: targetId),
                         ),
                       );
                     },
@@ -508,10 +511,11 @@ class _ParentDashboardState extends State<ParentDashboard> {
                     title: 'Báo cáo tháng',
                     color: AppColors.primaryDark,
                     onTap: () {
+                      final targetId = state.childUids.isNotEmpty ? state.childUids.first : null;
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const MonthlyReportScreen(),
+                          builder: (context) => MonthlyReportScreen(childUid: targetId),
                         ),
                       );
                     },
@@ -534,38 +538,42 @@ class _ParentDashboardState extends State<ParentDashboard> {
               ),
               SizedBox(height: 12),
               Card(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 child: ListView.separated(
                   shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
-                  itemCount: state.recentLogs.length > 3 ? 3 : state.recentLogs.length,
-                  separatorBuilder: (context, index) => Divider(height: 1, indent: 56),
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: state.recentLogs.length > 5 ? 5 : state.recentLogs.length,
+                  separatorBuilder: (context, index) => const Divider(height: 1, indent: 48),
                   itemBuilder: (context, index) {
                     final log = state.recentLogs[index];
-                    final timeFormatted = '${log.startTime.hour}:${log.startTime.minute.toString().padLeft(2, '0')}';
+                    final timeFormatted = '${log.startTime.hour.toString().padLeft(2, '0')}:${log.startTime.minute.toString().padLeft(2, '0')}';
                     final cleanName = AppUtils.getAppName(log.appName);
                     return ListTile(
                       dense: true,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                      visualDensity: VisualDensity.compact,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
                       leading: Container(
-                        width: 32,
-                        height: 32,
+                        width: 28,
+                        height: 28,
                         decoration: BoxDecoration(
-                          color: AppUtils.getAppColor(cleanName).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
+                          color: AppUtils.getAppColor(cleanName).withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(6),
                         ),
                         child: Icon(
                           AppUtils.getAppIcon(cleanName),
                           color: AppUtils.getAppColor(cleanName),
-                          size: 18,
+                          size: 16,
                         ),
                       ),
                       title: Text(
                         cleanName,
-                        style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       subtitle: Text(
                         'lúc $timeFormatted • ${AppUtils.formatMinutes(log.durationMinutes)}',
-                        style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                        style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
                       ),
                     );
                   },
@@ -939,7 +947,7 @@ class _ParentDashboardState extends State<ParentDashboard> {
                 ),
                 SizedBox(height: 8),
                 Text(
-                  'Chào mừng bạn đến với KidGuardian',
+                  'Chào mừng bạn đến với ${AppStrings.appName}',
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.white70,

@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../domain/entities/weekly_report.dart';
 import '../../../../domain/repositories/report_repository.dart';
 import 'report_event.dart';
 import 'report_state.dart';
@@ -41,9 +42,13 @@ class ReportBloc extends Bloc<ReportEvent, ReportState> {
   ) async {
     emit(ReportLoading());
     try {
-      final reports = await _reportRepository.getReportsByFamily(
-        event.familyId,
-      );
+      // FIX #4: Nếu có childUid, filter theo con đó thay vì toàn family
+      final List<WeeklyReport> reports;
+      if (event.childUid != null && event.childUid!.isNotEmpty) {
+        reports = await _reportRepository.getReportsByChild(event.childUid!);
+      } else {
+        reports = await _reportRepository.getReportsByFamily(event.familyId);
+      }
       emit(ReportHistoryLoaded(reports: reports));
     } catch (e) {
       emit(ReportError(message: e.toString().replaceAll('Exception: ', '')));

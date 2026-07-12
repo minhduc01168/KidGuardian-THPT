@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_strings.dart';
 import '../../../../domain/entities/family.dart';
 import '../../../../domain/entities/user.dart';
 import '../../../../domain/repositories/family_repository.dart';
@@ -247,7 +248,7 @@ class _FamilyManagementScreenState extends State<FamilyManagementScreen> {
                   ),
                   SizedBox(height: 4),
                   Text(
-                    '1. Cài đặt KidGuardian trên máy của con.\n'
+                    '1. Cài đặt ${AppStrings.appName} trên máy của con.\n'
                     '2. Chọn đăng ký tài khoản với vai trò "Con".\n'
                     '3. Đăng nhập và nhập Mã liên kết ở trên.',
                     style: TextStyle(color: Colors.white.withOpacity(0.9), height: 1.5, fontSize: 13),

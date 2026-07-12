@@ -74,7 +74,7 @@ class _UsageChartWidgetState extends State<UsageChartWidget> {
   }
 
   Widget _buildDailyChart() {
-    if (widget.dailyTotals.isEmpty) {
+    if (widget.appTotals.isEmpty) {
       return SizedBox(
         height: 200,
         child: Center(
@@ -86,102 +86,91 @@ class _UsageChartWidgetState extends State<UsageChartWidget> {
       );
     }
 
-    final sortedEntries = widget.dailyTotals.entries.toList()
-      ..sort((a, b) => a.key.compareTo(b.key));
-
-    final spots = sortedEntries.asMap().entries.map((entry) {
-      return FlSpot(entry.key.toDouble(), entry.value.value.toDouble());
-    }).toList();
-
-    return SizedBox(
-      height: 200,
-      child: LineChart(
-        LineChartData(
-          gridData: FlGridData(
-            show: true,
-            drawVerticalLine: false,
-            horizontalInterval: 30,
-          ),
-          titlesData: FlTitlesData(
-            leftTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                reservedSize: 40,
-                getTitlesWidget: (value, meta) {
-                  return Text(
-                    '${value.toInt()}p',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppColors.textSecondary,
-                    ),
-                  );
-                },
-              ),
-            ),
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                getTitlesWidget: (value, meta) {
-                  if (value.toInt() < sortedEntries.length) {
-                    final date = sortedEntries[value.toInt()].key;
-                    final parts = date.split('-');
-                    return Text(
-                      '${parts[2]}/${parts[1]}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                      ),
-                    );
-                  }
-                  return Text('');
-                },
-              ),
-            ),
-            topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          ),
-          borderData: FlBorderData(show: false),
-          lineBarsData: [
-            LineChartBarData(
-              spots: spots,
-              isCurved: true,
-              color: AppColors.primary,
-              barWidth: 3,
-              isStrokeCapRound: true,
-              dotData: FlDotData(
-                show: true,
-                getDotPainter: (spot, percent, barData, index) {
-                  return FlDotCirclePainter(
-                    radius: 4,
-                    color: AppColors.primary,
-                    strokeWidth: 2,
-                    strokeColor: Colors.white,
-                  );
-                },
-              ),
-              belowBarData: BarAreaData(
-                show: true,
-                color: AppColors.primary.withOpacity(0.1),
-              ),
-            ),
-          ],
-          lineTouchData: LineTouchData(
-            touchTooltipData: LineTouchTooltipData(
-              getTooltipItems: (touchedSpots) {
-                return touchedSpots.map((spot) {
-                  final entry = sortedEntries[spot.x.toInt()];
-                  return LineTooltipItem(
-                    '${entry.key}\n${spot.y.toInt()} phút',
-                    TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  );
-                }).toList();
-              },
-            ),
+    final sortedEntries = widget.appTotals.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final topEntries = sortedEntries.take(5).toList();
+    final total = widget.appTotals.values.fold(0, (sum, val) => sum + val);
+    if (total == 0) {
+      return SizedBox(
+        height: 200,
+        child: Center(
+          child: Text(
+            'Chưa có dữ liệu',
+            style: TextStyle(color: AppColors.textSecondary),
           ),
         ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 140,
+            height: 140,
+            child: PieChart(
+              PieChartData(
+                sections: widget.appTotals.entries.map((appEntry) {
+                  final percent = total > 0 ? (appEntry.value / total * 100) : 0;
+                  final color = AppUtils.getAppColor(appEntry.key);
+                  return PieChartSectionData(
+                    value: appEntry.value.toDouble() > 0 ? appEntry.value.toDouble() : 0.1,
+                    title: '${percent.toStringAsFixed(0)}%',
+                    color: color,
+                    radius: 45,
+                    titleStyle: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  );
+                }).toList(),
+                sectionsSpace: 2,
+                centerSpaceRadius: 20,
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: topEntries.map((entry) {
+                final percent = (entry.value / total * 100).toStringAsFixed(0);
+                final color = AppUtils.getAppColor(entry.key);
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 12,
+                        height: 12,
+                        decoration: BoxDecoration(
+                          color: color,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          entry.key,
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Text(
+                        '$percent% (${entry.value}p)',
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
       ),
     );
   }

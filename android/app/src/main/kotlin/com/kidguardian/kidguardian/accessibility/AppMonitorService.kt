@@ -35,6 +35,11 @@ class AppMonitorService : AccessibilityService() {
 
         var blockedApps = mutableSetOf<String>()
         var appLimits = mutableMapOf<String, Int>()
+        // FIX #1+#5 Native: Danh sách các app được phụ huynh bật giám sát.
+        // Khi rỗng (chưa load), cho qua Flutter để Flutter tự filter.
+        // Khi đã có data → chặn tại native, giảm tải Dart runtime.
+        @Volatile
+        var monitoredPackages = setOf<String>()
         @Volatile
         private var _monitoredKeywords = setOf("tự tử", "đánh nhau", "cờ bạc", "ma túy")
         var monitoredKeywords: Set<String>
@@ -108,7 +113,9 @@ class AppMonitorService : AccessibilityService() {
             if (currentPackageName != packageName) {
                 if (currentPackageName != null) {
                     val durationMs = System.currentTimeMillis() - activeAppStartMillis
-                    if (activeAppStartMillis > 0 && durationMs >= 5000 && !isSystemPackage(currentPackageName!!)) {
+                    // FIX #1+#5 Native: Chỉ lưu offline log cho monitored apps
+                    val prevIsMonitored = monitoredPackages.isEmpty() || monitoredPackages.contains(currentPackageName!!)
+                    if (activeAppStartMillis > 0 && durationMs >= 5000 && !isSystemPackage(currentPackageName!!) && prevIsMonitored) {
                         saveOfflineUsageLog(currentPackageName!!, activeAppStartMillis, System.currentTimeMillis(), durationMs / 1000)
                     }
                     sendAppEvent(currentPackageName!!, "closed")
@@ -119,7 +126,14 @@ class AppMonitorService : AccessibilityService() {
                 lastExtractedText = ""
                 Log.d(TAG, "Window State Changed: $packageName")
 
-                sendAppEvent(packageName, "opened")
+                // FIX #1+#5 Native: Chỉ gửi 'opened' event lên Flutter cho monitored apps.
+                // Nếu monitoredPackages rỗng (chưa load) → gửi tất cả, Flutter tự filter.
+                val isMonitored = monitoredPackages.isEmpty() || monitoredPackages.contains(packageName)
+                if (isMonitored) {
+                    sendAppEvent(packageName, "opened")
+                } else {
+                    Log.d(TAG, "Skipping non-monitored app event (native filter): $packageName")
+                }
 
                 if (blockedApps.contains(packageName)) {
                     blockApp(packageName)

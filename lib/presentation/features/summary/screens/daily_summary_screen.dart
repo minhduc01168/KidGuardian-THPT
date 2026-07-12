@@ -5,12 +5,16 @@ import '../../../../core/utils/app_utils.dart';
 import '../../../../domain/entities/daily_summary.dart';
 import '../../../features/auth/bloc/auth_bloc.dart';
 import '../../../features/auth/bloc/auth_state.dart';
+import '../../dashboard/bloc/dashboard_bloc.dart';
+import '../../dashboard/bloc/dashboard_state.dart';
 import '../bloc/summary_bloc.dart';
 import '../bloc/summary_event.dart';
 import '../bloc/summary_state.dart';
 
 class DailySummaryScreen extends StatefulWidget {
-  const DailySummaryScreen({super.key});
+  final String? childUid;
+
+  const DailySummaryScreen({super.key, this.childUid});
 
   @override
   State<DailySummaryScreen> createState() => _DailySummaryScreenState();
@@ -23,13 +27,27 @@ class _DailySummaryScreenState extends State<DailySummaryScreen> {
     _loadSummary();
   }
 
+  String _getTargetChildId(BuildContext context, AuthAuthenticated authState) {
+    if (widget.childUid != null && widget.childUid!.isNotEmpty) {
+      return widget.childUid!;
+    }
+    try {
+      final dashState = context.read<DashboardBloc>().state;
+      if (dashState is DashboardLoaded && dashState.childUids.isNotEmpty) {
+        return dashState.childUids.first;
+      }
+    } catch (_) {}
+    return authState.user.uid;
+  }
+
   void _loadSummary() {
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthAuthenticated && authState.user.familyId != null) {
+      final targetChildUid = _getTargetChildId(context, authState);
       // Ưu tiên: tạo summary mới cho hôm nay từ raw usage data
       context.read<SummaryBloc>().add(
             GenerateSummary(
-              childUid: authState.user.uid,
+              childUid: targetChildUid,
               familyId: authState.user.familyId!,
               date: _getTodayString(),
             ),

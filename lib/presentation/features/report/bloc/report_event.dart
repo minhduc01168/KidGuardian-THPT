@@ -36,20 +36,22 @@ class GenerateMonthlyReport extends ReportEvent {
 
 class LoadReportHistory extends ReportEvent {
   final String familyId;
+  final String? childUid; // FIX #4: filter theo con cụ thể
 
-  const LoadReportHistory({required this.familyId});
+  const LoadReportHistory({required this.familyId, this.childUid});
 
   @override
-  List<Object?> get props => [familyId];
+  List<Object?> get props => [familyId, childUid];
 }
 
 class LoadMonthlyReportHistory extends ReportEvent {
   final String familyId;
+  final String? childUid; // FIX #4: filter theo con cụ thể
 
-  const LoadMonthlyReportHistory({required this.familyId});
+  const LoadMonthlyReportHistory({required this.familyId, this.childUid});
 
   @override
-  List<Object?> get props => [familyId];
+  List<Object?> get props => [familyId, childUid];
 }
 
 class LoadLatestReport extends ReportEvent {

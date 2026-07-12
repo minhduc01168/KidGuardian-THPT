@@ -1,5 +1,5 @@
 class AppStrings {
-  static const String appName = 'KidGuardian';
+  static const String appName = 'Kura';
   static const String appTagline = 'Đồng Hành Số';
   
   // Auth

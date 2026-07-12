@@ -38,6 +38,16 @@ class AccessibilityChannel {
     }
   }
 
+  /// FIX #1+#5 Native: Push danh sách package được giám sát xuống Kotlin
+  /// để Native filter app events ngay tại tầng dưới, giảm tải Dart runtime.
+  static Future<void> updateMonitoredPackages(List<String> packages) async {
+    try {
+      await _methodChannel.invokeMethod('updateMonitoredPackages', {'packages': packages});
+    } on PlatformException catch (e) {
+      print('Failed to update monitored packages: ${e.message}');
+    }
+  }
+
   /// FIX C2: Ép thiết bị về Home Screen thực sự (thay thế moveTaskToBack)
   /// Native sẽ gọi performGlobalAction(GLOBAL_ACTION_HOME)
   static Future<void> moveToHome() async {

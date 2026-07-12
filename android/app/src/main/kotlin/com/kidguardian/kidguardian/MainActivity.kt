@@ -60,6 +60,16 @@ class MainActivity : FlutterActivity() {
                             result.error("INVALID_ARGS", "Keywords list is null", null)
                         }
                     }
+                    // FIX #1+#5 Native: Cập nhật danh sách app được giám sát từ Flutter
+                    "updateMonitoredPackages" -> {
+                        val packages = call.argument<List<String>>("packages")
+                        if (packages != null) {
+                            AppMonitorService.monitoredPackages = packages.toSet()
+                            result.success(true)
+                        } else {
+                            result.error("INVALID_ARGS", "Packages list is null", null)
+                        }
+                    }
                     // FIX C2: Thay moveTaskToBack bằng lệnh trực tiếp qua AppMonitorService
                     "moveToHome" -> {
                         AppMonitorService.instance?.forceGoHome()

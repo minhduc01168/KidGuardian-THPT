@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/intl.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/utils/app_utils.dart';
@@ -390,76 +391,47 @@ class _ChildDashboardState extends State<ChildDashboard> {
             ),
             SizedBox(height: 24),
 
-            // Time remaining card
+            // Compact Status Banner
             Card(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               child: Padding(
-                padding: EdgeInsets.all(20),
+                padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
-                    Text(
-                      'Thời gian còn lại',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    SizedBox(height: 16),
-                    SizedBox(
-                      width: 150,
-                      height: 150,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          SizedBox(
-                            width: 150,
-                            height: 150,
-                            child: CircularProgressIndicator(
-                              value: progress.clamp(0.0, 1.0),
-                              strokeWidth: 12,
-                              backgroundColor: AppColors.divider.withOpacity(0.3),
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                isOverLimit
-                                    ? AppColors.error
-                                    : progress > 0.8
-                                        ? AppColors.warning
-                                        : AppColors.childPrimary,
-                              ),
-                            ),
-                          ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                    Row(
+                      children: [
+                        Icon(
+                          isOverLimit ? Icons.warning_amber_rounded : Icons.timer_outlined,
+                          color: isOverLimit ? AppColors.error : AppColors.childPrimary,
+                          size: 28,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                isOverLimit ? '0' : '$remainingMinutes',
-                                style: TextStyle(
-                                  fontSize: 36,
-                                  fontWeight: FontWeight.bold,
-                                  color: isOverLimit
-                                      ? AppColors.error
-                                      : AppColors.childPrimary,
-                                ),
-                              ),
-                              Text(
-                                'phút',
+                                isOverLimit ? 'Đã hết thời gian sử dụng' : 'Thời gian còn lại: $remainingMinutes phút',
                                 style: TextStyle(
                                   fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: isOverLimit ? AppColors.error : AppColors.textPrimary,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Hôm nay: $totalMinutesToday / $_dailyLimitMinutes phút',
+                                style: const TextStyle(
+                                  fontSize: 13,
                                   color: AppColors.textSecondary,
                                 ),
                               ),
                             ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                    SizedBox(height: 16),
-                    Text(
-                      'Giới hạn: $_dailyLimitMinutes phút/ngày',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
@@ -476,16 +448,16 @@ class _ChildDashboardState extends State<ChildDashboard> {
                             );
                           }
                         },
-                        icon: const Icon(Icons.more_time, color: Colors.white),
+                        icon: const Icon(Icons.more_time, color: Colors.white, size: 20),
                         label: const Text(
                           'Yêu cầu thêm thời gian',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
                         ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.childPrimary,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(10),
                           ),
                         ),
                       ),
@@ -889,6 +861,7 @@ class _ChildDashboardState extends State<ChildDashboard> {
 
             return Card(
               child: ListTile(
+                onTap: () => _showDayDetailBottomSheet(context, entry.key, entry.value, state),
                 leading: CircleAvatar(
                   backgroundColor: isOverLimit
                       ? AppColors.error.withOpacity(0.1)
@@ -912,6 +885,95 @@ class _ChildDashboardState extends State<ChildDashboard> {
             );
           }),
         ],
+      ),
+    );
+  }
+
+  void _showDayDetailBottomSheet(BuildContext context, String date, int totalMinutes, DashboardLoaded state) {
+    final dateParts = date.split('-');
+    final formattedDate = '${dateParts[2]}/${dateParts[1]}/${dateParts[0]}';
+    final todayStr = DateFormat('yyyy-MM-dd').format(DateTime.now());
+
+    Map<String, int> dayUsage = {};
+    if (date == todayStr && state.usageByApp.isNotEmpty) {
+      dayUsage = Map<String, int>.from(state.usageByApp);
+    } else {
+      for (final log in state.recentLogs) {
+        if (log.date == date) {
+          final appName = log.appName.isNotEmpty ? log.appName : AppUtils.getAppName(log.appPackage);
+          dayUsage[appName] = (dayUsage[appName] ?? 0) + log.durationMinutes;
+        }
+      }
+    }
+
+    final sortedApps = dayUsage.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (bottomSheetContext) => Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Chi tiết sử dụng ngày $formattedDate',
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  '$totalMinutes phút',
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.childPrimary),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            if (sortedApps.isEmpty)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 24),
+                child: Center(
+                  child: Text('Chưa có chi tiết ứng dụng cho ngày này', style: TextStyle(color: AppColors.textSecondary)),
+                ),
+              )
+            else
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 300),
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: sortedApps.length,
+                  itemBuilder: (context, index) {
+                    final appEntry = sortedApps[index];
+                    final color = AppUtils.getAppColor(appEntry.key);
+                    final percent = totalMinutes > 0 ? (appEntry.value / totalMinutes * 100).toStringAsFixed(0) : '0';
+                    return ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: CircleAvatar(
+                        backgroundColor: color.withOpacity(0.15),
+                        child: Icon(Icons.apps, color: color, size: 20),
+                      ),
+                      title: Text(appEntry.key, style: const TextStyle(fontWeight: FontWeight.w600)),
+                      subtitle: LinearProgressIndicator(
+                        value: totalMinutes > 0 ? appEntry.value / totalMinutes : 0,
+                        backgroundColor: AppColors.divider.withOpacity(0.3),
+                        valueColor: AlwaysStoppedAnimation<Color>(color),
+                      ),
+                      trailing: Text(
+                        '${appEntry.value}p ($percent%)',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            const SizedBox(height: 16),
+          ],
+        ),
       ),
     );
   }

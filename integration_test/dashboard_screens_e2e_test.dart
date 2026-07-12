@@ -161,7 +161,7 @@ void main() {
       expect(find.textContaining('Đã hết giờ (60 / 60 phút)'), findsOneWidget);
     });
 
-    testWidgets('Verify ParentDashboard renders compact Recent Activity UI (max 3 items)', (tester) async {
+    testWidgets('Verify ParentDashboard renders compact Recent Activity UI (max 5 items)', (tester) async {
       when(() => mockAuthBloc.state).thenReturn(AuthAuthenticated(user: mockParentUser));
       when(() => mockDashboardBloc.state).thenReturn(DashboardLoaded(
         totalMinutesToday: 150,
@@ -177,6 +177,7 @@ void main() {
           UsageLog(docId: 'doc3', childUid: 'c1', familyId: 'f1', appPackage: 'pkg3', appName: 'Zalo', startTime: now, endTime: now, durationMinutes: 15, date: '2026-07-12'),
           UsageLog(docId: 'doc4', childUid: 'c1', familyId: 'f1', appPackage: 'pkg4', appName: 'Roblox', startTime: now, endTime: now, durationMinutes: 10, date: '2026-07-12'),
           UsageLog(docId: 'doc5', childUid: 'c1', familyId: 'f1', appPackage: 'pkg5', appName: 'Facebook', startTime: now, endTime: now, durationMinutes: 5, date: '2026-07-12'),
+          UsageLog(docId: 'doc6', childUid: 'c1', familyId: 'f1', appPackage: 'pkg6', appName: 'Instagram', startTime: now, endTime: now, durationMinutes: 3, date: '2026-07-12'),
         ],
         childUids: ['c1'],
         appTimeLimits: {},
@@ -211,14 +212,15 @@ void main() {
       // Verify compact Recent Activity section title
       expect(find.text('Hoạt động gần đây'), findsOneWidget);
 
-      // Verify top 3 are rendered in the compact list
+      // Verify top 5 are rendered in the compact list
       expect(find.text('TikTok'), findsWidgets);
       expect(find.text('YouTube'), findsWidgets);
       expect(find.text('Zalo'), findsWidgets);
+      expect(find.text('Roblox'), findsWidgets);
+      expect(find.text('Facebook'), findsWidgets);
 
-      // Verify 4th and 5th items are NOT rendered due to the compact max 3 limit
-      expect(find.text('Roblox'), findsNothing);
-      expect(find.text('Facebook'), findsNothing);
+      // Verify 6th item is NOT rendered due to the compact max 5 limit
+      expect(find.text('Instagram'), findsNothing);
     });
   });
 }

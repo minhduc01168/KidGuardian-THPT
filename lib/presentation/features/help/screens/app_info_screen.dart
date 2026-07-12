@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_strings.dart';
 import '../bloc/help_bloc.dart';
 import '../bloc/help_event.dart';
 import '../bloc/help_state.dart';
@@ -64,11 +65,6 @@ class _AppInfoScreenState extends State<AppInfoScreen> {
                     width: 100,
                     height: 100,
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [AppColors.primary, AppColors.primaryDark],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
@@ -78,10 +74,14 @@ class _AppInfoScreenState extends State<AppInfoScreen> {
                         ),
                       ],
                     ),
-                    child: Icon(
-                      Icons.shield,
-                      size: 56,
-                      color: Colors.white,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(24),
+                      child: Image.asset(
+                        'assets/images/logo.png',
+                        width: 100,
+                        height: 100,
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
                   SizedBox(height: 24),
@@ -148,7 +148,7 @@ class _AppInfoScreenState extends State<AppInfoScreen> {
                           ),
                           SizedBox(height: 12),
                           Text(
-                            'KidGuardian (Đồng Hành Số) là ứng dụng quản lý thời gian sử dụng mạng xã hội và thiết bị di động cho trẻ em. '
+                            '${AppStrings.appName} (Đồng Hành Số) là ứng dụng quản lý thời gian sử dụng mạng xã hội và thiết bị di động cho trẻ em. '
                             'Ứng dụng giúp phụ huynh giám sát và bảo vệ con em trong thế giới số.',
                             style: TextStyle(
                               fontSize: 14,
@@ -163,7 +163,7 @@ class _AppInfoScreenState extends State<AppInfoScreen> {
                   SizedBox(height: 24),
                   // Copyright
                   Text(
-                    '© 2026 KidGuardian Team',
+                    '© 2026 ${AppStrings.appName} Team',
                     style: TextStyle(
                       fontSize: 14,
                       color: AppColors.textSecondary,

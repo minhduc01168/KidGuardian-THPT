@@ -13,6 +13,7 @@ import 'package:kidguardian/domain/repositories/usage_repository.dart';
 import 'package:kidguardian/domain/repositories/alert_repository.dart';
 import 'package:kidguardian/data/repositories/smart_lock_repository.dart';
 import 'package:kidguardian/data/models/smart_lock_settings_model.dart';
+import 'package:kidguardian/data/models/monitored_app_model.dart';
 import 'package:kidguardian/core/utils/app_utils.dart';
 import 'package:intl/intl.dart';
 import 'package:installed_apps/installed_apps.dart';
@@ -150,6 +151,33 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
   // P11: Cache last known limits
   bool _isMonitoring = false;
   SmartLockSettingsModel? _settings;
+  List<MonitoredAppModel> _monitoredApps = [];
+
+  Future<void> _loadMonitoredApps() async {
+    if (_familyId == null || _childUid == null) return;
+    try {
+      _monitoredApps = await smartLockRepository.getMonitoredApps(_familyId!, _childUid!);
+      // FIX #1+#5 Native: Push monitored package list xuống Kotlin để filter tại tầng native
+      final monitoredPackages = _monitoredApps
+          .where((a) => a.isMonitored)
+          .map((a) => a.appPackageName)
+          .toList();
+      await AccessibilityChannel.updateMonitoredPackages(monitoredPackages);
+      debugPrint('AppMonitorBloc: Pushed ${monitoredPackages.length} monitored packages to native');
+    } catch (e) {
+      debugPrint('AppMonitorBloc._loadMonitoredApps error: $e');
+    }
+  }
+
+  bool _isAppAllowedToLog(String packageName) {
+    // Luôn chặn app hệ thống trước tiên
+    if (AppUtils.isSystemOrUnmonitoredApp(packageName)) return false;
+    // Nếu danh sách chưa load → chặn tất cả (fail-safe)
+    if (_monitoredApps.isEmpty) return false;
+    // Closed-by-default: App phải TỒN TẠI trong list VÀ có isMonitored = true
+    final found = _monitoredApps.where((a) => a.appPackageName == packageName);
+    return found.isNotEmpty && found.first.isMonitored;
+  }
 
   // P12: Cooldown map to prevent spamming createAppBlockedAlert (5 mins per app)
   final Map<String, DateTime> _lastAlertSentMap = {};
@@ -194,6 +222,7 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
     _syncOfflineLogs();
 
     _loadSettings();
+    _loadMonitoredApps();
 
     _accessibilitySubscription?.cancel();
     _accessibilitySubscription = AccessibilityChannel.accessibilityEvents.listen((data) {
@@ -357,7 +386,7 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
     final type = event.event['type'];
     final packageName = event.event['packageName'] as String?;
 
-    if (packageName == null || AppUtils.isSystemOrUnmonitoredApp(packageName)) return;
+    if (packageName == null || !_isAppAllowedToLog(packageName)) return;
 
     if (type == 'app_event') {
       final eventType = event.event['eventType'] ?? event.event['event_type'];
@@ -584,7 +613,7 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
 
   void _logCurrentAppUsage() {
     if (_currentAppPackage != null && _currentAppStartTime != null && _childUid != null && _familyId != null) {
-      if (AppUtils.isSystemOrUnmonitoredApp(_currentAppPackage!)) return;
+      if (!_isAppAllowedToLog(_currentAppPackage!)) return;
       final now = DateTime.now();
       final durationSeconds = now.difference(_currentAppStartTime!).inSeconds;
       final durationMinutes = (durationSeconds / 60).ceil();

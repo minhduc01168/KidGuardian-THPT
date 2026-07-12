@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'core/theme/app_theme.dart';
+import 'core/constants/app_strings.dart';
 import 'core/navigation/app_routes.dart';
 import 'data/repositories/auth_repository_impl.dart';
 import 'data/repositories/family_repository_impl.dart';
@@ -269,7 +270,7 @@ class _KidGuardianAppState extends State<KidGuardianApp> {
             builder: (context, settingsState) {
               return MaterialApp(
                 navigatorKey: AppNavigator.navigatorKey,
-                title: 'KidGuardian',
+                title: AppStrings.appName,
                 theme: AppTheme.lightTheme,
                 darkTheme: AppTheme.darkTheme,
                 themeMode: settingsState.themeMode,
