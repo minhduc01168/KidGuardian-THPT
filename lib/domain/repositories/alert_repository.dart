@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:rxdart/rxdart.dart';
 
 abstract class AlertRepository {
   Future<void> createKeywordAlert({
@@ -138,6 +139,8 @@ class AlertRepositoryImpl implements AlertRepository {
           .doc(childUid)
           .collection('alerts')
           .add({
+        'familyId': familyId,
+        'childUid': childUid,
         'type': 'keyword_detected',
         'keyword': keyword,
         'packageName': packageName,
@@ -167,6 +170,8 @@ class AlertRepositoryImpl implements AlertRepository {
           .doc(childUid)
           .collection('alerts')
           .add({
+        'familyId': familyId,
+        'childUid': childUid,
         'type': 'app_blocked',
         'keyword': '',
         'packageName': packageName,
@@ -196,6 +201,8 @@ class AlertRepositoryImpl implements AlertRepository {
           .doc(childUid)
           .collection('alerts')
           .add({
+        'familyId': familyId,
+        'childUid': childUid,
         'type': 'time_request',
         'keyword': '',
         'packageName': packageName,
@@ -252,19 +259,42 @@ class AlertRepositoryImpl implements AlertRepository {
 
   @override
   Stream<List<AlertModel>> watchAllFamilyAlerts({required String familyId}) {
-    // Dùng Firestore-level where('familyId') thay vì filter bằng Dart code client-side
-    // để tránh đọc toàn bộ collectionGroup rồi mới lọc — gây lãng phí Reads nghiêm trọng
     return _firestore
-        .collectionGroup('alerts')
-        .where('familyId', isEqualTo: familyId)
-        .where('type', isEqualTo: 'keyword_detected')
-        .orderBy('timestamp', descending: true)
-        .limit(50)
+        .collection('families')
+        .doc(familyId)
+        .collection('children')
         .snapshots()
-        .map((snapshot) {
-      return snapshot.docs
-          .map((doc) => AlertModel.fromFirestore(doc))
-          .toList();
+        .switchMap((childrenSnapshot) {
+      if (childrenSnapshot.docs.isEmpty) {
+        return Stream.value(<AlertModel>[]);
+      }
+      final streams = childrenSnapshot.docs.map((childDoc) {
+        final childUid = childDoc.id;
+        return _firestore
+            .collection('families')
+            .doc(familyId)
+            .collection('children')
+            .doc(childUid)
+            .collection('alerts')
+            .snapshots()
+            .map((alertSnapshot) {
+          return alertSnapshot.docs
+              .map((doc) => AlertModel.fromFirestore(doc))
+              .where((alert) => alert.type == 'keyword_detected')
+              .toList();
+        });
+      }).toList();
+
+      return Rx.combineLatestList(streams).map((listOfLists) {
+        final combined = listOfLists.expand((list) => list).toList();
+        combined.sort((a, b) {
+          if (a.timestamp == null && b.timestamp == null) return 0;
+          if (a.timestamp == null) return 1;
+          if (b.timestamp == null) return -1;
+          return b.timestamp!.compareTo(a.timestamp!);
+        });
+        return combined.take(50).toList();
+      });
     });
   }
 

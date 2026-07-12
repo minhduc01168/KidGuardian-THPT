@@ -199,6 +199,10 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
     _childUid = event.childUid;
     _isMonitoring = true;
 
+    // Khởi động MonitorForegroundService ngay khi bật giám sát cho tài khoản con
+    AccessibilityChannel.startMonitorService();
+    _syncOfflineLogs();
+
     _loadSettings();
 
     _accessibilitySubscription?.cancel();
@@ -224,6 +228,7 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
     _limitCheckTimer = Timer.periodic(const Duration(seconds: 30), (_) {
       if (_isMonitoring) {
         add(const CheckCurrentAppLimit());
+        _syncOfflineLogs();
       }
     });
 
@@ -295,19 +300,21 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
   Future<void> _onCheckCurrentAppLimit(CheckCurrentAppLimit event, Emitter<AppMonitorState> emit) async {
     if (_currentAppPackage == null || _familyId == null || _childUid == null) return;
 
-    // Check if Smart Lock is enabled
+    // P13: Tự động ghi log định kỳ mỗi 1 phút (>= 60s) khi con sử dụng ứng dụng liên tục
+    // Giúp phụ huynh và bé cập nhật số liệu thời gian gần như lập tức kể cả khi Smart Lock tắt
+    if (_currentAppStartTime != null) {
+      final elapsedSeconds = DateTime.now().difference(_currentAppStartTime!).inSeconds;
+      if (elapsedSeconds >= 60) {
+        debugPrint('[Debug Write] AppMonitorBloc: App $_currentAppPackage đã mở liên tục $elapsedSeconds giây -> trigger periodic _logCurrentAppUsage()');
+        _logCurrentAppUsage();
+        _currentAppStartTime = DateTime.now();
+      }
+    }
+
+    // Check if Smart Lock is enabled for blocking
     if (_settings != null && !_settings!.isEnabled) return;
 
     try {
-      // P13: Tự động ghi log định kỳ mỗi 3 phút (>= 180s) khi con sử dụng ứng dụng liên tục
-      // Tối ưu Firebase Write Quota (~20 lần ghi/giờ thay vì 60 lần) mà vẫn cập nhật kịp thời cho phụ huynh
-      if (_currentAppStartTime != null) {
-        final elapsedSeconds = DateTime.now().difference(_currentAppStartTime!).inSeconds;
-        if (elapsedSeconds >= 180) {
-          _logCurrentAppUsage();
-          _currentAppStartTime = DateTime.now();
-        }
-      }
 
       // Check time limits
       final isAllowed = await checkAppAccessUseCase.execute(
@@ -548,13 +555,50 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
     }
   }
 
+  Future<void> _syncOfflineLogs() async {
+    if (_familyId == null || _childUid == null) return;
+    try {
+      final offlineLogs = await AccessibilityChannel.getAndClearOfflineUsageLogs();
+      if (offlineLogs.isNotEmpty) {
+        debugPrint('[Offline Sync] AppMonitorBloc: Tìm thấy ${offlineLogs.length} log sử dụng lúc tắt UI');
+        for (final item in offlineLogs) {
+          final packageName = item['packageName'] as String? ?? '';
+          final startTimeMs = item['startTime'] as int? ?? 0;
+          final endTimeMs = item['endTime'] as int? ?? 0;
+          final durationSec = item['durationSeconds'] as int? ?? 0;
+          if (packageName.isNotEmpty && startTimeMs > 0 && durationSec >= 5) {
+            final startTime = DateTime.fromMillisecondsSinceEpoch(startTimeMs);
+            final endTime = endTimeMs > 0 ? DateTime.fromMillisecondsSinceEpoch(endTimeMs) : startTime.add(Duration(seconds: durationSec));
+            final durationMinutes = (durationSec / 60).ceil();
+            final log = UsageLog(
+              docId: '',
+              childUid: _childUid!,
+              familyId: _familyId!,
+              appPackage: packageName,
+              appName: _appNameMap[packageName] ?? packageName,
+              startTime: startTime,
+              endTime: endTime,
+              durationMinutes: durationMinutes,
+              date: DateFormat('yyyy-MM-dd').format(startTime),
+            );
+            debugPrint('[Offline Sync] Đồng bộ log: $packageName ($durationMinutes phút)');
+            await usageRepository.logUsage(log);
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('[Offline Sync] Lỗi khi đồng bộ log offline: $e');
+    }
+  }
+
   void _logCurrentAppUsage() {
     if (_currentAppPackage != null && _currentAppStartTime != null && _childUid != null && _familyId != null) {
       final now = DateTime.now();
       final durationSeconds = now.difference(_currentAppStartTime!).inSeconds;
       final durationMinutes = (durationSeconds / 60).ceil();
 
-      if (durationSeconds >= 30) {
+      if (durationSeconds >= 5) {
+        debugPrint('[Debug Write] AppMonitorBloc: Ghi nhận app $_currentAppPackage dùng $durationMinutes phút ($durationSeconds giây)');
         final log = UsageLog(
           docId: '',
           childUid: _childUid!,
@@ -567,6 +611,8 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
           date: DateFormat('yyyy-MM-dd').format(now),
         );
         usageRepository.logUsage(log);
+      } else {
+        debugPrint('[Debug Write] AppMonitorBloc: Bỏ qua log app $_currentAppPackage do thời gian quá ngắn ($durationSeconds s < 5s)');
       }
     }
   }

@@ -1,5 +1,6 @@
 package com.kidguardian.kidguardian
 
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import io.flutter.embedding.android.FlutterActivity
@@ -72,6 +73,13 @@ class MainActivity : FlutterActivity() {
                     "stopMonitorService" -> {
                         stopMonitorForegroundService()
                         result.success(true)
+                    }
+                    "getAndClearOfflineUsageLogs" -> {
+                        val prefs = getSharedPreferences("KidGuardianOfflinePrefs", Context.MODE_PRIVATE)
+                        val logsSet = prefs.getStringSet("offline_usage_logs", emptySet()) ?: emptySet()
+                        val logsList = logsSet.toList()
+                        prefs.edit().remove("offline_usage_logs").apply()
+                        result.success(logsList)
                     }
                     // Giữ lại để không break code cũ
                     "moveTaskToBack" -> {

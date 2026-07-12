@@ -165,13 +165,13 @@ class ReportRepositoryImpl implements ReportRepository {
       final query = await _firestore
           .collection('weekly_reports')
           .where('familyId', isEqualTo: familyId)
-          .orderBy('generatedAt', descending: true)
-          .limit(limit)
           .get();
 
-      return query.docs
+      final list = query.docs
           .map((doc) => WeeklyReportModel.fromFirestore(doc))
           .toList();
+      list.sort((a, b) => b.generatedAt.compareTo(a.generatedAt));
+      return list.take(limit).toList();
     } catch (e) {
       return [];
     }
@@ -186,13 +186,13 @@ class ReportRepositoryImpl implements ReportRepository {
       final query = await _firestore
           .collection('weekly_reports')
           .where('childUid', isEqualTo: childUid)
-          .orderBy('generatedAt', descending: true)
-          .limit(limit)
           .get();
 
-      return query.docs
+      final list = query.docs
           .map((doc) => WeeklyReportModel.fromFirestore(doc))
           .toList();
+      list.sort((a, b) => b.generatedAt.compareTo(a.generatedAt));
+      return list.take(limit).toList();
     } catch (e) {
       return [];
     }
@@ -350,13 +350,13 @@ class ReportRepositoryImpl implements ReportRepository {
       final query = await _firestore
           .collection('monthly_reports')
           .where('familyId', isEqualTo: familyId)
-          .orderBy('generatedAt', descending: true)
-          .limit(limit)
           .get();
 
-      return query.docs
+      final list = query.docs
           .map((doc) => MonthlyReportModel.fromFirestore(doc))
           .toList();
+      list.sort((a, b) => b.generatedAt.compareTo(a.generatedAt));
+      return list.take(limit).toList();
     } catch (e) {
       return [];
     }
@@ -371,13 +371,13 @@ class ReportRepositoryImpl implements ReportRepository {
       final query = await _firestore
           .collection('monthly_reports')
           .where('childUid', isEqualTo: childUid)
-          .orderBy('generatedAt', descending: true)
-          .limit(limit)
           .get();
 
-      return query.docs
+      final list = query.docs
           .map((doc) => MonthlyReportModel.fromFirestore(doc))
           .toList();
+      list.sort((a, b) => b.generatedAt.compareTo(a.generatedAt));
+      return list.take(limit).toList();
     } catch (e) {
       return [];
     }

@@ -42,9 +42,6 @@ void main() {
         final mockQuerySnapshot = MockQuerySnapshot();
         when(() => mockSummariesCollection.where('childUid', isEqualTo: any(named: 'isEqualTo')))
             .thenReturn(mockSummariesCollection);
-        when(() => mockSummariesCollection.orderBy('date', descending: true))
-            .thenReturn(mockSummariesCollection);
-        when(() => mockSummariesCollection.limit(7)).thenReturn(mockSummariesCollection);
         when(() => mockSummariesCollection.get()).thenAnswer((_) async => mockQuerySnapshot);
         when(() => mockQuerySnapshot.docs).thenReturn([]);
 
@@ -59,9 +56,6 @@ void main() {
 
         when(() => mockSummariesCollection.where('childUid', isEqualTo: any(named: 'isEqualTo')))
             .thenReturn(mockSummariesCollection);
-        when(() => mockSummariesCollection.orderBy('date', descending: true))
-            .thenReturn(mockSummariesCollection);
-        when(() => mockSummariesCollection.limit(7)).thenReturn(mockSummariesCollection);
         when(() => mockSummariesCollection.get()).thenAnswer((_) async => mockQuerySnapshot);
         when(() => mockQuerySnapshot.docs).thenReturn([mockDoc]);
         when(() => mockDoc.id).thenReturn('summary-1');
@@ -87,9 +81,6 @@ void main() {
       test('should return empty list on error', () async {
         when(() => mockSummariesCollection.where('childUid', isEqualTo: any(named: 'isEqualTo')))
             .thenReturn(mockSummariesCollection);
-        when(() => mockSummariesCollection.orderBy('date', descending: true))
-            .thenReturn(mockSummariesCollection);
-        when(() => mockSummariesCollection.limit(7)).thenReturn(mockSummariesCollection);
         when(() => mockSummariesCollection.get()).thenThrow(Exception('Network error'));
 
         final result = await repository.getSummariesByChild('child-1');
@@ -103,9 +94,6 @@ void main() {
         final mockQuerySnapshot = MockQuerySnapshot();
         when(() => mockSummariesCollection.where('familyId', isEqualTo: any(named: 'isEqualTo')))
             .thenReturn(mockSummariesCollection);
-        when(() => mockSummariesCollection.orderBy('date', descending: true))
-            .thenReturn(mockSummariesCollection);
-        when(() => mockSummariesCollection.limit(7)).thenReturn(mockSummariesCollection);
         when(() => mockSummariesCollection.get()).thenAnswer((_) async => mockQuerySnapshot);
         when(() => mockQuerySnapshot.docs).thenReturn([]);
 
@@ -117,9 +105,6 @@ void main() {
       test('should return empty list on error', () async {
         when(() => mockSummariesCollection.where('familyId', isEqualTo: any(named: 'isEqualTo')))
             .thenReturn(mockSummariesCollection);
-        when(() => mockSummariesCollection.orderBy('date', descending: true))
-            .thenReturn(mockSummariesCollection);
-        when(() => mockSummariesCollection.limit(7)).thenReturn(mockSummariesCollection);
         when(() => mockSummariesCollection.get()).thenThrow(Exception('Firestore error'));
 
         final result = await repository.getSummariesByFamily('family-1');
@@ -133,6 +118,7 @@ void main() {
         final mockQuerySnapshot = MockQuerySnapshot();
         final mockDoc = MockQueryDocumentSnapshot();
 
+        when(() => mockDoc.data()).thenReturn({'date': '2026-05-24'});
         when(() => mockSummariesCollection.where('childUid', isEqualTo: any(named: 'isEqualTo')))
             .thenReturn(mockSummariesCollection);
         when(() => mockSummariesCollection.where('date', isEqualTo: any(named: 'isEqualTo')))

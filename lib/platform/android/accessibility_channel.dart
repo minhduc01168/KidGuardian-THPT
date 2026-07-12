@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/services.dart';
 
 /// AccessibilityChannel — Cầu nối Flutter ↔ Android Native
@@ -62,6 +63,25 @@ class AccessibilityChannel {
       await _methodChannel.invokeMethod('stopMonitorService');
     } on PlatformException catch (e) {
       print('Failed to stop monitor service: ${e.message}');
+    }
+  }
+
+  /// Đọc và xóa toàn bộ log sử dụng ngoại tuyến trong Kotlin SharedPreferences
+  static Future<List<Map<String, dynamic>>> getAndClearOfflineUsageLogs() async {
+    try {
+      final List<dynamic>? logsJsonList = await _methodChannel.invokeMethod('getAndClearOfflineUsageLogs');
+      if (logsJsonList == null || logsJsonList.isEmpty) return [];
+      return logsJsonList.map((item) {
+        if (item is String) {
+          return Map<String, dynamic>.from(jsonDecode(item));
+        } else if (item is Map) {
+          return Map<String, dynamic>.from(item);
+        }
+        return <String, dynamic>{};
+      }).where((m) => m.isNotEmpty).toList();
+    } on PlatformException catch (e) {
+      print('Failed to get offline usage logs: ${e.message}');
+      return [];
     }
   }
 

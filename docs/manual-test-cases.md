@@ -748,6 +748,34 @@ Tài liệu này cung cấp hướng dẫn kiểm thử thủ công chi tiết c
 
 ---
 
+### TC-026B: Yêu cầu thêm thời gian từ Dashboard (Chọn ứng dụng qua Dropdown)
+| Thông tin | Chi tiết |
+|-----------|----------|
+| **ID** | TC-026B |
+| **Mô tả** | Kiểm tra trẻ yêu cầu thêm thời gian khi bấm xin giờ từ màn hình chính (chọn ứng dụng cần xin thêm từ danh sách Dropdown) |
+| **Priority** | P1 |
+| **Precondition** | Ở màn hình Dashboard (Child role), có danh sách ứng dụng bị giới hạn |
+
+**Steps:**
+1. Nhấn nút "Xin thêm thời gian" trên màn hình chính Dashboard
+2. Quan sát hộp thoại hiển thị thêm Dropdown chọn ứng dụng (`AppSelector`)
+3. Bấm vào Dropdown, chọn một ứng dụng trong danh sách (VD: YouTube)
+4. Chọn số phút muốn thêm: 30 phút
+5. Nhập lý do: "Con làm bài tập xong rồi cần xem video giải trí"
+6. Nhấn "Gửi yêu cầu"
+
+**Expected Result:**
+- [ ] Hiển thị Dropdown danh sách các ứng dụng đang có quy tắc giới hạn từ `RulesRepository`
+- [ ] Cho phép chọn ứng dụng cụ thể trước khi gửi
+- [ ] Gửi thành công yêu cầu với đúng `appPackageName` và `appName` đã chọn
+- [ ] Hiển thị thông báo "Đã gửi yêu cầu"
+
+**Actual Result:** _______________  
+**Status:** ☐ Pass ☐ Fail  
+**Bug ID:** _______________
+
+---
+
 ### TC-027: Phụ huynh duyệt yêu cầu thêm thời gian
 | Thông tin | Chi tiết |
 |-----------|----------|
@@ -1353,6 +1381,30 @@ Tài liệu này cung cấp hướng dẫn kiểm thử thủ công chi tiết c
 
 ---
 
+### TC-QUOTA-004: Kiểm chứng Index-Defensive Querying trên Client memory
+| Thông tin | Chi tiết |
+|-----------|----------|
+| **ID** | TC-QUOTA-004 |
+| **Mô tả** | Kiểm tra hệ thống truy vấn đơn trường (`where`) và lọc/sắp xếp dải ngày trên bộ nhớ RAM client, không cần composite index và không lỗi FAILED_PRECONDITION |
+| **Priority** | P1 |
+| **Precondition** | Đăng nhập tài khoản phụ huynh, mở các báo cáo ngày/tuần/tháng hoặc tổng kết |
+
+**Steps:**
+1. Mở màn hình Báo cáo Tuần hoặc Lọc thời gian sử dụng theo ngày (`getUsageByDateRange`)
+2. Kiểm tra log trên Debug Console hoặc Firebase Console
+3. Quan sát tốc độ hiển thị và không có retry hay báo lỗi requires index
+
+**Expected Result:**
+- [ ] Không xuất hiện lỗi `FAILED_PRECONDITION: The query requires an index...`
+- [ ] Lọc và sắp xếp dữ liệu cực nhanh trên RAM client
+- [ ] Tiết kiệm Quota đọc/ghi và tránh crash ứng dụng
+
+**Actual Result:** _______________  
+**Status:** ☐ Pass ☐ Fail  
+**Bug ID:** _______________
+
+---
+
 ## 13. Bug Report Template
 
 ### Bug Report
@@ -1397,17 +1449,17 @@ _______________
 | Quản lý gia đình | 5 | | | | |
 | Dashboard | 5 | | | | |
 | Giám sát sử dụng | 4 | | | | |
-| Smart Lock | 7 | | | | |
+| Smart Lock | 8 | | | | |
 | Báo cáo/Thống kê | 5 | | | | |
 | Cài đặt | 4 | | | | |
 | Thông báo | 4 | | | | |
 | Trợ giúp | 3 | | | | |
-| Hiệu suất/UX | 4 | | | | |
-| **TOTAL** | **50** | | | | |
+| Hiệu suất/UX & Quota | 5 | | | | |
+| **TOTAL** | **52** | | | | |
 
 ### Test Completion
 
-- **Total Test Cases:** 50
+- **Total Test Cases:** 52
 - **Executed:** _____
 - **Passed:** _____
 - **Failed:** _____
@@ -1424,4 +1476,4 @@ _______________
 ---
 
 **Tài liệu này được tạo cho dự án KidGuardian**  
-**Cập nhật lần cuối: 23/05/2026**
+**Cập nhật lần cuối: 11/07/2026**

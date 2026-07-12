@@ -104,13 +104,13 @@ class SummaryRepositoryImpl implements SummaryRepository {
       final query = await _firestore
           .collection('daily_summaries')
           .where('familyId', isEqualTo: familyId)
-          .orderBy('date', descending: true)
-          .limit(limit)
           .get();
 
-      return query.docs
+      final list = query.docs
           .map((doc) => DailySummaryModel.fromFirestore(doc))
           .toList();
+      list.sort((a, b) => b.date.compareTo(a.date));
+      return list.take(limit).toList();
     } catch (e) {
       return [];
     }
@@ -125,13 +125,13 @@ class SummaryRepositoryImpl implements SummaryRepository {
       final query = await _firestore
           .collection('daily_summaries')
           .where('childUid', isEqualTo: childUid)
-          .orderBy('date', descending: true)
-          .limit(limit)
           .get();
 
-      return query.docs
+      final list = query.docs
           .map((doc) => DailySummaryModel.fromFirestore(doc))
           .toList();
+      list.sort((a, b) => b.date.compareTo(a.date));
+      return list.take(limit).toList();
     } catch (e) {
       return [];
     }
@@ -147,13 +147,15 @@ class SummaryRepositoryImpl implements SummaryRepository {
 
   @override
   Future<bool> hasSummaryForDate(String childUid, String date) async {
-    final query = await _firestore
-        .collection('daily_summaries')
-        .where('childUid', isEqualTo: childUid)
-        .where('date', isEqualTo: date)
-        .limit(1)
-        .get();
+    try {
+      final query = await _firestore
+          .collection('daily_summaries')
+          .where('childUid', isEqualTo: childUid)
+          .get();
 
-    return query.docs.isNotEmpty;
+      return query.docs.any((doc) => doc.data()['date'] == date);
+    } catch (e) {
+      return false;
+    }
   }
 }

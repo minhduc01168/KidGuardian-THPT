@@ -60,13 +60,31 @@ KidGuardian sử dụng phương thức đăng nhập bằng **Email và Mật k
 
 ✅ *Thành công! Database của bạn đã sẵn sàng để lưu trữ mọi thứ từ KidGuardian.*
 
-## ⚡ PHẦN 4: CẤU HÌNH CHỈ MỤC GOM NHÓM (COLLECTION GROUP INDEXES - BẮT BUỘC)
+## ⚡ PHẦN 4: CẤU HÌNH CHỈ MỤC (FIRESTORE INDEXES & INDEX-DEFENSIVE QUERYING)
 
-Đây là bước **CỰC KÌ QUAN TRỌNG** khi thiết lập dự án KidGuardian. 
+Đây là bước **CỰC KÌ QUAN TRỌNG** khi thiết lập dự án KidGuardian để đảm bảo hiệu năng, chống lỗi `FAILED_PRECONDITION` và ngăn chặn cạn kiệt hạn ngạch (Quota Exceeded).
 
+### 1. Kiến trúc "Index-Defensive Querying" (Truy vấn phòng thủ chỉ mục)
+Để tối ưu hóa chi phí và đảm bảo ổn định 100% trên thiết bị di động, KidGuardian áp dụng chiến lược **Index-Defensive Querying**:
+- **Truy vấn đơn trường trên server (Single-field query):** Các repository (`SummaryRepository`, `ReportRepository`, `UsageRepository`) khi gọi lên Cloud Firestore chỉ thực hiện lọc theo một trường chính duy nhất (chẳng hạn `where('childUid', isEqualTo: childUid)` hoặc `where('familyId', isEqualTo: familyId)`).
+- **Xử lý trên Client (Client-side Processing):** Việc sắp xếp (`orderBy`) theo thời gian (`generatedAt`, `date`, `startTime`) hoặc lọc theo dải ngày (`date range`) được thực hiện hoàn toàn trong bộ nhớ RAM của ứng dụng (Dart client).
+- **Lợi ích:** Loại bỏ hoàn toàn sự phụ thuộc vào các composite indexes phức tạp cho các truy vấn báo cáo nhanh, ngăn chặn tuyệt đối tình trạng app bị treo/crash do thiếu index hoặc lỗi mạng chập chờn, đồng thời tiết kiệm tối đa số lượng Index cần bảo trì trên Firebase.
+
+### 2. File cấu hình tự động `firestore.indexes.json`
+Mặc dù đã áp dụng Index-Defensive Querying, hệ thống vẫn cần một số chỉ mục gom nhóm (`Collection Group Indexes`) và chỉ mục kết hợp (`Composite Indexes`) cho các tính năng theo dõi thời gian thực như Cảnh báo (`alerts`), Yêu cầu thời gian (`timeRequests`), và báo cáo tuần (`weekly_reports`).
+
+Dự án đã tích hợp sẵn toàn bộ cấu hình chỉ mục chuẩn trong file `firestore.indexes.json` ở gốc dự án (bao gồm 14 indexes cho `alerts`, `timeRequests`, `weekly_reports`, `installed_apps`, `rules`, `daily_summaries`, `usage_logs`).
+
+#### Cách 1: Triển khai tự động bằng Firebase CLI (Khuyên dùng - Nhanh nhất)
+Nếu bạn đã cài đặt Firebase CLI trên máy tính, bạn có thể đẩy toàn bộ 14 chỉ mục này lên dự án Firebase chỉ bằng **1 lệnh duy nhất** từ terminal (trong thư mục gốc của dự án):
+```bash
+firebase deploy --only firestore:indexes
+```
+Sau khi chạy lệnh, hãy chờ 2-5 phút để Firebase hoàn tất xây dựng (Trạng thái chuyển sang *Enabled* màu xanh trên Firebase Console).
+
+### 3. Cấu hình Chỉ mục Thủ công / Qua link trong Log (Khi không dùng Firebase CLI)
 **Tại sao cần bước này?**  
-Ứng dụng KidGuardian có tính năng cho phép Phụ huynh theo dõi cảnh báo (`alerts`) và yêu cầu xin thêm giờ (`timeRequests`) từ **tất cả các con** trong gia đình cùng một lúc. Để làm được điều này, ứng dụng sử dụng kỹ thuật truy vấn gom nhóm (**Collection Group Query**) của Firestore.  
-Mặc định, Firebase **KHÔNG** tự động tạo chỉ mục (index) cho các truy vấn gom nhóm. Nếu bạn không bật chỉ mục này trên Firebase Console, ứng dụng sẽ gặp lỗi `FAILED_PRECONDITION`, tự động thử lại liên tục gây cạn kiệt hạn ngạch miễn phí (Quota Exceeded) và dẫn đến sập ứng dụng (`Out of memory / SIGABRT`).
+Ứng dụng KidGuardian có tính năng cho phép Phụ huynh theo dõi cảnh báo (`alerts`) và yêu cầu xin thêm giờ (`timeRequests`) từ **tất cả các con** trong gia đình cùng một lúc thông qua kỹ thuật truy vấn gom nhóm (**Collection Group Query**). Nếu không bật chỉ mục này, ứng dụng sẽ gặp lỗi `FAILED_PRECONDITION`.
 
 ### 🛠️ Cách tạo Chỉ mục (Có 2 cách):
 
@@ -93,8 +111,18 @@ Nếu bạn không muốn tìm link trong log, bạn có thể tự thiết lậ
      - Field path: `familyId`
      - Query scope: **Collection group** (Nhóm bộ sưu tập)
      - Bấm **Save / Create**.
+   * **Chỉ mục 3 (Cho Báo cáo Sử dụng App theo Trẻ - Composite Index):**
+     - Collection ID: `usage_logs`
+     - Fields: `childUid` (Ascending), `date` (Ascending), `startTime` (Descending)
+     - Query scope: **Collection**
+     - Bấm **Save / Create**.
+   * **Chỉ mục 4 (Cho Báo cáo Sử dụng App theo Gia đình - Composite Index):**
+     - Collection ID: `usage_logs`
+     - Fields: `familyId` (Ascending), `date` (Ascending), `startTime` (Descending)
+     - Query scope: **Collection**
+     - Bấm **Save / Create**.
 
-✅ *Thành công! Sau khi trạng thái Index báo **Enabled**, ứng dụng sẽ chạy siêu mượt mà và không bao giờ bị lỗi kết nối hay sập app nữa.*
+✅ *Thành công! Sau khi trạng thái Index báo **Enabled**, ứng dụng sẽ chạy ở chế độ tối ưu Server-Side Indexing siêu tốc và không bao giờ tốn RAM/Quota.*
 
 ---
 

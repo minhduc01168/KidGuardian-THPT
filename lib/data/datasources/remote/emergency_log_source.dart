@@ -41,13 +41,19 @@ class EmergencyLogSource {
       final query = await _firestore
           .collection('emergency_logs')
           .where('childUid', isEqualTo: childUid)
-          .where('status', isEqualTo: 'active')
-          .orderBy('timestamp', descending: true)
-          .limit(1)
           .get();
 
-      if (query.docs.isNotEmpty) {
-        await query.docs.first.reference.update({
+      final activeDocs = query.docs
+          .where((doc) => doc.data()['status'] == 'active')
+          .toList();
+      activeDocs.sort((a, b) {
+        final tA = (a.data()['timestamp'] as Timestamp?)?.toDate() ?? DateTime(2000);
+        final tB = (b.data()['timestamp'] as Timestamp?)?.toDate() ?? DateTime(2000);
+        return tB.compareTo(tA);
+      });
+
+      if (activeDocs.isNotEmpty) {
+        await activeDocs.first.reference.update({
           'durationSeconds': durationSeconds,
           'status': 'completed',
         });
@@ -101,10 +107,8 @@ class EmergencyLogSource {
       final query = await _firestore
           .collection('emergency_logs')
           .where('familyId', isEqualTo: familyId)
-          .where('childUid', isEqualTo: childUid)
-          .count()
           .get();
-      return query.count ?? 0;
+      return query.docs.where((doc) => doc.data()['childUid'] == childUid).length;
     } catch (e) {
       debugPrint('EmergencyLogSource.getEmergencyCount error: $e');
       return 0;

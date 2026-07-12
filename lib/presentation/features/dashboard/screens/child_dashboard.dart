@@ -18,11 +18,13 @@ import '../bloc/dashboard_bloc.dart';
 import '../bloc/dashboard_event.dart';
 import '../bloc/dashboard_state.dart';
 import '../../../blocs/emergency_access/emergency_access_screen.dart';
+import 'dart:math' as math;
 import 'package:kidguardian/presentation/blocs/smart_lock/smart_lock_bloc.dart';
 import 'package:kidguardian/presentation/blocs/smart_lock/smart_lock_event.dart';
 import 'package:kidguardian/presentation/blocs/smart_lock/smart_lock_state.dart';
 import 'package:kidguardian/presentation/blocs/smart_lock/app_monitor_bloc.dart';
 import 'package:kidguardian/presentation/widgets/smart_lock/request_time_dialog.dart';
+import 'package:kidguardian/data/models/app_time_limit_model.dart';
 
 class ChildDashboard extends StatefulWidget {
   const ChildDashboard({super.key});
@@ -34,6 +36,7 @@ class ChildDashboard extends StatefulWidget {
 class _ChildDashboardState extends State<ChildDashboard> {
   int _currentIndex = 0;
   int _dailyLimitMinutes = 120; // Default 2 hours, will be updated from settings
+  List<AppTimeLimitModel> _appLimits = [];
 
   @override
   void initState() {
@@ -61,6 +64,12 @@ class _ChildDashboardState extends State<ChildDashboard> {
                 authState.user.uid,
               ),
             );
+        context.read<SmartLockBloc>().add(
+              LoadAppTimeLimits(
+                authState.user.familyId!,
+                authState.user.uid,
+              ),
+            );
       }
     }
   }
@@ -78,6 +87,30 @@ class _ChildDashboardState extends State<ChildDashboard> {
     return map[packageNameOrName] ?? packageNameOrName;
   }
 
+  int _getAppLimitMinutes(String packageName) {
+    AppTimeLimitModel? appLimit;
+    for (final limit in _appLimits) {
+      if (limit.appPackageName == packageName) {
+        appLimit = limit;
+        break;
+      }
+    }
+    if (appLimit != null && appLimit.limits.isNotEmpty) {
+      const dayKeys = [
+        'monday', 'tuesday', 'wednesday', 'thursday',
+        'friday', 'saturday', 'sunday',
+      ];
+      final dayOfWeek = dayKeys[DateTime.now().weekday - 1];
+      if (appLimit.limits.containsKey(dayOfWeek)) {
+        return appLimit.limits[dayOfWeek]!;
+      }
+      if (appLimit.limits.containsKey('everyday')) {
+        return appLimit.limits['everyday']!;
+      }
+    }
+    return _dailyLimitMinutes;
+  }
+
   @override
   Widget build(BuildContext context) {
     return MultiBlocListener(
@@ -87,6 +120,10 @@ class _ChildDashboardState extends State<ChildDashboard> {
             if (state is SmartLockSettingsLoaded && mounted) {
               setState(() {
                 _dailyLimitMinutes = state.settings.defaultTimeLimitMinutes;
+              });
+            } else if (state is SmartLockLoaded && mounted) {
+              setState(() {
+                _appLimits = state.apps;
               });
             }
           },
@@ -489,60 +526,86 @@ class _ChildDashboardState extends State<ChildDashboard> {
                       SizedBox(height: 16),
                       ...usageByApp.entries.take(5).map((entry) {
                         final appDisplayName = _getAppName(entry.key);
-                        final isOverAppLimit = entry.value >= _dailyLimitMinutes;
+                        final usedMinutes = entry.value;
+                        final limitMinutes = _getAppLimitMinutes(entry.key);
+                        final remainingMinutes = math.max(0, limitMinutes - usedMinutes);
+                        final isOverAppLimit = usedMinutes >= limitMinutes;
+                        final progress = (limitMinutes > 0) ? (usedMinutes / limitMinutes).clamp(0.0, 1.0) : 1.0;
+
+                        Color statusColor = AppColors.childPrimary;
+                        if (isOverAppLimit || remainingMinutes == 0) {
+                          statusColor = AppColors.error;
+                        } else if (progress > 0.8 || remainingMinutes <= 10) {
+                          statusColor = AppColors.warning;
+                        }
+
                         return Padding(
-                          padding: EdgeInsets.symmetric(vertical: 6),
-                          child: Row(
+                          padding: EdgeInsets.symmetric(vertical: 8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Icon(
-                                AppUtils.getAppIcon(appDisplayName),
-                                size: 24,
-                                color: AppUtils.getAppColor(appDisplayName),
-                              ),
-                              SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      appDisplayName,
-                                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                              Row(
+                                children: [
+                                  Icon(
+                                    AppUtils.getAppIcon(appDisplayName),
+                                    size: 26,
+                                    color: AppUtils.getAppColor(appDisplayName),
+                                  ),
+                                  SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          appDisplayName,
+                                          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                                        ),
+                                        SizedBox(height: 2),
+                                        Text(
+                                          isOverAppLimit
+                                              ? 'Đã hết giờ ($usedMinutes / $limitMinutes phút)'
+                                              : 'Đã dùng: ${usedMinutes}p | Còn lại: ${remainingMinutes}p (Giới hạn: ${limitMinutes}p)',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: isOverAppLimit ? FontWeight.bold : FontWeight.normal,
+                                            color: statusColor,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    Text(
-                                      isOverAppLimit ? 'Đã hết giới hạn' : 'Đang sử dụng bình thường',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: isOverAppLimit ? AppColors.error : AppColors.childPrimary,
-                                      ),
+                                  ),
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.add_circle_outline,
+                                      color: AppColors.childPrimary,
+                                      size: 24,
                                     ),
-                                  ],
-                                ),
+                                    tooltip: 'Xin thêm giờ cho app này',
+                                    onPressed: () {
+                                      if (user.familyId != null) {
+                                        showDialog(
+                                          context: context,
+                                          builder: (_) => RequestTimeDialog(
+                                            familyId: user.familyId!,
+                                            childUid: user.uid,
+                                            appPackageName: entry.key,
+                                            appName: appDisplayName,
+                                          ),
+                                        );
+                                      }
+                                    },
+                                  ),
+                                ],
                               ),
-                              Text(
-                                '${entry.value}p',
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                              ),
-                              SizedBox(width: 8),
-                              IconButton(
-                                icon: Icon(
-                                  Icons.add_circle_outline,
-                                  color: AppColors.childPrimary,
-                                  size: 22,
+                              SizedBox(height: 4),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(4),
+                                child: LinearProgressIndicator(
+                                  value: progress.toDouble(),
+                                  minHeight: 6,
+                                  backgroundColor: Colors.grey.shade200,
+                                  valueColor: AlwaysStoppedAnimation<Color>(statusColor),
                                 ),
-                                tooltip: 'Xin thêm giờ cho app này',
-                                onPressed: () {
-                                  if (user.familyId != null) {
-                                    showDialog(
-                                      context: context,
-                                      builder: (_) => RequestTimeDialog(
-                                        familyId: user.familyId!,
-                                        childUid: user.uid,
-                                        appPackageName: entry.key,
-                                        appName: appDisplayName,
-                                      ),
-                                    );
-                                  }
-                                },
                               ),
                             ],
                           ),

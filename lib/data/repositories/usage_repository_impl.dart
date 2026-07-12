@@ -13,17 +13,40 @@ class UsageRepositoryImpl implements UsageRepository {
   @override
   Future<List<UsageLog>> getUsageByChild(String childUid, String date) async {
     try {
-      final query = await _firestore
-          .collection('usage_logs')
-          .where('childUid', isEqualTo: childUid)
-          .where('date', isEqualTo: date)
-          .get();
+      debugPrint('[Debug Read] getUsageByChild -> Querying usage_logs for childUid: $childUid, date: $date');
+      try {
+        final query = await _firestore
+            .collection('usage_logs')
+            .where('childUid', isEqualTo: childUid)
+            .where('date', isEqualTo: date)
+            .get();
 
-      final logs = query.docs.map((doc) => UsageLogModel.fromFirestore(doc)).toList();
-      logs.sort((a, b) => b.startTime.compareTo(a.startTime));
-      return logs;
+        final logs = query.docs
+            .map((doc) => UsageLogModel.fromFirestore(doc))
+            .toList();
+        logs.sort((a, b) => b.startTime.compareTo(a.startTime));
+        debugPrint('[Debug Read] getUsageByChild (Server-Side Index) -> Found ${logs.length} logs for date $date');
+        return logs;
+      } on FirebaseException catch (fe) {
+        if (fe.code == 'failed-precondition' || fe.message?.contains('index') == true) {
+          debugPrint('[Debug Read Warning] Composite Index chưa tạo cho childUid+date. Fallback sang RAM filtering.');
+          final query = await _firestore
+              .collection('usage_logs')
+              .where('childUid', isEqualTo: childUid)
+              .get();
+
+          final logs = query.docs
+              .map((doc) => UsageLogModel.fromFirestore(doc))
+              .where((log) => log.date == date)
+              .toList();
+          logs.sort((a, b) => b.startTime.compareTo(a.startTime));
+          debugPrint('[Debug Read] getUsageByChild (RAM Fallback) -> Found ${logs.length} logs for date $date');
+          return logs;
+        }
+        rethrow;
+      }
     } catch (e) {
-      debugPrint('Error getting usage by child ($childUid, $date): $e');
+      debugPrint('[Debug Read Error] getUsageByChild ($childUid, $date): $e');
       return [];
     }
   }
@@ -31,17 +54,40 @@ class UsageRepositoryImpl implements UsageRepository {
   @override
   Future<List<UsageLog>> getUsageByFamily(String familyId, String date) async {
     try {
-      final query = await _firestore
-          .collection('usage_logs')
-          .where('familyId', isEqualTo: familyId)
-          .where('date', isEqualTo: date)
-          .get();
+      debugPrint('[Debug Read] getUsageByFamily -> Querying usage_logs for familyId: $familyId, date: $date');
+      try {
+        final query = await _firestore
+            .collection('usage_logs')
+            .where('familyId', isEqualTo: familyId)
+            .where('date', isEqualTo: date)
+            .get();
 
-      final logs = query.docs.map((doc) => UsageLogModel.fromFirestore(doc)).toList();
-      logs.sort((a, b) => b.startTime.compareTo(a.startTime));
-      return logs;
+        final logs = query.docs
+            .map((doc) => UsageLogModel.fromFirestore(doc))
+            .toList();
+        logs.sort((a, b) => b.startTime.compareTo(a.startTime));
+        debugPrint('[Debug Read] getUsageByFamily (Server-Side Index) -> Found ${logs.length} logs for date $date');
+        return logs;
+      } on FirebaseException catch (fe) {
+        if (fe.code == 'failed-precondition' || fe.message?.contains('index') == true) {
+          debugPrint('[Debug Read Warning] Composite Index chưa tạo cho familyId+date. Fallback sang RAM filtering.');
+          final query = await _firestore
+              .collection('usage_logs')
+              .where('familyId', isEqualTo: familyId)
+              .get();
+
+          final logs = query.docs
+              .map((doc) => UsageLogModel.fromFirestore(doc))
+              .where((log) => log.date == date)
+              .toList();
+          logs.sort((a, b) => b.startTime.compareTo(a.startTime));
+          debugPrint('[Debug Read] getUsageByFamily (RAM Fallback) -> Found ${logs.length} logs for date $date');
+          return logs;
+        }
+        rethrow;
+      }
     } catch (e) {
-      debugPrint('Error getting usage by family ($familyId, $date): $e');
+      debugPrint('[Debug Read Error] getUsageByFamily ($familyId, $date): $e');
       return [];
     }
   }
@@ -53,18 +99,43 @@ class UsageRepositoryImpl implements UsageRepository {
     String endDate,
   ) async {
     try {
-      final query = await _firestore
-          .collection('usage_logs')
-          .where('childUid', isEqualTo: childUid)
-          .where('date', isGreaterThanOrEqualTo: startDate)
-          .where('date', isLessThanOrEqualTo: endDate)
-          .get();
+      debugPrint('[Debug Read] getUsageByDateRange -> childUid: $childUid, range: $startDate -> $endDate');
+      try {
+        final query = await _firestore
+            .collection('usage_logs')
+            .where('childUid', isEqualTo: childUid)
+            .where('date', isGreaterThanOrEqualTo: startDate)
+            .where('date', isLessThanOrEqualTo: endDate)
+            .get();
 
-      final logs = query.docs.map((doc) => UsageLogModel.fromFirestore(doc)).toList();
-      logs.sort((a, b) => b.date.compareTo(a.date));
-      return logs;
+        final logs = query.docs
+            .map((doc) => UsageLogModel.fromFirestore(doc))
+            .toList();
+        logs.sort((a, b) => b.date.compareTo(a.date));
+        debugPrint('[Debug Read] getUsageByDateRange (Server-Side Index) -> Found ${logs.length} logs');
+        return logs;
+      } on FirebaseException catch (fe) {
+        if (fe.code == 'failed-precondition' || fe.message?.contains('index') == true) {
+          debugPrint('[Debug Read Warning] Composite Index chưa tạo cho date range. Fallback sang RAM filtering.');
+          final query = await _firestore
+              .collection('usage_logs')
+              .where('childUid', isEqualTo: childUid)
+              .get();
+
+          final logs = query.docs
+              .map((doc) => UsageLogModel.fromFirestore(doc))
+              .where((log) =>
+                  log.date.compareTo(startDate) >= 0 &&
+                  log.date.compareTo(endDate) <= 0)
+              .toList();
+          logs.sort((a, b) => b.date.compareTo(a.date));
+          debugPrint('[Debug Read] getUsageByDateRange (RAM Fallback) -> Found ${logs.length} logs');
+          return logs;
+        }
+        rethrow;
+      }
     } catch (e) {
-      debugPrint('Error getting usage by date range: $e');
+      debugPrint('[Debug Read Error] getUsageByDateRange: $e');
       return [];
     }
   }
@@ -94,18 +165,24 @@ class UsageRepositoryImpl implements UsageRepository {
 
   @override
   Future<void> logUsage(UsageLog log) async {
-    await _firestore.collection('usage_logs').add(
-          UsageLogModel(
-            docId: '',
-            childUid: log.childUid,
-            familyId: log.familyId,
-            appPackage: log.appPackage,
-            appName: log.appName,
-            startTime: log.startTime,
-            endTime: log.endTime,
-            durationMinutes: log.durationMinutes,
-            date: log.date,
-          ).toMap(),
-        );
+    try {
+      debugPrint('[Debug Write] logUsage -> Attempting to add usage log for app: ${log.appPackage} (${log.durationMinutes} minutes on ${log.date})');
+      final docRef = await _firestore.collection('usage_logs').add(
+            UsageLogModel(
+              docId: '',
+              childUid: log.childUid,
+              familyId: log.familyId,
+              appPackage: log.appPackage,
+              appName: log.appName,
+              startTime: log.startTime,
+              endTime: log.endTime,
+              durationMinutes: log.durationMinutes,
+              date: log.date,
+            ).toMap(),
+          );
+      debugPrint('[Debug Write] logUsage -> Successfully added usage log to Firestore with Doc ID: ${docRef.id}');
+    } catch (e) {
+      debugPrint('[Debug Write Error] Failed to log usage for ${log.appPackage}: $e');
+    }
   }
 }

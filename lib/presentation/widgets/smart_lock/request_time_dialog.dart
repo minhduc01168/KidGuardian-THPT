@@ -5,6 +5,12 @@ import 'package:kidguardian/domain/repositories/alert_repository.dart';
 import 'package:kidguardian/domain/repositories/rules_repository.dart';
 import 'package:kidguardian/presentation/blocs/time_request/time_request_bloc.dart';
 
+class AppOption {
+  final String packageName;
+  final String appName;
+  const AppOption(this.packageName, this.appName);
+}
+
 class RequestTimeDialog extends StatefulWidget {
   final String appPackageName;
   final String appName;
@@ -27,7 +33,34 @@ class _RequestTimeDialogState extends State<RequestTimeDialog> {
   int _selectedMinutes = 15;
   final _reasonController = TextEditingController();
 
+  late String _selectedPackageName;
+  late String _selectedAppName;
+
   static const _minuteOptions = [15, 30, 60];
+
+  static const List<AppOption> _commonMonitoredApps = [
+    AppOption('com.google.android.youtube', 'YouTube'),
+    AppOption('com.zhiliaoapp.musically', 'TikTok'),
+    AppOption('com.facebook.katana', 'Facebook'),
+    AppOption('com.zing.zalo', 'Zalo'),
+    AppOption('com.dts.freefireth', 'Free Fire'),
+    AppOption('com.roblox.client', 'Roblox'),
+    AppOption('com.garena.game.kgvn', 'Liên Quân Mobile'),
+    AppOption('com.instagram.android', 'Instagram'),
+    AppOption('com.tencent.ig', 'PUBG Mobile'),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.appPackageName == 'general_time' || widget.appPackageName.isEmpty) {
+      _selectedPackageName = _commonMonitoredApps.first.packageName;
+      _selectedAppName = _commonMonitoredApps.first.appName;
+    } else {
+      _selectedPackageName = widget.appPackageName;
+      _selectedAppName = widget.appName;
+    }
+  }
 
   @override
   void dispose() {
@@ -78,7 +111,7 @@ class _RequestTimeDialogState extends State<RequestTimeDialog> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Vui lòng chờ phản hồi từ phụ huynh.\nBạn đã xin thêm $_selectedMinutes phút cho ${widget.appName}.',
+                    'Vui lòng chờ phản hồi từ phụ huynh.\nBạn đã xin thêm $_selectedMinutes phút cho $_selectedAppName.',
                     style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
                     textAlign: TextAlign.center,
                   ),
@@ -103,6 +136,8 @@ class _RequestTimeDialogState extends State<RequestTimeDialog> {
             );
           }
 
+          final isGeneralRequest = widget.appPackageName == 'general_time' || widget.appPackageName.isEmpty;
+
           return AlertDialog(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             title: Row(
@@ -117,54 +152,95 @@ class _RequestTimeDialogState extends State<RequestTimeDialog> {
                 ),
               ],
             ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Ứng dụng: ${widget.appName}',
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Chọn số phút muốn xin thêm:',
-                  style: TextStyle(fontSize: 14),
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  children: _minuteOptions.map((minutes) {
-                    final isSelected = _selectedMinutes == minutes;
-                    return ChoiceChip(
-                      label: Text('$minutes phút'),
-                      selected: isSelected,
-                      onSelected: (_) => setState(() => _selectedMinutes = minutes),
-                      selectedColor: const Color(0xFF6B7FE8),
-                      labelStyle: TextStyle(
-                        color: isSelected ? Colors.white : Colors.black87,
-                        fontWeight: FontWeight.w600,
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (isGeneralRequest) ...[
+                    const Text(
+                      'Chọn ứng dụng muốn chơi thêm:',
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<String>(
+                      initialValue: _selectedPackageName,
+                      isExpanded: true,
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                       ),
-                    );
-                  }).toList(),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _reasonController,
-                  decoration: InputDecoration(
-                    labelText: 'Lý do (tùy chọn)',
-                    hintText: 'VD: Con cần thêm thời gian để...',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      items: _commonMonitoredApps.map((app) {
+                        return DropdownMenuItem<String>(
+                          value: app.packageName,
+                          child: Text(
+                            app.appName,
+                            style: const TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: state is TimeRequestSubmitting
+                          ? null
+                          : (val) {
+                              if (val != null) {
+                                final selected = _commonMonitoredApps.firstWhere((a) => a.packageName == val);
+                                setState(() {
+                                  _selectedPackageName = selected.packageName;
+                                  _selectedAppName = selected.appName;
+                                });
+                              }
+                            },
                     ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 10,
+                    const SizedBox(height: 16),
+                  ] else ...[
+                    Text(
+                      'Ứng dụng: ${widget.appName}',
+                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
                     ),
+                    const SizedBox(height: 16),
+                  ],
+                  const Text(
+                    'Chọn số phút muốn xin thêm:',
+                    style: TextStyle(fontSize: 14),
                   ),
-                  maxLines: 2,
-                  maxLength: 500,
-                ),
-              ],
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    children: _minuteOptions.map((minutes) {
+                      final isSelected = _selectedMinutes == minutes;
+                      return ChoiceChip(
+                        label: Text('$minutes phút'),
+                        selected: isSelected,
+                        onSelected: (_) => setState(() => _selectedMinutes = minutes),
+                        selectedColor: const Color(0xFF6B7FE8),
+                        labelStyle: TextStyle(
+                          color: isSelected ? Colors.white : Colors.black87,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _reasonController,
+                    decoration: InputDecoration(
+                      labelText: 'Lý do (tùy chọn)',
+                      hintText: 'VD: Con cần thêm thời gian để giải trí...',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                    ),
+                    maxLines: 2,
+                    maxLength: 500,
+                  ),
+                ],
+              ),
             ),
             actions: [
               TextButton(
@@ -179,8 +255,8 @@ class _RequestTimeDialogState extends State<RequestTimeDialog> {
                           context.read<TimeRequestBloc>().add(SubmitTimeRequest(
                             familyId: widget.familyId!,
                             childUid: widget.childUid!,
-                            appPackageName: widget.appPackageName,
-                            appName: widget.appName,
+                            appPackageName: _selectedPackageName,
+                            appName: _selectedAppName,
                             requestedMinutes: _selectedMinutes,
                             reason: _reasonController.text.trim(),
                           ));

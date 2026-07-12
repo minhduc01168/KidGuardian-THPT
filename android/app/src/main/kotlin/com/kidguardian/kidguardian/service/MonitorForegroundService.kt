@@ -46,6 +46,12 @@ class MonitorForegroundService : Service() {
 
         // Singleton EventSink để giao tiếp với Flutter
         var eventSink: EventChannel.EventSink? = null
+
+        fun sendEventDirectly(data: Map<String, Any>) {
+            android.os.Handler(android.os.Looper.getMainLooper()).post {
+                eventSink?.success(data)
+            }
+        }
     }
 
     private val appEventReceiver = object : BroadcastReceiver() {
@@ -126,10 +132,7 @@ class MonitorForegroundService : Service() {
     }
 
     private fun sendEventToFlutter(data: Map<String, Any>) {
-        // Post on main thread vì EventSink phải gọi từ main thread
-        android.os.Handler(android.os.Looper.getMainLooper()).post {
-            eventSink?.success(data)
-        }
+        sendEventDirectly(data)
     }
 
     private fun buildNotification(): Notification {

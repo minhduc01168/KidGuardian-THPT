@@ -3,7 +3,7 @@
 **Ứng dụng:** KidGuardian - Đồng Hành Số  
 **Mục đích:** Quản lý và bảo vệ trẻ em trên không gian mạng, kiểm soát thời gian sử dụng ứng dụng thông minh  
 **File APK:** `build/app/outputs/flutter-apk/app-debug.apk`  
-**Cập nhật lần cuối:** 10/07/2026 (Đồng bộ 100% với 648/648 Automated Unit/Widget/BLoC Tests & Tối ưu Quota Firebase)  
+**Cập nhật lần cuối:** 11/07/2026 (Đồng bộ 100% với 650/650 Automated Unit/Widget/BLoC Tests & Tối ưu Quota Firebase + Index-Defensive Architecture)  
 
 ---
 
@@ -82,7 +82,7 @@ Do cấu trúc Database trên Cloud đã được tối ưu bảo vệ Quota và
 - **Email Con (Child):** `child_qa_2026@gmail.com`
 - **Mật khẩu chung:** `Test@123456`
 
-### 1.5 Kiến trúc Hạ tầng & Bảo vệ Quota (Cập nhật 10/07/2026)
+### 1.5 Kiến trúc Hạ tầng & Bảo vệ Quota (Cập nhật 11/07/2026)
 | Mã Fix | Tên cơ chế | Mô tả kỹ thuật | Section test |
 | :--- | :--- | :--- | :--- |
 | **FIX C1** | **Foreground Service** | Duy trì dịch vụ giám sát chạy ngầm `START_STICKY`, không bị kill khi swipe app | [Flow 12](#13-test-flow-12-foreground-service-fix-c1) |
@@ -91,6 +91,8 @@ Do cấu trúc Database trên Cloud đã được tối ưu bảo vệ Quota và
 | **FIX C4** | **Cooldown 5 phút/app** | `_lastAlertSentMap` ngăn chặn spam ghi `createAppBlockedAlert` lên Firestore khi trẻ bấm liên tục vào app bị chặn | [Flow 16](#17-test-flow-16-bảo-vệ-hạn-ngạch-firebase--cơ-chế-cooldown-fix-c4-c5-c6) |
 | **FIX C5** | **Khóa trần Reads (`.limit(50)`)** | Giới hạn tối đa 50 tài liệu mới nhất trên mọi luồng Stream Cảnh báo (`AlertRepository`), bảo vệ hạn ngạch 50.000 Reads/ngày | [Flow 16](#17-test-flow-16-bảo-vệ-hạn-ngạch-firebase--cơ-chế-cooldown-fix-c4-c5-c6) |
 | **FIX C6** | **Offline SharedPreferences Cache** | Tự động đọc dữ liệu từ cache cục bộ (`SharedPreferences`) khi mất mạng hoặc timeout, đảm bảo app không văng/lỗi | [Flow 16](#17-test-flow-16-bảo-vệ-hạn-ngạch-firebase--cơ-chế-cooldown-fix-c4-c5-c6) |
+| **FIX C7** | **Index-Defensive Architecture** | Lọc dải ngày và sắp xếp dữ liệu trên Client Dart memory (`SummaryRepository`, `ReportRepository`, `UsageRepository`) thay vì dùng composite index phức tạp trên Firestore | [Flow 16](#17-test-flow-16-bảo-vệ-hạn-ngạch-firebase--cơ-chế-cooldown-fix-c4-c5-c6) |
+| **FIX C8** | **Granular App Selector** | Dropdown chọn ứng dụng cụ thể trong `RequestTimeDialog` khi trẻ xin thêm giờ từ màn hình Dashboard (`general_time`), tích hợp kiểm tra quy tắc qua `RulesRepository` | [Flow 10](#11-test-flow-10-tương-tác-parent-child-xin-thêm-giờ) |
 
 ### 1.6 Hướng dẫn test với 1 thiết bị thật (Single Device Testing)
 - **Thiết bị thật (Child Role):** Cài APK, đăng nhập role Con, bật Accessibility Service và Usage Stats. Thử nghiệm mở TikTok/Facebook để test khóa app thực tế.
@@ -204,13 +206,20 @@ Do cấu trúc Database trên Cloud đã được tối ưu bảo vệ Quota và
 
 ## 11. Test Flow 10: Tương tác Parent-Child (Xin thêm giờ)
 
-### TC-REQ-001: Trẻ xin thêm thời gian & Phụ huynh phản hồi
+### TC-REQ-001: Trẻ xin thêm thời gian cho ứng dụng bị khóa (`app_blocked`)
 | Bước | Hành động | Kết quả mong đợi | Pass/Fail |
 | :---: | :--- | :--- | :---: |
 | 1 | Khi app bị khóa, trên máy Child bấm **"Xin thêm thời gian"** (`RequestTimeDialog`) | Dialog hiển thị tên app (`Ứng dụng: TikTok`), các chip chọn `15 phút`, `30 phút`, `60 phút` (mặc định chọn 15 phút) và ô nhập lý do (`TextField`) | ☐ |
 | 2 | Chọn `30 phút`, nhập lý do *"Con làm bài tập xong rồi ạ"* → Bấm **"Gửi yêu cầu"** | Yêu cầu được gửi lên Firestore, hiển thị thông báo đã gửi cho trẻ | ☐ |
 | 3 | Máy Parent mở màn hình Yêu cầu thời gian → Bấm **"Duyệt" (+30 phút)** | Yêu cầu chuyển sang trạng thái "Đã duyệt" (`TimeRequestSubmitted`) | ☐ |
 | 4 | Máy Child kiểm tra trạng thái (`TimeRequestStatusScreen`) | Trạng thái tự cập nhật realtime thành "✅ Đã được duyệt — +30 phút" và mở khóa app | ☐ |
+
+### TC-REQ-002: Trẻ xin thêm thời gian từ Dashboard (`general_time` + App Selector Dropdown)
+| Bước | Hành động | Kết quả mong đợi | Pass/Fail |
+| :---: | :--- | :--- | :---: |
+| 1 | Từ màn hình chính (Dashboard) trên máy Child, bấm nút **"Xin thêm thời gian"** (`general_time`) | Dialog hiển thị thêm một **Dropdown chọn ứng dụng (`AppSelector`)** liệt kê các ứng dụng đang có quy tắc giới hạn từ `RulesRepository` (VD: TikTok, YouTube, Facebook) | ☐ |
+| 2 | Bấm vào Dropdown và chọn `YouTube`, chọn số phút `45 phút`, nhập lý do | Hệ thống tự động kiểm tra app đó có nằm trong danh sách chặn/quy tắc hay không | ☐ |
+| 3 | Bấm **"Gửi yêu cầu"** | Yêu cầu được tạo với `appPackageName` và `appName` chính xác của `YouTube` gửi tới phụ huynh duyệt | ☐ |
 
 ---
 
@@ -352,6 +361,13 @@ Do cấu trúc Database trên Cloud đã được tối ưu bảo vệ Quota và
 | 2 | Trẻ mở ứng dụng KidGuardian hoặc tiến hành kiểm tra danh sách app giám sát (`getMonitoredApps`) | Nhờ logic catch timeout & `SharedPreferences.getInstance()`, app lập tức đọc danh sách app và từ khóa từ cache cục bộ | ☐ |
 | 3 | Thử mở một ứng dụng đã bị khóa trước đó (khi offline) | Tính năng chặn ứng dụng Smart Lock vẫn hoạt động trơn tru dựa trên dữ liệu cache SharedPreferences mà không bị crash hay đứng máy | ☐ |
 
+### TC-QUOTA-004: Kiểm chứng Index-Defensive Querying trên Client memory (chống `FAILED_PRECONDITION`)
+| Bước | Hành động | Kết quả mong đợi | Pass/Fail |
+| :---: | :--- | :--- | :---: |
+| 1 | Phụ huynh mở màn hình Báo cáo Tuần / Tổng kết (`SummaryRepository`, `ReportRepository`, `UsageRepository`) hoặc lọc theo khoảng thời gian (`getUsageByDateRange`) | Hệ thống gửi truy vấn đơn trường (chỉ lọc `childUid` hoặc `familyId`) lên Firestore mà không cần composite index `.orderBy()` phức tạp | ☐ |
+| 2 | Kiểm tra trong Debug Console/Logcat | Không hề xuất hiện lỗi `FAILED_PRECONDITION: The query requires an index...` do toàn bộ logic sắp xếp và lọc dải ngày đã được thực hiện mượt mà trong RAM client (`client-side filtering`) | ☐ |
+| 3 | Kiểm tra tốc độ phản hồi trên app | Dữ liệu hiển thị siêu nhanh, không bị treo retry liên tục gây cạn kiệt Quota hay crash app | ☐ |
+
 ---
 
 ## 18. Bug Report Template
@@ -393,7 +409,8 @@ Khi phát hiện lỗi trong quá trình test thực tế, vui lòng sao chép v
 - [ ] TC-STAT-001: Báo cáo thống kê ngày/tuần/tháng & gom nhóm giờ (`groupByHour`)
 
 ### 💬 Tương tác & Khẩn cấp
-- [ ] TC-REQ-001: Trẻ xin thêm giờ (`RequestTimeDialog`) & Phụ huynh duyệt (`MultiRepositoryProvider`)
+- [ ] TC-REQ-001: Trẻ xin thêm giờ cho app bị khóa (`RequestTimeDialog`) & Phụ huynh duyệt
+- [ ] TC-REQ-002: Trẻ xin thêm giờ từ Dashboard (`general_time` + Dropdown chọn app `RulesRepository`)
 - [ ] TC-EMERG-001: Kích hoạt khẩn cấp 5 phút (`EmergencyAccessManager`) & kiểm chứng cooldown
 
 ### ⚙️ Cài đặt & Trợ giúp
@@ -401,7 +418,7 @@ Khi phát hiện lỗi trong quá trình test thực tế, vui lòng sao chép v
 - [ ] TC-SET-001: Đổi Theme Sáng/Tối & Ngôn ngữ Tiếng Việt
 - [ ] TC-HELP-001: FAQ (`ToggleFaqItem`) & Gửi tin nhắn hỗ trợ
 
-### ⭐ Kiến trúc & Bảo vệ Quota (FIX C1 -> C6 & Epic 4)
+### ⭐ Kiến trúc & Bảo vệ Quota (FIX C1 -> C8 & Epic 4)
 - [ ] TC-C1-001 -> TC-C1-003: Foreground Service (`START_STICKY`) không bị kill khi swipe/Force Stop
 - [ ] TC-C2-001 -> TC-C2-003: Native App Blocking (`GLOBAL_ACTION_HOME`) qua Accessibility Service
 - [ ] TC-C3-001 -> TC-C3-002: Realtime Time Request Notification qua Firestore Stream dưới 5 giây
@@ -409,6 +426,7 @@ Khi phát hiện lỗi trong quá trình test thực tế, vui lòng sao chép v
 - [ ] TC-QUOTA-001: Cooldown 5 phút/app (`_lastAlertSentMap`) chống spam Writes lên Firestore
 - [ ] TC-QUOTA-002: Khóa trần `.limit(50)` cho luồng Stream Cảnh báo (`AlertRepository`)
 - [ ] TC-QUOTA-003: Tự động chuyển cache cục bộ (`SharedPreferences`) khi mất kết nối Internet
+- [ ] TC-QUOTA-004: Index-Defensive Querying trên Client memory (chống `FAILED_PRECONDITION`)
 
 ---
 *Tài liệu được phát triển và chuẩn hóa bởi nhóm Kỹ sư Hệ thống KidGuardian — Sẵn sàng cho giai đoạn Kiểm thử Thực tế & Nghiệm thu Sản phẩm.*

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:rxdart/rxdart.dart';
 
 enum TimeRequestStatus { pending, approved, rejected }
 
@@ -118,33 +119,69 @@ class TimeRequestRepositoryImpl implements TimeRequestRepository {
   @override
   Stream<List<TimeRequest>> watchPendingRequests({required String familyId}) {
     return _firestore
-        .collectionGroup('timeRequests')
-        .where('familyId', isEqualTo: familyId)
-        .orderBy('timestamp', descending: true)
-        .limit(50)
+        .collection('families')
+        .doc(familyId)
+        .collection('children')
         .snapshots()
-        .map((snapshot) {
-      final list = snapshot.docs
-          .map((doc) => TimeRequest.fromFirestore(doc))
-          .where((req) => req.status == TimeRequestStatus.pending)
-          .toList();
-      list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-      return list;
+        .switchMap((childrenSnapshot) {
+      if (childrenSnapshot.docs.isEmpty) {
+        return Stream.value(<TimeRequest>[]);
+      }
+      final streams = childrenSnapshot.docs.map((childDoc) {
+        final childUid = childDoc.id;
+        return _firestore
+            .collection('families')
+            .doc(familyId)
+            .collection('children')
+            .doc(childUid)
+            .collection('timeRequests')
+            .snapshots()
+            .map((snapshot) {
+          return snapshot.docs
+              .map((doc) => TimeRequest.fromFirestore(doc))
+              .where((req) => req.status == TimeRequestStatus.pending)
+              .toList();
+        });
+      }).toList();
+
+      return Rx.combineLatestList(streams).map((listOfLists) {
+        final combined = listOfLists.expand((list) => list).toList();
+        combined.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+        return combined.take(50).toList();
+      });
     });
   }
 
   @override
   Stream<List<TimeRequest>> watchAllRequests({required String familyId}) {
     return _firestore
-        .collectionGroup('timeRequests')
-        .where('familyId', isEqualTo: familyId)
-        .orderBy('timestamp', descending: true)
-        .limit(50)
+        .collection('families')
+        .doc(familyId)
+        .collection('children')
         .snapshots()
-        .map((snapshot) {
-      final list = snapshot.docs.map((doc) => TimeRequest.fromFirestore(doc)).toList();
-      list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-      return list;
+        .switchMap((childrenSnapshot) {
+      if (childrenSnapshot.docs.isEmpty) {
+        return Stream.value(<TimeRequest>[]);
+      }
+      final streams = childrenSnapshot.docs.map((childDoc) {
+        final childUid = childDoc.id;
+        return _firestore
+            .collection('families')
+            .doc(familyId)
+            .collection('children')
+            .doc(childUid)
+            .collection('timeRequests')
+            .snapshots()
+            .map((snapshot) {
+          return snapshot.docs.map((doc) => TimeRequest.fromFirestore(doc)).toList();
+        });
+      }).toList();
+
+      return Rx.combineLatestList(streams).map((listOfLists) {
+        final combined = listOfLists.expand((list) => list).toList();
+        combined.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+        return combined.take(50).toList();
+      });
     });
   }
 

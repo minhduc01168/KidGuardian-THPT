@@ -2,6 +2,7 @@ package com.kidguardian.kidguardian.accessibility
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
+import android.content.Context
 import android.content.Intent
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
@@ -86,6 +87,7 @@ class AppMonitorService : AccessibilityService() {
     }
 
     private var currentPackageName: String? = null
+    private var activeAppStartMillis: Long = 0L
     private var lastExtractedText = ""
 
 
@@ -97,10 +99,15 @@ class AppMonitorService : AccessibilityService() {
 
             if (currentPackageName != packageName) {
                 if (currentPackageName != null) {
+                    val durationMs = System.currentTimeMillis() - activeAppStartMillis
+                    if (activeAppStartMillis > 0 && durationMs >= 5000 && !isSystemPackage(currentPackageName!!)) {
+                        saveOfflineUsageLog(currentPackageName!!, activeAppStartMillis, System.currentTimeMillis(), durationMs / 1000)
+                    }
                     sendAppEvent(currentPackageName!!, "closed")
                 }
 
                 currentPackageName = packageName
+                activeAppStartMillis = System.currentTimeMillis()
                 lastExtractedText = ""
                 Log.d(TAG, "Window State Changed: $packageName")
 
@@ -194,6 +201,13 @@ class AppMonitorService : AccessibilityService() {
             putExtra(EXTRA_TEXT_CONTEXT, contextText)
         }
         LocalBroadcastManager.getInstance(this).sendBroadcast(broadcastIntent)
+
+        com.kidguardian.kidguardian.service.MonitorForegroundService.sendEventDirectly(mapOf(
+            "type" to "keyword_detected",
+            "packageName" to packageName,
+            "keyword" to keyword,
+            "textContext" to contextText,
+        ))
     }
 
     private fun sendAppEvent(packageName: String, eventType: String) {
@@ -203,6 +217,28 @@ class AppMonitorService : AccessibilityService() {
             putExtra(EXTRA_EVENT_TYPE, eventType)
         }
         LocalBroadcastManager.getInstance(this).sendBroadcast(broadcastIntent)
+
+        // Đồng thời gửi trực tiếp lên Flutter EventSink bảo đảm 100% không rớt event
+        com.kidguardian.kidguardian.service.MonitorForegroundService.sendEventDirectly(mapOf(
+            "type" to "app_event",
+            "packageName" to packageName,
+            "appName" to packageName,
+            "eventType" to eventType,
+        ))
+    }
+
+    private fun saveOfflineUsageLog(packageName: String, startTimeMs: Long, endTimeMs: Long, durationSeconds: Long) {
+        try {
+            val prefs = getSharedPreferences("KidGuardianOfflinePrefs", Context.MODE_PRIVATE)
+            val existingSet = prefs.getStringSet("offline_usage_logs", mutableSetOf()) ?: mutableSetOf()
+            val newSet = mutableSetOf<String>().apply { addAll(existingSet) }
+            val logJson = """{"packageName":"$packageName","startTime":$startTimeMs,"endTime":$endTimeMs,"durationSeconds":$durationSeconds}"""
+            newSet.add(logJson)
+            prefs.edit().putStringSet("offline_usage_logs", newSet).apply()
+            Log.d(TAG, "Saved offline usage log ($durationSeconds s): $packageName")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error saving offline usage log", e)
+        }
     }
 
     /**
