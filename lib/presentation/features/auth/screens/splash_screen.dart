@@ -13,24 +13,20 @@ class SplashScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
+              width: 150,
+              height: 150,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(32),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF00E5FF).withValues(alpha: 0.3),
-                    blurRadius: 24,
-                    spreadRadius: 2,
+                    color: const Color(0xFF00E5FF).withValues(alpha: 0.35),
+                    blurRadius: 32,
+                    spreadRadius: 4,
                   ),
                 ],
               ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(32),
-                child: Image.asset(
-                  'assets/images/logo.png',
-                  width: 140,
-                  height: 140,
-                  fit: BoxFit.cover,
-                ),
+              child: Image.asset(
+                'assets/images/logo.png',
+                fit: BoxFit.contain,
               ),
             ),
             const SizedBox(height: 24),

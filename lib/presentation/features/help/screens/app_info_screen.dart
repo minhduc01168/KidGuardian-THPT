@@ -61,42 +61,37 @@ class _AppInfoScreenState extends State<AppInfoScreen> {
                 children: [
                   SizedBox(height: 40),
                   // App icon
+                  // App icon
                   Container(
-                    width: 100,
-                    height: 100,
+                    width: 110,
+                    height: 110,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primary.withOpacity(0.3),
-                          blurRadius: 20,
-                          offset: Offset(0, 10),
+                          color: AppColors.primary.withValues(alpha: 0.35),
+                          blurRadius: 24,
+                          offset: const Offset(0, 8),
                         ),
                       ],
                     ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(24),
-                      child: Image.asset(
-                        'assets/images/logo.png',
-                        width: 100,
-                        height: 100,
-                        fit: BoxFit.cover,
-                      ),
+                    child: Image.asset(
+                      'assets/images/logo.png',
+                      fit: BoxFit.contain,
                     ),
                   ),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
                   // App name
                   Text(
                     state.appName,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
                     ),
                   ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Đồng Hành Số',
+                  const SizedBox(height: 8),
+                  const Text(
+                    AppStrings.appTagline,
                     style: TextStyle(
                       fontSize: 16,
                       color: AppColors.textSecondary,
