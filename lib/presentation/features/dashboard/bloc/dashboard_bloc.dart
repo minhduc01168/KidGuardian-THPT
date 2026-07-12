@@ -96,7 +96,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
 
       await Future.wait(family.childUids.map((childUid) async {
         final monitoredPackages = await _getMonitoredPackages(event.familyId, childUid);
-        if (monitoredPackages.isNotEmpty) {
+        if ((monitoredPackages?.isNotEmpty ?? false)) {
           hasMonitoredFilter = true;
         }
         final results = await Future.wait([
@@ -234,7 +234,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
       int totalMinutes = results[0] as int;
       if (usageByApp.isNotEmpty) {
         totalMinutes = usageByApp.values.fold(0, (sum, val) => sum + val);
-      } else if (monitoredPackages.isNotEmpty) {
+      } else if ((monitoredPackages?.isNotEmpty ?? false)) {
         totalMinutes = 0;
       }
 
@@ -247,7 +247,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
         }
       }
 
-      final int totalYesterday = monitoredPackages.isNotEmpty
+      final int totalYesterday = (monitoredPackages?.isNotEmpty ?? false)
           ? (dailyTotals[yesterday] ?? 0)
           : (results[3] as int);
 
