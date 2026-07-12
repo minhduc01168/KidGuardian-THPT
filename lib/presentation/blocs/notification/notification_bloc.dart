@@ -251,11 +251,12 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
         for (final req in requests) {
           if (!_notifiedRequestIds.contains(req.id)) {
             _notifiedRequestIds.add(req.id);
+            debugPrint('[NotificationBloc] New pending time request detected: ${req.id} (${req.appName}, ${req.requestedMinutes}m)');
             add(_TimeRequestReceived(req, req.childUid));
           }
         }
       },
-      onError: (error) => debugPrint('TimeRequest stream error: $error'),
+      onError: (error) => debugPrint('[NotificationBloc] TimeRequest stream error: $error'),
     );
 
     emit(const NotificationListening()); // Emit initial listening state
@@ -275,18 +276,19 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     Emitter<NotificationState> emit,
   ) async {
     final req = event.request;
-    // FIX #2: Bỏ qua request quá cũ (> 60 phút) khi phụ huynh mở app lần đầu
-    // Tăng từ 5 phút lên 60 phút vì phụ huynh có thể đang bận 1 khoảng thời gian
+    // FIX: Bỏ qua request quá cũ (> 24 giờ / 1440 phút) khi phụ huynh mở app
+    // Nếu request vẫn đang ở trạng thái pending trong vòng 24h, luồng vẫn cần thông báo cho phụ huynh
     final ageMinutes = DateTime.now().difference(req.timestamp).inMinutes;
-    if (ageMinutes > 60) {
+    if (ageMinutes > 1440) {
       _notifiedRequestIds.add(req.id); // Ghi nhớ để không notify lần sau
-      debugPrint('TimeRequest ${req.id} is ${ageMinutes}min old, skipping notification');
+      debugPrint('[NotificationBloc] TimeRequest ${req.id} is ${ageMinutes}min old (>24h), skipping notification');
       emit(NotificationListening(
         pendingAlertCount: _notifiedAlertIds.length,
         pendingTimeRequestCount: _notifiedRequestIds.length,
       ));
       return;
     }
+    debugPrint('[NotificationBloc] Triggering push notification for request ${req.id}');
     await _showTimeRequestNotification(
       id: req.id.hashCode,
       appName: req.appName,

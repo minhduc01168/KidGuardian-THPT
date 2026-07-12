@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:rxdart/rxdart.dart';
 
 enum TimeRequestStatus { pending, approved, rejected }
@@ -40,7 +41,7 @@ class TimeRequest {
       requestedMinutes: data['requestedMinutes'] ?? 0,
       reason: data['reason'] ?? '',
       status: TimeRequestStatus.values.firstWhere(
-        (s) => s.name == data['status'],
+        (s) => s.name.toLowerCase() == (data['status'] ?? '').toString().toLowerCase(),
         orElse: () => TimeRequestStatus.pending,
       ),
       timestamp: (data['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
@@ -141,6 +142,9 @@ class TimeRequestRepositoryImpl implements TimeRequestRepository {
               .map((doc) => TimeRequest.fromFirestore(doc))
               .where((req) => req.status == TimeRequestStatus.pending)
               .toList();
+        }).handleError((error) {
+          debugPrint('[watchPendingRequests] Error reading timeRequests for $childUid: $error');
+          return <TimeRequest>[];
         });
       }).toList();
 
@@ -148,7 +152,13 @@ class TimeRequestRepositoryImpl implements TimeRequestRepository {
         final combined = listOfLists.expand((list) => list).toList();
         combined.sort((a, b) => b.timestamp.compareTo(a.timestamp));
         return combined.take(50).toList();
+      }).handleError((error) {
+        debugPrint('[watchPendingRequests] combineLatestList error: $error');
+        return <TimeRequest>[];
       });
+    }).handleError((error) {
+      debugPrint('[watchPendingRequests] switchMap outer error: $error');
+      return <TimeRequest>[];
     });
   }
 
@@ -174,6 +184,9 @@ class TimeRequestRepositoryImpl implements TimeRequestRepository {
             .snapshots()
             .map((snapshot) {
           return snapshot.docs.map((doc) => TimeRequest.fromFirestore(doc)).toList();
+        }).handleError((error) {
+          debugPrint('[watchAllRequests] Error reading timeRequests for $childUid: $error');
+          return <TimeRequest>[];
         });
       }).toList();
 
@@ -181,7 +194,13 @@ class TimeRequestRepositoryImpl implements TimeRequestRepository {
         final combined = listOfLists.expand((list) => list).toList();
         combined.sort((a, b) => b.timestamp.compareTo(a.timestamp));
         return combined.take(50).toList();
+      }).handleError((error) {
+        debugPrint('[watchAllRequests] combineLatestList error: $error');
+        return <TimeRequest>[];
       });
+    }).handleError((error) {
+      debugPrint('[watchAllRequests] switchMap outer error: $error');
+      return <TimeRequest>[];
     });
   }
 

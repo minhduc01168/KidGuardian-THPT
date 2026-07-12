@@ -136,24 +136,20 @@ void main() {
       expect(result.first.date, '2026-05-16');
     });
 
-    test('getUsageByDateRange RAM Fallback mode when index missing', () async {
+    test('getUsageByDateRange filters by date range in RAM cleanly', () async {
       final mockQuerySnapshot = MockQuerySnapshot();
       final mockDoc1 = MockQueryDocumentSnapshot();
       final mockDoc2 = MockQueryDocumentSnapshot();
 
-      var callCount = 0;
       when(() => mockUsageLogsCollection.where(any(),
               isEqualTo: any(named: 'isEqualTo'),
               isGreaterThanOrEqualTo: any(named: 'isGreaterThanOrEqualTo'),
-              isLessThanOrEqualTo: any(named: 'isLessThanOrEqualTo')))
+              isLessThanOrEqualTo: any(named: 'isLessThanOrEqualTo'),
+              whereIn: any(named: 'whereIn'),
+              whereNotIn: any(named: 'whereNotIn'),
+              isNull: any(named: 'isNull')))
           .thenReturn(mockUsageLogsCollection);
-      when(() => mockUsageLogsCollection.get()).thenAnswer((_) async {
-        callCount++;
-        if (callCount == 1) {
-          throw FirebaseException(plugin: 'cloud_firestore', code: 'failed-precondition');
-        }
-        return mockQuerySnapshot;
-      });
+      when(() => mockUsageLogsCollection.get()).thenAnswer((_) async => mockQuerySnapshot);
       when(() => mockQuerySnapshot.docs).thenReturn([mockDoc1, mockDoc2]);
 
       when(() => mockDoc1.id).thenReturn('log-1');
@@ -190,7 +186,10 @@ void main() {
       when(() => mockUsageLogsCollection.where(any(),
               isEqualTo: any(named: 'isEqualTo'),
               isGreaterThanOrEqualTo: any(named: 'isGreaterThanOrEqualTo'),
-              isLessThanOrEqualTo: any(named: 'isLessThanOrEqualTo')))
+              isLessThanOrEqualTo: any(named: 'isLessThanOrEqualTo'),
+              whereIn: any(named: 'whereIn'),
+              whereNotIn: any(named: 'whereNotIn'),
+              isNull: any(named: 'isNull')))
           .thenReturn(mockUsageLogsCollection);
       when(() => mockUsageLogsCollection.get()).thenThrow(Exception('Network error'));
 

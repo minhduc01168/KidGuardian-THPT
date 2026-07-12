@@ -100,17 +100,19 @@ class UsageRepositoryImpl implements UsageRepository {
   ) async {
     try {
       debugPrint('[Debug Read] getUsageByDateRange -> childUid: $childUid, range: $startDate -> $endDate');
-      // FIX: Không dùng orderBy để tránh cần Firestore composite index
-      // Chỉ filter theo childUid và date range, sort trong Dart
+      // FIX: Không dùng inequality query trên date khi đã có where childUid
+      // để tránh Firestore tự động chèn orderBy(date) yêu cầu Composite Index.
+      // Query theo childUid (dùng single-field index mặc định), sau đó filter trên RAM.
       final query = await _firestore
           .collection('usage_logs')
           .where('childUid', isEqualTo: childUid)
-          .where('date', isGreaterThanOrEqualTo: startDate)
-          .where('date', isLessThanOrEqualTo: endDate)
           .get();
 
       final logs = query.docs
           .map((doc) => UsageLogModel.fromFirestore(doc))
+          .where((log) =>
+              log.date.compareTo(startDate) >= 0 &&
+              log.date.compareTo(endDate) <= 0)
           .toList();
       logs.sort((a, b) => b.date.compareTo(a.date));
       debugPrint('[Debug Read] getUsageByDateRange -> Found ${logs.length} logs');
