@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kidguardian/core/utils/app_utils.dart';
 import 'package:kidguardian/data/models/monitored_app_model.dart';
 import 'package:kidguardian/data/repositories/smart_lock_repository.dart';
 import 'package:kidguardian/presentation/blocs/smart_lock/smart_lock_bloc.dart';
@@ -71,7 +72,11 @@ class _BlockedAppsView extends StatelessWidget {
                       if (snapshot.hasError) {
                         return Center(child: Text('Lỗi: ${snapshot.error}'));
                       }
-                      final apps = snapshot.data ?? [];
+                      final rawApps = snapshot.data ?? [];
+                      final apps = rawApps.where((app) {
+                        final pkg = app['packageName']?.toString() ?? '';
+                        return pkg.isNotEmpty && !AppUtils.isSystemOrUnmonitoredApp(pkg);
+                      }).toList();
                       if (apps.isEmpty) {
                         return const Center(
                           child: Text('Chưa có dữ liệu ứng dụng. Vui lòng mở ứng dụng trên máy trẻ để đồng bộ.'),

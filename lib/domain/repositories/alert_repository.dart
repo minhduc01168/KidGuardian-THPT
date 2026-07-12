@@ -270,6 +270,8 @@ class AlertRepositoryImpl implements AlertRepository {
       }
       final streams = childrenSnapshot.docs.map((childDoc) {
         final childUid = childDoc.id;
+        // FIX BUG #3: Không dùng orderBy trong query → tránh lỗi Firestore composite index
+        // Sắp xếp sẽ được thực hiện trong Dart sau khi tải dữ liệu
         return _firestore
             .collection('families')
             .doc(familyId)
@@ -277,6 +279,9 @@ class AlertRepositoryImpl implements AlertRepository {
             .doc(childUid)
             .collection('alerts')
             .snapshots()
+            .handleError((error) {
+              debugPrint('AlertRepository: stream error for child $childUid: $error');
+            })
             .map((alertSnapshot) {
           return alertSnapshot.docs
               .map((doc) => AlertModel.fromFirestore(doc))
@@ -287,6 +292,7 @@ class AlertRepositoryImpl implements AlertRepository {
 
       return Rx.combineLatestList(streams).map((listOfLists) {
         final combined = listOfLists.expand((list) => list).toList();
+        // Sắp xếp theo timestamp giảm dần trong Dart (an toàn, không cần Firestore index)
         combined.sort((a, b) {
           if (a.timestamp == null && b.timestamp == null) return 0;
           if (a.timestamp == null) return 1;

@@ -31,15 +31,17 @@ class LoadUsageChart extends DashboardEvent {
   final String childUid;
   final String startDate;
   final String endDate;
+  final String? familyId;
 
   const LoadUsageChart({
     required this.childUid,
     required this.startDate,
     required this.endDate,
+    this.familyId,
   });
 
   @override
-  List<Object?> get props => [childUid, startDate, endDate];
+  List<Object?> get props => [childUid, startDate, endDate, familyId];
 }
 
 class RefreshDashboard extends DashboardEvent {

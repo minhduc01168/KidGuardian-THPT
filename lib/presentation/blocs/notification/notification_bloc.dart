@@ -275,10 +275,10 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     Emitter<NotificationState> emit,
   ) async {
     final req = event.request;
-    // FIX #2: Bỏ qua request quá cũ (> 5 phút) khi phụ huynh mở app lần đầu
-    // Tránh spam notification cho các pending requests đã tồn tại trước khi app khởi động
+    // FIX #2: Bỏ qua request quá cũ (> 60 phút) khi phụ huynh mở app lần đầu
+    // Tăng từ 5 phút lên 60 phút vì phụ huynh có thể đang bận 1 khoảng thời gian
     final ageMinutes = DateTime.now().difference(req.timestamp).inMinutes;
-    if (ageMinutes > 5) {
+    if (ageMinutes > 60) {
       _notifiedRequestIds.add(req.id); // Ghi nhớ để không notify lần sau
       debugPrint('TimeRequest ${req.id} is ${ageMinutes}min old, skipping notification');
       emit(NotificationListening(

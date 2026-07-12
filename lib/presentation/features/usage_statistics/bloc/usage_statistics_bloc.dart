@@ -1,4 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/utils/app_utils.dart';
+import '../../../../data/repositories/smart_lock_repository.dart';
+import '../../../../domain/entities/usage_log.dart';
 import '../../../../domain/repositories/usage_repository.dart';
 import '../utils/usage_statistics_helper.dart';
 import '../utils/usage_exporter.dart';
@@ -8,9 +11,13 @@ import 'usage_statistics_state.dart';
 class UsageStatisticsBloc
     extends Bloc<UsageStatisticsEvent, UsageStatisticsState> {
   final UsageRepository _usageRepository;
+  final SmartLockRepository? _smartLockRepository;
 
-  UsageStatisticsBloc({required UsageRepository usageRepository})
-      : _usageRepository = usageRepository,
+  UsageStatisticsBloc({
+    required UsageRepository usageRepository,
+    SmartLockRepository? smartLockRepository,
+  })  : _usageRepository = usageRepository,
+        _smartLockRepository = smartLockRepository,
         super(UsageStatisticsInitial()) {
     on<LoadUsageStats>(_onLoadUsageStats);
     on<ChangeTimePeriod>(_onChangeTimePeriod);
@@ -22,6 +29,30 @@ class UsageStatisticsBloc
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 
+  /// Trả về:
+  ///   - null: không có bộ lọc → chỉ lọc system app, show mọi user app
+  ///   - non-empty Set: whitelist chính xác → chỉ show app trong danh sách
+  Future<Set<String>?> _getMonitoredPackages(String? familyId, String childUid) async {
+    if (_smartLockRepository == null || familyId == null) return null;
+    try {
+      final monitoredApps = await _smartLockRepository.getMonitoredApps(familyId, childUid);
+      if (monitoredApps.isEmpty) return null; // Chưa cấu hình → không lọc
+      return monitoredApps
+          .where((a) => a.isMonitored)
+          .map((a) => a.appPackageName)
+          .toSet();
+    } catch (e) {
+      return null; // Lỗi mạng → không lọc
+    }
+  }
+
+  bool _isAppAllowed(String packageOrName, Set<String>? monitoredPackages) {
+    if (AppUtils.isSystemOrUnmonitoredApp(packageOrName)) return false;
+    if (monitoredPackages == null || monitoredPackages.isEmpty) return true;
+    final cleanName = AppUtils.getAppName(packageOrName);
+    return monitoredPackages.contains(packageOrName) || monitoredPackages.contains(cleanName);
+  }
+
   Future<void> _onLoadUsageStats(
     LoadUsageStats event,
     Emitter<UsageStatisticsState> emit,
@@ -31,11 +62,21 @@ class UsageStatisticsBloc
       final startDateStr = _getDateString(event.startDate);
       final endDateStr = _getDateString(event.endDate);
 
-      final logs = await _usageRepository.getUsageByDateRange(
+      final monitoredPackages = await _getMonitoredPackages(event.familyId, event.childUid);
+
+      final logsRaw = await _usageRepository.getUsageByDateRange(
         event.childUid,
         startDateStr,
         endDateStr,
       );
+
+      final List<UsageLog> logs = [];
+      for (final log in logsRaw) {
+        final pkg = log.appPackage.isNotEmpty ? log.appPackage : log.appName;
+        if (_isAppAllowed(pkg, monitoredPackages)) {
+          logs.add(log.copyWith(appName: AppUtils.getAppNameFromLog(log.appPackage, log.appName)));
+        }
+      }
 
       final hourlyUsage = UsageStatisticsHelper.groupByHour(logs);
       final dailyUsage = UsageStatisticsHelper.groupByDay(logs);
@@ -61,6 +102,7 @@ class UsageStatisticsBloc
         startDate: event.startDate,
         endDate: event.endDate,
         logs: logs,
+        familyId: event.familyId,
       ));
     } catch (e) {
       emit(UsageStatisticsError(
@@ -87,6 +129,7 @@ class UsageStatisticsBloc
         startDate: currentState.startDate,
         endDate: currentState.endDate,
         logs: currentState.logs,
+        familyId: currentState.familyId,
       ));
     }
   }
@@ -99,6 +142,7 @@ class UsageStatisticsBloc
       childUid: event.childUid,
       startDate: event.startDate,
       endDate: event.endDate,
+      familyId: event.familyId,
     ));
   }
 
@@ -110,11 +154,21 @@ class UsageStatisticsBloc
       final startDateStr = _getDateString(event.startDate);
       final endDateStr = _getDateString(event.endDate);
 
-      final logs = await _usageRepository.getUsageByDateRange(
+      final monitoredPackages = await _getMonitoredPackages(event.familyId, event.childUid);
+
+      final logsRaw = await _usageRepository.getUsageByDateRange(
         event.childUid,
         startDateStr,
         endDateStr,
       );
+
+      final List<UsageLog> logs = [];
+      for (final log in logsRaw) {
+        final pkg = log.appPackage.isNotEmpty ? log.appPackage : log.appName;
+        if (_isAppAllowed(pkg, monitoredPackages)) {
+          logs.add(log.copyWith(appName: AppUtils.getAppNameFromLog(log.appPackage, log.appName)));
+        }
+      }
 
       final dateRange =
           UsageStatisticsHelper.formatDateRange(event.startDate, event.endDate);

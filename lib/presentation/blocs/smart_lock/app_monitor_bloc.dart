@@ -267,7 +267,11 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
         withIcon: false,
       );
 
-      final List<Map<String, dynamic>> appDataList = apps.map((app) {
+      final filteredApps = apps
+          .where((app) => !AppUtils.isSystemOrUnmonitoredApp(app.packageName))
+          .toList();
+
+      final List<Map<String, dynamic>> appDataList = filteredApps.map((app) {
         return {
           'packageName': app.packageName,
           'appName': app.name,

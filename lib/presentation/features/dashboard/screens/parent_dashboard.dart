@@ -792,6 +792,7 @@ class _ParentDashboardState extends State<ParentDashboard> {
                       builder: (context) => UsageStatisticsScreen(
                         childUid: childUids.first,
                         childName: 'Con',
+                        familyId: user.familyId,
                       ),
                     ),
                   );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../data/repositories/smart_lock_repository.dart';
 import '../bloc/usage_statistics_bloc.dart';
 import '../bloc/usage_statistics_event.dart';
 import '../bloc/usage_statistics_state.dart';
@@ -14,26 +15,37 @@ import '../widgets/date_range_selector.dart';
 class UsageStatisticsScreen extends StatelessWidget {
   final String childUid;
   final String childName;
+  final String? familyId;
 
   const UsageStatisticsScreen({
     super.key,
     required this.childUid,
     required this.childName,
+    this.familyId,
   });
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => UsageStatisticsBloc(
-        usageRepository: context.read(),
-      )..add(LoadUsageStats(
-          childUid: childUid,
-          startDate: DateTime.now().subtract(const Duration(days: 7)),
-          endDate: DateTime.now(),
-        )),
+      create: (context) {
+        SmartLockRepository? smartLockRepo;
+        try {
+          smartLockRepo = context.read<SmartLockRepository>();
+        } catch (_) {}
+        return UsageStatisticsBloc(
+          usageRepository: context.read(),
+          smartLockRepository: smartLockRepo,
+        )..add(LoadUsageStats(
+            childUid: childUid,
+            startDate: DateTime.now().subtract(const Duration(days: 7)),
+            endDate: DateTime.now(),
+            familyId: familyId,
+          ));
+      },
       child: _UsageStatisticsView(
         childUid: childUid,
         childName: childName,
+        familyId: familyId,
       ),
     );
   }
@@ -42,10 +54,12 @@ class UsageStatisticsScreen extends StatelessWidget {
 class _UsageStatisticsView extends StatelessWidget {
   final String childUid;
   final String childName;
+  final String? familyId;
 
   const _UsageStatisticsView({
     required this.childUid,
     required this.childName,
+    this.familyId,
   });
 
   @override
@@ -66,6 +80,7 @@ class _UsageStatisticsView extends StatelessWidget {
                           startDate: state.startDate,
                           endDate: state.endDate,
                           format: format,
+                          familyId: familyId,
                         ));
                   },
                   itemBuilder: (context) => [
@@ -140,6 +155,7 @@ class _UsageStatisticsView extends StatelessWidget {
                       childUid: childUid,
                       startDate: start,
                       endDate: end,
+                      familyId: familyId,
                     ));
               },
             ),
@@ -157,6 +173,7 @@ class _UsageStatisticsView extends StatelessWidget {
               context.read<UsageStatisticsBloc>().add(ChangeTimePeriod(
                     childUid: childUid,
                     period: periods[index],
+                    familyId: familyId,
                   ));
             },
             tabs: const [

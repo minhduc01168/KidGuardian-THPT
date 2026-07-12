@@ -54,6 +54,7 @@ class UsageStatisticsLoaded extends UsageStatisticsState {
   final DateTime startDate;
   final DateTime endDate;
   final List<UsageLog> logs;
+  final String? familyId;
 
   const UsageStatisticsLoaded({
     required this.hourlyUsage,
@@ -68,6 +69,7 @@ class UsageStatisticsLoaded extends UsageStatisticsState {
     required this.startDate,
     required this.endDate,
     required this.logs,
+    this.familyId,
   });
 
   @override
@@ -84,6 +86,7 @@ class UsageStatisticsLoaded extends UsageStatisticsState {
         startDate,
         endDate,
         logs,
+        familyId,
       ];
 }
 

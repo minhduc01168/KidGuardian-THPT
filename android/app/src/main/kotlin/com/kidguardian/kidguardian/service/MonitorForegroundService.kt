@@ -143,7 +143,7 @@ class MonitorForegroundService : Service() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("KidGuardian đang bảo vệ")
+            .setContentTitle("Kura đang bảo vệ")
             .setContentText("Đang giám sát thiết bị của bé 🛡️")
             .setSmallIcon(android.R.drawable.ic_lock_lock)
             .setContentIntent(pendingIntent)
@@ -157,10 +157,10 @@ class MonitorForegroundService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "KidGuardian Monitor",
+                "Kura Monitor",
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "Dịch vụ giám sát nền của KidGuardian"
+                description = "Dịch vụ giám sát nền của Kura"
                 setShowBadge(false)
             }
             val manager = getSystemService(NotificationManager::class.java)

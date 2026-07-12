@@ -156,8 +156,12 @@ class UsageRepositoryImpl implements UsageRepository {
     final Map<String, int> usageByApp = {};
 
     for (final log in logs) {
-      usageByApp[log.appPackage] =
-          (usageByApp[log.appPackage] ?? 0) + log.durationMinutes;
+      // Ưu tiên dùng appPackage, fallback sang appName nếu package rỗng
+      // để tránh key là "" gây hiển thị "Ứng dụng không xác định" trên dashboard
+      final key = log.appPackage.isNotEmpty ? log.appPackage : log.appName;
+      if (key.isNotEmpty) {
+        usageByApp[key] = (usageByApp[key] ?? 0) + log.durationMinutes;
+      }
     }
 
     return usageByApp;

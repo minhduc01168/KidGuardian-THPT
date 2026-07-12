@@ -69,6 +69,19 @@ class AppUtils {
   static bool isSystemOrUnmonitoredApp(String packageName) {
     if (packageName.isEmpty) return true;
     final lower = packageName.toLowerCase();
+
+    // Ngoại lệ: CÁC ỨNG DỤNG ĐƯỢC PHÉP GIÁM SÁT (Luôn cho phép)
+    if (lower.contains('kidguardian') || lower == 'com.android.chrome' || lower == 'google chrome') {
+      return false;
+    }
+    const allowedGoogleApps = {
+      'com.google.android.youtube',
+      'com.google.android.gm',
+      'com.google.android.apps.maps',
+    };
+    if (allowedGoogleApps.contains(lower)) return false;
+
+    // 1. Chặn các gói chính xác của hệ thống/launcher/settings/store
     const systemExact = {
       'com.android.systemui',
       'com.google.android.googlequicksearchbox',
@@ -91,11 +104,41 @@ class AppUtils {
       'android',
     };
     if (systemExact.contains(lower)) return true;
-    if (lower.startsWith('com.android.') && !lower.contains('kidguardian') && !lower.contains('chrome')) {
+
+    // 2. Chặn theo từ khóa nhạy cảm tiến trình hệ thống
+    if (lower.contains('permissioncontroller') ||
+        lower.contains('packageinstaller') ||
+        lower.contains('inputmethod') ||
+        lower.contains('systemui') ||
+        lower.contains('.providers.') ||
+        lower.contains('.overlay')) {
       return true;
     }
-    if (lower.startsWith('com.google.android.inputmethod')) return true;
-    if (lower.contains('permissioncontroller') || lower.contains('packageinstaller')) return true;
+
+    // 3. Chặn các prefix dịch vụ hệ thống của Android & Google Daemons
+    if (lower.startsWith('com.android.')) return true;
+    if (lower.startsWith('android.')) return true;
+    if (lower.startsWith('com.google.android.')) {
+      // Các dịch vụ nền của Google (GMS, GSF, WebView, NetworkStack, ConfigUpdater, v.v.)
+      return true;
+    }
+
+    // 4. Chặn các prefix dịch vụ hệ thống của nhà sản xuất phần cứng (Vendor Daemons)
+    const vendorPrefixes = [
+      'com.sec.android.',
+      'com.samsung.android.',
+      'com.miui.',
+      'com.xiaomi.',
+      'com.oppo.',
+      'com.coloros.',
+      'com.vivo.',
+      'com.mediatek.',
+      'com.qualcomm.',
+    ];
+    for (final prefix in vendorPrefixes) {
+      if (lower.startsWith(prefix)) return true;
+    }
+
     return false;
   }
 

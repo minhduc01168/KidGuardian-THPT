@@ -8,9 +8,12 @@ import 'package:kidguardian/domain/repositories/family_repository.dart';
 import 'package:kidguardian/presentation/features/dashboard/bloc/dashboard_bloc.dart';
 import 'package:kidguardian/presentation/features/dashboard/bloc/dashboard_event.dart';
 import 'package:kidguardian/presentation/features/dashboard/bloc/dashboard_state.dart';
+import 'package:kidguardian/data/repositories/smart_lock_repository.dart';
+import 'package:kidguardian/data/models/monitored_app_model.dart';
 
 class MockUsageRepository extends Mock implements UsageRepository {}
 class MockFamilyRepository extends Mock implements FamilyRepository {}
+class MockSmartLockRepository extends Mock implements SmartLockRepository {}
 
 void main() {
   late DashboardBloc bloc;
@@ -149,6 +152,60 @@ void main() {
             (e) => e.message,
             'message',
             'Network error',
+          ),
+        ],
+      );
+
+      blocTest<DashboardBloc, DashboardState>(
+        'emits DashboardLoaded with usageByApp strictly filtered by monitoredApps (isMonitored == true)',
+        build: () {
+          final mockSmartLock = MockSmartLockRepository();
+          when(() => mockFamilyRepository.getFamily(any()))
+              .thenAnswer((_) async => makeFamily(childUids: ['child1']));
+          when(() => mockUsageRepository.getTotalUsageMinutes(any(), any()))
+              .thenAnswer((_) async => 100);
+          when(() => mockUsageRepository.getUsageByApp('child1', any()))
+              .thenAnswer((_) async => {
+                'com.google.android.youtube': 40,
+                'com.unmonitored.game': 60,
+              });
+          when(() => mockUsageRepository.getUsageByChild(any(), any()))
+              .thenAnswer((_) async => <UsageLog>[]);
+          when(() => mockUsageRepository.getUsageByDateRange(any(), any(), any()))
+              .thenAnswer((_) async => <UsageLog>[]);
+          when(() => mockSmartLock.getMonitoredApps('fam1', 'child1'))
+              .thenAnswer((_) async => [
+                MonitoredAppModel(
+                  appPackageName: 'com.google.android.youtube',
+                  appName: 'YouTube',
+                  isMonitored: true,
+                ),
+                MonitoredAppModel(
+                  appPackageName: 'com.unmonitored.game',
+                  appName: 'Unmonitored Game',
+                  isMonitored: false,
+                ),
+              ]);
+          when(() => mockSmartLock.getAppTimeLimits(any(), any()))
+              .thenAnswer((_) async => []);
+
+          return DashboardBloc(
+            usageRepository: mockUsageRepository,
+            familyRepository: mockFamilyRepository,
+            smartLockRepository: mockSmartLock,
+          );
+        },
+        act: (bloc) => bloc.add(const LoadDashboard(familyId: 'fam1')),
+        expect: () => [
+          isA<DashboardLoading>(),
+          isA<DashboardLoaded>().having(
+            (s) => s.usageByApp,
+            'usageByApp',
+            {'YouTube': 40},
+          ).having(
+            (s) => s.totalMinutesToday,
+            'totalMinutesToday',
+            40,
           ),
         ],
       );
