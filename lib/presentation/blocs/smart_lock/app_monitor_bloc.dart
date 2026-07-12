@@ -211,18 +211,18 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
     on<CheckCurrentAppLimit>(_onCheckCurrentAppLimit);
   }
 
-  void _onStartMonitoring(StartMonitoring event, Emitter<AppMonitorState> emit) {
+  Future<void> _onStartMonitoring(StartMonitoring event, Emitter<AppMonitorState> emit) async {
     if (_isMonitoring && _familyId == event.familyId && _childUid == event.childUid) return;
     _familyId = event.familyId;
     _childUid = event.childUid;
     _isMonitoring = true;
 
-    // Khởi động MonitorForegroundService ngay khi bật giám sát cho tài khoản con
+    _loadSettings();
+    await _loadMonitoredApps();
+
+    // Khởi động MonitorForegroundService & đồng bộ offline log SAU KHI đã đẩy monitoredPackages xuống Kotlin
     AccessibilityChannel.startMonitorService();
     _syncOfflineLogs();
-
-    _loadSettings();
-    _loadMonitoredApps();
 
     _accessibilitySubscription?.cancel();
     _accessibilitySubscription = AccessibilityChannel.accessibilityEvents.listen((data) {
@@ -583,6 +583,10 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
         for (final item in offlineLogs) {
           final packageName = item['packageName'] as String? ?? '';
           if (AppUtils.isSystemOrUnmonitoredApp(packageName)) continue;
+          if (!_isAppAllowedToLog(packageName)) {
+            debugPrint('[Offline Sync] Bỏ qua app không được giám sát (Closed-by-Default): $packageName');
+            continue;
+          }
           final startTimeMs = item['startTime'] as int? ?? 0;
           final endTimeMs = item['endTime'] as int? ?? 0;
           final durationSec = item['durationSeconds'] as int? ?? 0;

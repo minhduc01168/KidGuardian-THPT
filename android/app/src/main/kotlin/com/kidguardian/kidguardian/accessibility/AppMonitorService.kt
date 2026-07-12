@@ -35,11 +35,19 @@ class AppMonitorService : AccessibilityService() {
 
         var blockedApps = mutableSetOf<String>()
         var appLimits = mutableMapOf<String, Int>()
-        // FIX #1+#5 Native: Danh sách các app được phụ huynh bật giám sát.
-        // Khi rỗng (chưa load), cho qua Flutter để Flutter tự filter.
-        // Khi đã có data → chặn tại native, giảm tải Dart runtime.
+        // FIX #1+#5 Native: Danh sách các app được phụ huynh bật giám sát (Closed-by-default).
         @Volatile
         var monitoredPackages = setOf<String>()
+
+        fun loadMonitoredPackagesFromPrefs(context: Context) {
+            val prefs = context.getSharedPreferences("kidguardian_native_prefs", Context.MODE_PRIVATE)
+            val savedSet = prefs.getStringSet("monitored_packages", null)
+            if (savedSet != null) {
+                monitoredPackages = savedSet.toSet()
+                android.util.Log.d("AppMonitorService", "Loaded ${monitoredPackages.size} monitored packages from SharedPreferences")
+            }
+        }
+
         @Volatile
         private var _monitoredKeywords = setOf("tự tử", "đánh nhau", "cờ bạc", "ma túy")
         var monitoredKeywords: Set<String>
@@ -113,12 +121,14 @@ class AppMonitorService : AccessibilityService() {
             if (currentPackageName != packageName) {
                 if (currentPackageName != null) {
                     val durationMs = System.currentTimeMillis() - activeAppStartMillis
-                    // FIX #1+#5 Native: Chỉ lưu offline log cho monitored apps
-                    val prevIsMonitored = monitoredPackages.isEmpty() || monitoredPackages.contains(currentPackageName!!)
+                    // FIX #1+#5 Native: Chỉ lưu offline log cho monitored apps (Closed-by-default)
+                    val prevIsMonitored = monitoredPackages.contains(currentPackageName!!)
                     if (activeAppStartMillis > 0 && durationMs >= 5000 && !isSystemPackage(currentPackageName!!) && prevIsMonitored) {
                         saveOfflineUsageLog(currentPackageName!!, activeAppStartMillis, System.currentTimeMillis(), durationMs / 1000)
                     }
-                    sendAppEvent(currentPackageName!!, "closed")
+                    if (prevIsMonitored) {
+                        sendAppEvent(currentPackageName!!, "closed")
+                    }
                 }
 
                 currentPackageName = packageName
@@ -126,9 +136,8 @@ class AppMonitorService : AccessibilityService() {
                 lastExtractedText = ""
                 Log.d(TAG, "Window State Changed: $packageName")
 
-                // FIX #1+#5 Native: Chỉ gửi 'opened' event lên Flutter cho monitored apps.
-                // Nếu monitoredPackages rỗng (chưa load) → gửi tất cả, Flutter tự filter.
-                val isMonitored = monitoredPackages.isEmpty() || monitoredPackages.contains(packageName)
+                // FIX #1+#5 Native: Chỉ gửi 'opened' event lên Flutter cho monitored apps (Closed-by-default).
+                val isMonitored = monitoredPackages.contains(packageName)
                 if (isMonitored) {
                     sendAppEvent(packageName, "opened")
                 } else {
@@ -291,6 +300,7 @@ class AppMonitorService : AccessibilityService() {
     override fun onServiceConnected() {
         super.onServiceConnected()
         instance = this
+        loadMonitoredPackagesFromPrefs(this)
         val info = AccessibilityServiceInfo()
         info.eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or
                 AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED or

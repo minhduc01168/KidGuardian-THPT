@@ -60,11 +60,16 @@ class MainActivity : FlutterActivity() {
                             result.error("INVALID_ARGS", "Keywords list is null", null)
                         }
                     }
-                    // FIX #1+#5 Native: Cập nhật danh sách app được giám sát từ Flutter
+                    // FIX #1+#5 Native: Cập nhật danh sách app được giám sát từ Flutter & lưu SharedPreferences
                     "updateMonitoredPackages" -> {
                         val packages = call.argument<List<String>>("packages")
                         if (packages != null) {
-                            AppMonitorService.monitoredPackages = packages.toSet()
+                            val packageSet = packages.toSet()
+                            AppMonitorService.monitoredPackages = packageSet
+                            getSharedPreferences("kidguardian_native_prefs", Context.MODE_PRIVATE)
+                                .edit()
+                                .putStringSet("monitored_packages", packageSet)
+                                .apply()
                             result.success(true)
                         } else {
                             result.error("INVALID_ARGS", "Packages list is null", null)

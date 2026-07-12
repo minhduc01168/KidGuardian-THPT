@@ -7,6 +7,7 @@ import 'package:kidguardian/domain/usecases/smart_lock/block_app_usecase.dart';
 import 'package:kidguardian/domain/usecases/smart_lock/schedule_checker.dart';
 import 'package:kidguardian/domain/repositories/usage_repository.dart';
 import 'package:kidguardian/data/repositories/smart_lock_repository.dart';
+import 'package:kidguardian/data/models/monitored_app_model.dart';
 import 'package:kidguardian/domain/repositories/alert_repository.dart';
 
 class MockCheckAppAccessUseCase extends Mock implements CheckAppAccessUseCase {}
@@ -43,6 +44,8 @@ void main() {
 
     when(() => mockAlertRepository.watchKeywords(any()))
         .thenAnswer((_) => Stream.value([]));
+    when(() => mockSmartLockRepository.getMonitoredApps(any(), any()))
+        .thenAnswer((_) async => []);
 
     bloc = AppMonitorBloc(
       checkAppAccessUseCase: mockCheckAppAccessUseCase,
@@ -73,19 +76,45 @@ void main() {
       );
     }, skip: true);
 
-    test('emits AppBlockedState when app_blocked event is received', () {
+    test('emits AppBlockedState when app_blocked event is received', () async {
       when(() => mockSmartLockRepository.getAppTimeLimits(any(), any()))
           .thenAnswer((_) async => []);
       when(() => mockUsageRepository.getUsageByApp(any(), any()))
           .thenAnswer((_) async => {});
+      when(() => mockSmartLockRepository.getSmartLockSettings(any(), any()))
+          .thenAnswer((_) async => null);
+      when(() => mockSmartLockRepository.getMonitoredApps(any(), any()))
+          .thenAnswer((_) async => const [
+                MonitoredAppModel(
+                  appPackageName: 'com.test.app',
+                  appName: 'Test App',
+                  isMonitored: true,
+                )
+              ]);
+      when(() => mockCheckAppAccessUseCase.execute(
+            familyId: any(named: 'familyId'),
+            childUid: any(named: 'childUid'),
+            appPackageName: any(named: 'appPackageName'),
+          )).thenAnswer((_) async => true);
+      when(() => mockSmartLockRepository.getSchedules(any(), any()))
+          .thenAnswer((_) async => []);
 
+      bloc.add(const StartMonitoring('family1', 'child1'));
+      // Chờ một chút để _loadMonitoredApps hoàn tất
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      bloc.add(const AppEventReceived({
+        'type': 'app_event',
+        'eventType': 'opened',
+        'packageName': 'com.test.app',
+      }));
       bloc.add(const AppEventReceived({
         'type': 'app_event',
         'eventType': 'blocked',
         'packageName': 'com.test.app',
       }));
 
-      expectLater(
+      await expectLater(
         bloc.stream,
         emitsInOrder([
           isA<AppBlockedState>(),
