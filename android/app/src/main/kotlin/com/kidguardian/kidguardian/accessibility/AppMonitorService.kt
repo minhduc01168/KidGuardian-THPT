@@ -121,8 +121,8 @@ class AppMonitorService : AccessibilityService() {
             if (currentPackageName != packageName) {
                 if (currentPackageName != null) {
                     val durationMs = System.currentTimeMillis() - activeAppStartMillis
-                    // FIX #1+#5 Native: Chỉ lưu offline log cho monitored apps (Closed-by-default)
-                    val prevIsMonitored = monitoredPackages.contains(currentPackageName!!)
+                    // FIX #1+#5 Native: Lưu offline log cho monitored apps (Nếu rỗng → theo dõi tất cả user apps)
+                    val prevIsMonitored = monitoredPackages.isEmpty() || monitoredPackages.contains(currentPackageName!!)
                     if (activeAppStartMillis > 0 && durationMs >= 5000 && !isSystemPackage(currentPackageName!!) && prevIsMonitored) {
                         saveOfflineUsageLog(currentPackageName!!, activeAppStartMillis, System.currentTimeMillis(), durationMs / 1000)
                     }
@@ -136,8 +136,8 @@ class AppMonitorService : AccessibilityService() {
                 lastExtractedText = ""
                 Log.d(TAG, "Window State Changed: $packageName")
 
-                // FIX #1+#5 Native: Chỉ gửi 'opened' event lên Flutter cho monitored apps (Closed-by-default).
-                val isMonitored = monitoredPackages.contains(packageName)
+                // FIX #1+#5 Native: Gửi 'opened' event lên Flutter (Nếu rỗng → theo dõi tất cả user apps).
+                val isMonitored = monitoredPackages.isEmpty() || monitoredPackages.contains(packageName)
                 if (isMonitored) {
                     sendAppEvent(packageName, "opened")
                 } else {
@@ -152,7 +152,15 @@ class AppMonitorService : AccessibilityService() {
                    event?.eventType == AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED) {
 
             val packageName = event.packageName?.toString() ?: return
-            if (isSystemPackage(packageName)) return
+            
+            // YÊU CẦU: Chỉ quét từ khóa khi con search trên Google (Google app, Chrome)
+            val isGoogleSearch = packageName == "com.google.android.googlequicksearchbox" || 
+                                 packageName == "com.android.chrome" ||
+                                 packageName.contains("browser")
+            
+            if (!isGoogleSearch) {
+                return
+            }
 
             Log.d(TAG, "Content/Text changed in: $packageName, type: ${event.eventType}")
 

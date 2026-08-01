@@ -24,3 +24,5 @@ android/local.properties
 android/key.properties
 
 .DS_Store
+.bin/
+emulator.log

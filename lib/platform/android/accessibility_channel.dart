@@ -76,16 +76,40 @@ class AccessibilityChannel {
     }
   }
 
+  /// Kiểm tra xem Quyền Accessibility Service đã được người dùng bật trong Settings chưa
+  static Future<bool> isAccessibilityPermissionGranted() async {
+    try {
+      final bool? isGranted = await _methodChannel.invokeMethod('isAccessibilityPermissionGranted');
+      return isGranted ?? false;
+    } on PlatformException catch (e) {
+      print('Failed to check accessibility permission: ${e.message}');
+      return false;
+    }
+  }
+
+  /// Mở màn hình Cài đặt Trợ năng (Accessibility Settings) của Android
+  static Future<void> openAccessibilitySettings() async {
+    try {
+      await _methodChannel.invokeMethod('openAccessibilitySettings');
+    } on PlatformException catch (e) {
+      print('Failed to open accessibility settings: ${e.message}');
+    }
+  }
+
   /// Đọc và xóa toàn bộ log sử dụng ngoại tuyến trong Kotlin SharedPreferences
   static Future<List<Map<String, dynamic>>> getAndClearOfflineUsageLogs() async {
     try {
       final List<dynamic>? logsJsonList = await _methodChannel.invokeMethod('getAndClearOfflineUsageLogs');
       if (logsJsonList == null || logsJsonList.isEmpty) return [];
       return logsJsonList.map((item) {
-        if (item is String) {
-          return Map<String, dynamic>.from(jsonDecode(item));
-        } else if (item is Map) {
-          return Map<String, dynamic>.from(item);
+        try {
+          if (item is String) {
+            return Map<String, dynamic>.from(jsonDecode(item));
+          } else if (item is Map) {
+            return Map<String, dynamic>.from(item);
+          }
+        } catch (e) {
+          print('Skipping malformed offline log item: $e');
         }
         return <String, dynamic>{};
       }).where((m) => m.isNotEmpty).toList();

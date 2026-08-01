@@ -730,6 +730,7 @@ class _ParentDashboardState extends State<ParentDashboard> {
                 trailing: Icon(Icons.chevron_right),
                 onTap: () {
                   if (user.familyId != null) {
+                    final targetChildId = childUids.isNotEmpty ? childUids.first : user.uid;
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -739,7 +740,7 @@ class _ParentDashboardState extends State<ParentDashboard> {
                           ),
                           child: SmartLockSettingsScreen(
                             familyId: user.familyId!,
-                            childId: user.uid,
+                            childId: targetChildId,
                             childName: user.displayName,
                           ),
                         ),

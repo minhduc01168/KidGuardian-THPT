@@ -172,11 +172,12 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
   bool _isAppAllowedToLog(String packageName) {
     // Luôn chặn app hệ thống trước tiên
     if (AppUtils.isSystemOrUnmonitoredApp(packageName)) return false;
-    // Nếu danh sách chưa load → chặn tất cả (fail-safe)
-    if (_monitoredApps.isEmpty) return false;
-    // Closed-by-default: App phải TỒN TẠI trong list VÀ có isMonitored = true
+    // Nếu danh sách chưa có (chưa chọn whitelist/blacklist riêng) → cho phép tất cả các app người dùng
+    if (_monitoredApps.isEmpty) return true;
+    // Nếu đã cấu hình: App phải được phép (isMonitored = true) hoặc là app mới chưa có trong list (mặc định true)
     final found = _monitoredApps.where((a) => a.appPackageName == packageName);
-    return found.isNotEmpty && found.first.isMonitored;
+    if (found.isEmpty) return true;
+    return found.first.isMonitored;
   }
 
   // P12: Cooldown map to prevent spamming createAppBlockedAlert (5 mins per app)

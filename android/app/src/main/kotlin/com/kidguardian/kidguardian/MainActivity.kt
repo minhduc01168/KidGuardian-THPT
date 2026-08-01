@@ -3,6 +3,7 @@ package com.kidguardian.kidguardian
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.provider.Settings
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.EventChannel
@@ -95,6 +96,21 @@ class MainActivity : FlutterActivity() {
                         val logsList = logsSet.toList()
                         prefs.edit().remove("offline_usage_logs").apply()
                         result.success(logsList)
+                    }
+                    "isAccessibilityPermissionGranted" -> {
+                        val enabledServices = Settings.Secure.getString(
+                            contentResolver,
+                            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+                        )
+                        val isEnabled = enabledServices?.contains(packageName) == true
+                        result.success(isEnabled)
+                    }
+                    "openAccessibilitySettings" -> {
+                        val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                        startActivity(intent)
+                        result.success(true)
                     }
                     // Giữ lại để không break code cũ
                     "moveTaskToBack" -> {

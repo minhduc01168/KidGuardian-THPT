@@ -26,6 +26,7 @@ import 'package:kidguardian/presentation/blocs/smart_lock/smart_lock_state.dart'
 import 'package:kidguardian/presentation/blocs/smart_lock/app_monitor_bloc.dart';
 import 'package:kidguardian/presentation/widgets/smart_lock/request_time_dialog.dart';
 import 'package:kidguardian/data/models/app_time_limit_model.dart';
+import 'package:kidguardian/platform/android/accessibility_channel.dart';
 
 class ChildDashboard extends StatefulWidget {
   const ChildDashboard({super.key});
@@ -38,6 +39,7 @@ class _ChildDashboardState extends State<ChildDashboard> {
   int _currentIndex = 0;
   int _dailyLimitMinutes = 120; // Default 2 hours, will be updated from settings
   List<AppTimeLimitModel> _appLimits = [];
+  bool _isAccessibilityGranted = true;
 
   @override
   void initState() {
@@ -45,7 +47,17 @@ class _ChildDashboardState extends State<ChildDashboard> {
     _loadDashboard();
   }
 
+  Future<void> _checkAccessibilityPermission() async {
+    final granted = await AccessibilityChannel.isAccessibilityPermissionGranted();
+    if (mounted) {
+      setState(() {
+        _isAccessibilityGranted = granted;
+      });
+    }
+  }
+
   void _loadDashboard() {
+    _checkAccessibilityPermission();
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthAuthenticated) {
       final today = DateTime.now();
@@ -353,6 +365,56 @@ class _ChildDashboardState extends State<ChildDashboard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (!_isAccessibilityGranted)
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.amber.shade100,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.amber.shade700),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.warning_amber_rounded, color: Colors.amber.shade900, size: 24),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Chưa bật Dịch vụ Trợ năng (Accessibility)',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                              color: Colors.amber.shade900,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Cần bật Dịch vụ KidGuardian trong Cài đặt Trợ năng Android để ứng dụng ghi nhận thời gian và khóa app.',
+                      style: TextStyle(fontSize: 13, color: Colors.black87),
+                    ),
+                    const SizedBox(height: 12),
+                    ElevatedButton.icon(
+                      onPressed: () async {
+                        await AccessibilityChannel.openAccessibilitySettings();
+                      },
+                      icon: const Icon(Icons.settings, size: 18),
+                      label: const Text('Bật dịch vụ ngay'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.amber.shade800,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
             // Welcome card
             Container(
               width: double.infinity,
