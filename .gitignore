@@ -26,3 +26,5 @@ android/key.properties
 .DS_Store
 .bin/
 emulator.log
+node_modules/
+functions/node_modules/
