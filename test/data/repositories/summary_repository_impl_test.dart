@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:kidguardian/data/repositories/summary_repository_impl.dart';
+import 'package:kidguardian/domain/entities/usage_log.dart';
 import 'package:kidguardian/domain/repositories/usage_repository.dart';
 import 'package:kidguardian/domain/repositories/alert_repository.dart';
 
@@ -176,11 +177,21 @@ void main() {
         when(() => mockSummariesCollection.get()).thenAnswer((_) async => mockQuerySnapshotEmpty);
         when(() => mockQuerySnapshotEmpty.docs).thenReturn([]);
 
-        // Usage repository returns data
-        when(() => mockUsageRepository.getTotalUsageMinutes('child-1', '2026-05-24'))
-            .thenAnswer((_) async => 90);
-        when(() => mockUsageRepository.getUsageByApp('child-1', '2026-05-24'))
-            .thenAnswer((_) async => {'YouTube': 60, 'TikTok': 30});
+        // Usage repository returns logs
+        when(() => mockUsageRepository.getUsageByChild('child-1', '2026-05-24'))
+            .thenAnswer((_) async => [
+                  UsageLog(
+                    docId: 'log-1',
+                    childUid: 'child-1',
+                    familyId: 'family-1',
+                    appPackage: 'com.google.android.youtube',
+                    appName: 'YouTube',
+                    startTime: DateTime(2026, 5, 24, 10, 0),
+                    endTime: DateTime(2026, 5, 24, 11, 30),
+                    durationMinutes: 90,
+                    date: '2026-05-24',
+                  ),
+                ]);
 
         // Alert repository returns empty stream
         when(() => mockAlertRepository.watchAllAlerts(

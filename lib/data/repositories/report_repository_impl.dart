@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../core/utils/app_utils.dart';
 import '../../domain/entities/weekly_report.dart';
 import '../../domain/entities/monthly_report.dart';
 import '../../domain/repositories/report_repository.dart';
@@ -27,37 +28,39 @@ class ReportRepositoryImpl implements ReportRepository {
   ) async {
     final now = DateTime.now();
     final weekStart = now.subtract(Duration(days: now.weekday - 1));
-    final weekEnd = weekStart.add(Duration(days: 6));
-    final previousWeekStart = weekStart.subtract(Duration(days: 7));
-    final previousWeekEnd = weekStart.subtract(Duration(days: 1));
+    final weekEnd = weekStart.add(const Duration(days: 6));
+    final previousWeekStart = weekStart.subtract(const Duration(days: 7));
+    final previousWeekEnd = weekStart.subtract(const Duration(days: 1));
 
     final weekStartStr = _getDateString(weekStart);
     final weekEndStr = _getDateString(weekEnd);
     final prevWeekStartStr = _getDateString(previousWeekStart);
     final prevWeekEndStr = _getDateString(previousWeekEnd);
 
-    // Check if report already exists for this week
-    final existingReports = await getReportsByChild(childUid, limit: 1);
-    if (existingReports.isNotEmpty) {
-      final lastReport = existingReports.first;
-      if (lastReport.weekStartDate == weekStartStr) {
-        return lastReport;
-      }
-    }
-
     // Get current week data
-    final currentWeekLogs = await _usageRepository.getUsageByDateRange(
+    final currentWeekLogsRaw = await _usageRepository.getUsageByDateRange(
       childUid,
       weekStartStr,
       weekEndStr,
     );
 
     // Get previous week data
-    final previousWeekLogs = await _usageRepository.getUsageByDateRange(
+    final previousWeekLogsRaw = await _usageRepository.getUsageByDateRange(
       childUid,
       prevWeekStartStr,
       prevWeekEndStr,
     );
+
+    // Lọc bỏ system app / unmonitored apps (KidGuardian, Xm, daemon)
+    final currentWeekLogs = currentWeekLogsRaw.where((log) {
+      final pkg = log.appPackage.isNotEmpty ? log.appPackage : log.appName;
+      return !AppUtils.isSystemOrUnmonitoredApp(pkg);
+    }).toList();
+
+    final previousWeekLogs = previousWeekLogsRaw.where((log) {
+      final pkg = log.appPackage.isNotEmpty ? log.appPackage : log.appName;
+      return !AppUtils.isSystemOrUnmonitoredApp(pkg);
+    }).toList();
 
     // Calculate totals
     int totalMinutes = 0;
@@ -67,14 +70,16 @@ class ReportRepositoryImpl implements ReportRepository {
 
     for (final log in currentWeekLogs) {
       totalMinutes += log.durationMinutes;
-      usageByApp[log.appName] =
-          (usageByApp[log.appName] ?? 0) + log.durationMinutes;
+      final displayName = AppUtils.getAppNameFromLog(log.appPackage, log.appName);
+      usageByApp[displayName] =
+          (usageByApp[displayName] ?? 0) + log.durationMinutes;
     }
 
     for (final log in previousWeekLogs) {
       previousWeekMinutes += log.durationMinutes;
-      previousWeekUsageByApp[log.appName] =
-          (previousWeekUsageByApp[log.appName] ?? 0) + log.durationMinutes;
+      final displayName = AppUtils.getAppNameFromLog(log.appPackage, log.appName);
+      previousWeekUsageByApp[displayName] =
+          (previousWeekUsageByApp[displayName] ?? 0) + log.durationMinutes;
     }
 
     // Calculate percent change
@@ -83,7 +88,7 @@ class ReportRepositoryImpl implements ReportRepository {
       percentChange =
           ((totalMinutes - previousWeekMinutes) / previousWeekMinutes * 100);
     } else if (totalMinutes > 0) {
-      percentChange = 100; // First week with usage = 100% increase
+      percentChange = 100;
     }
 
     // Get top apps
@@ -101,7 +106,6 @@ class ReportRepositoryImpl implements ReportRepository {
       concerns.add('Tăng ${percentChange.toStringAsFixed(0)}% thời gian sử dụng');
     }
 
-    // Check per-app changes
     for (final app in topApps) {
       final current = usageByApp[app] ?? 0;
       final previous = previousWeekUsageByApp[app] ?? 0;
@@ -115,7 +119,7 @@ class ReportRepositoryImpl implements ReportRepository {
       }
     }
 
-    // Create report
+    // Create report model
     final report = WeeklyReportModel(
       reportId: '',
       childUid: childUid,
@@ -133,27 +137,55 @@ class ReportRepositoryImpl implements ReportRepository {
       generatedAt: now,
     );
 
-    // Save to Firestore
-    final docRef = await _firestore
-        .collection('weekly_reports')
-        .add(report.toMap());
+    // Save/Update in Firestore
+    try {
+      final query = await _firestore
+          .collection('weekly_reports')
+          .where('childUid', isEqualTo: childUid)
+          .where('weekStartDate', isEqualTo: weekStartStr)
+          .get();
 
-    return WeeklyReportModel(
-      reportId: docRef.id,
-      childUid: childUid,
-      familyId: familyId,
-      weekStartDate: weekStartStr,
-      weekEndDate: weekEndStr,
-      totalMinutes: totalMinutes,
-      previousWeekMinutes: previousWeekMinutes,
-      usageByApp: usageByApp,
-      previousWeekUsageByApp: previousWeekUsageByApp,
-      topApps: topApps,
-      percentChange: percentChange,
-      improvements: improvements,
-      concerns: concerns,
-      generatedAt: now,
-    );
+      if (query.docs.isNotEmpty) {
+        final docId = query.docs.first.id;
+        await _firestore.collection('weekly_reports').doc(docId).update(report.toMap());
+        return WeeklyReportModel(
+          reportId: docId,
+          childUid: childUid,
+          familyId: familyId,
+          weekStartDate: weekStartStr,
+          weekEndDate: weekEndStr,
+          totalMinutes: totalMinutes,
+          previousWeekMinutes: previousWeekMinutes,
+          usageByApp: usageByApp,
+          previousWeekUsageByApp: previousWeekUsageByApp,
+          topApps: topApps,
+          percentChange: percentChange,
+          improvements: improvements,
+          concerns: concerns,
+          generatedAt: now,
+        );
+      } else {
+        final docRef = await _firestore.collection('weekly_reports').add(report.toMap());
+        return WeeklyReportModel(
+          reportId: docRef.id,
+          childUid: childUid,
+          familyId: familyId,
+          weekStartDate: weekStartStr,
+          weekEndDate: weekEndStr,
+          totalMinutes: totalMinutes,
+          previousWeekMinutes: previousWeekMinutes,
+          usageByApp: usageByApp,
+          previousWeekUsageByApp: previousWeekUsageByApp,
+          topApps: topApps,
+          percentChange: percentChange,
+          improvements: improvements,
+          concerns: concerns,
+          generatedAt: now,
+        );
+      }
+    } catch (_) {
+      return report;
+    }
   }
 
   @override
@@ -215,18 +247,28 @@ class ReportRepositoryImpl implements ReportRepository {
     final prevMonthEndStr = _getDateString(previousMonthEnd);
 
     // Get current month data
-    final currentMonthLogs = await _usageRepository.getUsageByDateRange(
+    final currentMonthLogsRaw = await _usageRepository.getUsageByDateRange(
       childUid,
       monthStartStr,
       monthEndStr,
     );
 
     // Get previous month data
-    final previousMonthLogs = await _usageRepository.getUsageByDateRange(
+    final previousMonthLogsRaw = await _usageRepository.getUsageByDateRange(
       childUid,
       prevMonthStartStr,
       prevMonthEndStr,
     );
+
+    final currentMonthLogs = currentMonthLogsRaw.where((log) {
+      final pkg = log.appPackage.isNotEmpty ? log.appPackage : log.appName;
+      return !AppUtils.isSystemOrUnmonitoredApp(pkg);
+    }).toList();
+
+    final previousMonthLogs = previousMonthLogsRaw.where((log) {
+      final pkg = log.appPackage.isNotEmpty ? log.appPackage : log.appName;
+      return !AppUtils.isSystemOrUnmonitoredApp(pkg);
+    }).toList();
 
     int totalMinutes = 0;
     int previousMonthMinutes = 0;
@@ -239,15 +281,18 @@ class ReportRepositoryImpl implements ReportRepository {
       'Tuần 4': 0,
     };
 
+    final normalizedMonthEnd = DateTime(monthEnd.year, monthEnd.month, monthEnd.day);
+
     for (final log in currentMonthLogs) {
       totalMinutes += log.durationMinutes;
-      usageByApp[log.appName] =
-          (usageByApp[log.appName] ?? 0) + log.durationMinutes;
+      final displayName = AppUtils.getAppNameFromLog(log.appPackage, log.appName);
+      usageByApp[displayName] =
+          (usageByApp[displayName] ?? 0) + log.durationMinutes;
 
-      // Group into 4 weeks approx
       try {
-        final logDate = DateTime.parse(log.date);
-        final daysDiff = monthEnd.difference(logDate).inDays;
+        final parsed = DateTime.parse(log.date);
+        final normalizedLogDate = DateTime(parsed.year, parsed.month, parsed.day);
+        final daysDiff = normalizedMonthEnd.difference(normalizedLogDate).inDays;
         if (daysDiff <= 7) {
           weeklyBreakdown['Tuần 4'] = (weeklyBreakdown['Tuần 4'] ?? 0) + log.durationMinutes;
         } else if (daysDiff <= 14) {
@@ -262,8 +307,9 @@ class ReportRepositoryImpl implements ReportRepository {
 
     for (final log in previousMonthLogs) {
       previousMonthMinutes += log.durationMinutes;
-      previousMonthUsageByApp[log.appName] =
-          (previousMonthUsageByApp[log.appName] ?? 0) + log.durationMinutes;
+      final displayName = AppUtils.getAppNameFromLog(log.appPackage, log.appName);
+      previousMonthUsageByApp[displayName] =
+          (previousMonthUsageByApp[displayName] ?? 0) + log.durationMinutes;
     }
 
     double percentChange = 0;
@@ -318,27 +364,56 @@ class ReportRepositoryImpl implements ReportRepository {
       generatedAt: now,
     );
 
-    final docRef = await _firestore
-        .collection('monthly_reports')
-        .add(report.toMap());
+    try {
+      final query = await _firestore
+          .collection('monthly_reports')
+          .where('childUid', isEqualTo: childUid)
+          .where('monthStartDate', isEqualTo: monthStartStr)
+          .get();
 
-    return MonthlyReportModel(
-      reportId: docRef.id,
-      childUid: childUid,
-      familyId: familyId,
-      monthStartDate: monthStartStr,
-      monthEndDate: monthEndStr,
-      totalMinutes: totalMinutes,
-      previousMonthMinutes: previousMonthMinutes,
-      usageByApp: usageByApp,
-      previousMonthUsageByApp: previousMonthUsageByApp,
-      weeklyBreakdown: weeklyBreakdown,
-      topApps: topApps,
-      percentChange: percentChange,
-      improvements: improvements,
-      concerns: concerns,
-      generatedAt: now,
-    );
+      if (query.docs.isNotEmpty) {
+        final docId = query.docs.first.id;
+        await _firestore.collection('monthly_reports').doc(docId).update(report.toMap());
+        return MonthlyReportModel(
+          reportId: docId,
+          childUid: childUid,
+          familyId: familyId,
+          monthStartDate: monthStartStr,
+          monthEndDate: monthEndStr,
+          totalMinutes: totalMinutes,
+          previousMonthMinutes: previousMonthMinutes,
+          usageByApp: usageByApp,
+          previousMonthUsageByApp: previousMonthUsageByApp,
+          weeklyBreakdown: weeklyBreakdown,
+          topApps: topApps,
+          percentChange: percentChange,
+          improvements: improvements,
+          concerns: concerns,
+          generatedAt: now,
+        );
+      } else {
+        final docRef = await _firestore.collection('monthly_reports').add(report.toMap());
+        return MonthlyReportModel(
+          reportId: docRef.id,
+          childUid: childUid,
+          familyId: familyId,
+          monthStartDate: monthStartStr,
+          monthEndDate: monthEndStr,
+          totalMinutes: totalMinutes,
+          previousMonthMinutes: previousMonthMinutes,
+          usageByApp: usageByApp,
+          previousMonthUsageByApp: previousMonthUsageByApp,
+          weeklyBreakdown: weeklyBreakdown,
+          topApps: topApps,
+          percentChange: percentChange,
+          improvements: improvements,
+          concerns: concerns,
+          generatedAt: now,
+        );
+      }
+    } catch (_) {
+      return report;
+    }
   }
 
   @override

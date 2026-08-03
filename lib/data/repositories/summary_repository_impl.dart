@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../core/utils/app_utils.dart';
 import '../../domain/entities/daily_summary.dart';
 import '../../domain/repositories/summary_repository.dart';
 import '../../domain/repositories/usage_repository.dart';
@@ -18,35 +19,56 @@ class SummaryRepositoryImpl implements SummaryRepository {
         _usageRepository = usageRepository,
         _alertRepository = alertRepository;
 
+  String _getTodayString() {
+    final now = DateTime.now();
+    return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+  }
+
   @override
   Future<DailySummary> generateDailySummary(
     String childUid,
     String familyId,
     String date,
   ) async {
-    // Check if summary already exists
-    final exists = await hasSummaryForDate(childUid, date);
-    if (exists) {
-      final existing = await getSummariesByChild(childUid, limit: 1);
-      if (existing.isNotEmpty) {
-        return existing.first;
-      }
+    final isToday = date == _getTodayString();
+
+    // Nếu không phải hôm nay và đã có summary quá khứ → lấy summary đã lưu
+    if (!isToday) {
+      try {
+        final query = await _firestore
+            .collection('daily_summaries')
+            .where('childUid', isEqualTo: childUid)
+            .where('date', isEqualTo: date)
+            .get();
+
+        if (query.docs.isNotEmpty) {
+          return DailySummaryModel.fromFirestore(query.docs.first);
+        }
+      } catch (_) {}
     }
 
-    // Get usage data
-    final totalMinutes = await _usageRepository.getTotalUsageMinutes(
-      childUid,
-      date,
-    );
+    // Lấy dữ liệu usage và lọc bỏ system app / unmonitored apps (KidGuardian, Xm, daemon)
+    final rawLogs = await _usageRepository.getUsageByChild(childUid, date);
+    final validLogs = rawLogs.where((log) {
+      final pkg = log.appPackage.isNotEmpty ? log.appPackage : log.appName;
+      return !AppUtils.isSystemOrUnmonitoredApp(pkg);
+    }).toList();
 
-    final usageByApp = await _usageRepository.getUsageByApp(childUid, date);
+    int totalMinutes = 0;
+    final Map<String, int> usageByApp = {};
 
-    // Sort by usage and get top 3
+    for (final log in validLogs) {
+      totalMinutes += log.durationMinutes;
+      final displayName = AppUtils.getAppNameFromLog(log.appPackage, log.appName);
+      usageByApp[displayName] = (usageByApp[displayName] ?? 0) + log.durationMinutes;
+    }
+
+    // Sort theo thời lượng sử dụng và lấy top 3
     final sortedApps = usageByApp.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
     final topApps = sortedApps.take(3).map((e) => e.key).toList();
 
-    // Get alert count for the day
+    // Lấy số lượng cảnh báo trong ngày
     int alertCount = 0;
     if (_alertRepository != null) {
       try {
@@ -65,7 +87,6 @@ class SummaryRepositoryImpl implements SummaryRepository {
       }
     }
 
-    // Create summary
     final summary = DailySummaryModel(
       summaryId: '',
       childUid: childUid,
@@ -79,20 +100,43 @@ class SummaryRepositoryImpl implements SummaryRepository {
       sent: false,
     );
 
-    // Save to Firestore
-    final docRef = await _firestore
-        .collection('daily_summaries')
-        .add(summary.toMap());
+    // Lưu hoặc cập nhật Firestore
+    try {
+      final query = await _firestore
+          .collection('daily_summaries')
+          .where('childUid', isEqualTo: childUid)
+          .where('date', isEqualTo: date)
+          .get();
 
-    return DailySummaryModel(
-      summaryId: docRef.id,
-      childUid: childUid,
-      familyId: familyId,
-      date: date,
-      totalMinutes: totalMinutes,
-      usageByApp: usageByApp,
-      topApps: topApps,
-    );
+      if (query.docs.isNotEmpty) {
+        final docId = query.docs.first.id;
+        await _firestore.collection('daily_summaries').doc(docId).update(summary.toMap());
+        return DailySummaryModel(
+          summaryId: docId,
+          childUid: childUid,
+          familyId: familyId,
+          date: date,
+          totalMinutes: totalMinutes,
+          usageByApp: usageByApp,
+          topApps: topApps,
+          alertCount: alertCount,
+        );
+      } else {
+        final docRef = await _firestore.collection('daily_summaries').add(summary.toMap());
+        return DailySummaryModel(
+          summaryId: docRef.id,
+          childUid: childUid,
+          familyId: familyId,
+          date: date,
+          totalMinutes: totalMinutes,
+          usageByApp: usageByApp,
+          topApps: topApps,
+          alertCount: alertCount,
+        );
+      }
+    } catch (_) {
+      return summary;
+    }
   }
 
   @override

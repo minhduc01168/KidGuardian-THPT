@@ -351,8 +351,8 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
         // P5: Log usage before blocking
         _logCurrentAppUsage();
         await blockAppUseCase.execute(appPackageName: _currentAppPackage!);
-        // D1: Tell native to move task to back
-        await AccessibilityChannel.moveTaskToBack();
+        // FIX Bug 5: dùng moveToHome() thay cho deprecated moveTaskToBack()
+        await AccessibilityChannel.moveToHome();
         
         // Ghi alert có cooldown
         await _sendBlockedAlertIfNeeded(_currentAppPackage!, 'time_limit');
@@ -368,7 +368,8 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
       if (activeSchedule != null) {
         _logCurrentAppUsage();
         await blockAppUseCase.execute(appPackageName: _currentAppPackage!);
-        await AccessibilityChannel.moveTaskToBack();
+        // FIX Bug 5: dùng moveToHome() thay cho deprecated moveTaskToBack()
+        await AccessibilityChannel.moveToHome();
         
         // Ghi alert có cooldown
         await _sendBlockedAlertIfNeeded(_currentAppPackage!, 'schedule (${activeSchedule.name})');
@@ -425,8 +426,8 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
               // P5: Log usage before blocking
               _logCurrentAppUsage();
               await blockAppUseCase.execute(appPackageName: packageName);
-              // D1: Tell native to move task to back
-              await AccessibilityChannel.moveTaskToBack();
+              // FIX Bug 5: dùng moveToHome() thay cho deprecated moveTaskToBack()
+              await AccessibilityChannel.moveToHome();
               
               // Ghi alert có cooldown
               await _sendBlockedAlertIfNeeded(packageName, 'time_limit');
@@ -442,7 +443,8 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
             if (activeSchedule != null) {
               _logCurrentAppUsage();
               await blockAppUseCase.execute(appPackageName: packageName);
-              await AccessibilityChannel.moveTaskToBack();
+              // FIX Bug 5: dùng moveToHome() thay cho deprecated moveTaskToBack()
+              await AccessibilityChannel.moveToHome();
               
               // Ghi alert có cooldown
               await _sendBlockedAlertIfNeeded(packageName, 'schedule (${activeSchedule.name})');

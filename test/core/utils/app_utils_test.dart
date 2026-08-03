@@ -8,10 +8,14 @@ void main() {
       expect(AppUtils.isSystemOrUnmonitoredApp('com.facebook.katana'), isFalse);
       expect(AppUtils.isSystemOrUnmonitoredApp('com.garena.game.kgvn'), isFalse);
       expect(AppUtils.isSystemOrUnmonitoredApp('com.android.chrome'), isFalse);
-      expect(AppUtils.isSystemOrUnmonitoredApp('com.kidguardian.kidguardian'), isFalse);
       expect(AppUtils.isSystemOrUnmonitoredApp('com.google.android.youtube'), isFalse);
       expect(AppUtils.isSystemOrUnmonitoredApp('com.google.android.gm'), isFalse);
       expect(AppUtils.isSystemOrUnmonitoredApp('com.google.android.apps.maps'), isFalse);
+    });
+
+    test('Should exclude self and third-party monitoring tools (KidGuardian & Xm)', () {
+      expect(AppUtils.isSystemOrUnmonitoredApp('com.kidguardian.kidguardian'), isTrue);
+      expect(AppUtils.isSystemOrUnmonitoredApp('com.preff.kb.xm'), isTrue);
     });
 
     test('Should block Android and Google system daemons', () {

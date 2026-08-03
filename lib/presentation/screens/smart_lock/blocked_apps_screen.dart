@@ -185,8 +185,12 @@ class _MonitoredAppTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Bug 1 fix: fallback sang AppUtils.getAppName nếu appName trống
+    final displayName = app.appName.isNotEmpty
+        ? app.appName
+        : AppUtils.getAppName(app.appPackageName);
     return SwitchListTile(
-      title: Text(app.appName),
+      title: Text(displayName),
       subtitle: Text(
         app.isMonitored ? 'Đang giám sát' : 'Không giám sát',
         style: TextStyle(
@@ -200,7 +204,7 @@ class _MonitoredAppTile extends StatelessWidget {
           : CircleAvatar(
               backgroundColor: Colors.grey[200],
               child: Text(
-                app.appName.isNotEmpty ? app.appName[0].toUpperCase() : '?',
+                displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),

@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 
 class AppUtils {
+  /// Danh sách package tuyệt đối KHÔNG được giám sát:
+  /// bao gồm chính KidGuardian app và các monitoring tool bên thứ ba.
+  static const Set<String> _selfExcludedPackages = {
+    'com.kidguardian.kidguardian',
+    'com.preff.kb.xm',
+  };
   static const Map<String, String> _appNameMap = {
     'com.zhiliaoapp.musically': 'TikTok',
     'com.facebook.katana': 'Facebook',
@@ -70,8 +76,11 @@ class AppUtils {
     if (packageName.isEmpty) return true;
     final lower = packageName.toLowerCase();
 
+    // 0. Self-excluded: KidGuardian app và monitoring tools không được giám sát
+    if (_selfExcludedPackages.contains(lower)) return true;
+
     // Ngoại lệ: CÁC ỨNG DỤNG ĐƯỢC PHÉP GIÁM SÁT (Luôn cho phép)
-    if (lower.contains('kidguardian') || lower == 'com.android.chrome' || lower == 'google chrome') {
+    if (lower == 'com.android.chrome' || lower == 'google chrome') {
       return false;
     }
     const allowedGoogleApps = {

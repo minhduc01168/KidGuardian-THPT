@@ -289,12 +289,21 @@ class AppMonitorService : AccessibilityService() {
         Log.d(TAG, "Blocking app (FIX C2): $packageName → forcing HOME")
         // 1. Ép về Home ngay lập tức
         performGlobalAction(GLOBAL_ACTION_HOME)
-        // 2. Báo cho Flutter cập nhật UI (hiện LockScreen)
+        // 2. Báo cho Flutter cập nhật UI (hiện LockScreen) qua LocalBroadcast
         val broadcastIntent = Intent(com.kidguardian.kidguardian.service.MonitorForegroundService.ACTION_APP_EVENT).apply {
             putExtra(EXTRA_PACKAGE_NAME, packageName)
             putExtra(EXTRA_EVENT_TYPE, "blocked")
         }
         LocalBroadcastManager.getInstance(this).sendBroadcast(broadcastIntent)
+        // FIX Bug 6: Forward trực tiếp lên Flutter EventSink — đảm bảo LockScreen
+        // hiện lại khi con mở lại app bị khóa lần 2+ (LocalBroadcast đôi khi không đủ
+        // nhanh khi Flutter EventSink chưa được MonitorForegroundService tiếp nhận)
+        com.kidguardian.kidguardian.service.MonitorForegroundService.sendEventDirectly(mapOf(
+            "type" to "app_event",
+            "packageName" to packageName,
+            "appName" to packageName,
+            "eventType" to "blocked",
+        ))
     }
 
     /**
