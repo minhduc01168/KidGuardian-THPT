@@ -189,7 +189,7 @@ void main() {
 
       // assert
       expect(result, isA<List<MonitoredAppModel>>());
-      expect(result.length, 7);
+      expect(result.length, 9);
       expect(result.every((app) => app.isMonitored), true);
       expect(result.first.appName, 'TikTok');
     });

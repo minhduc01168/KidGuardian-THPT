@@ -153,12 +153,7 @@ class AppMonitorService : AccessibilityService() {
 
             val packageName = event.packageName?.toString() ?: return
             
-            // YÊU CẦU: Chỉ quét từ khóa khi con search trên Google (Google app, Chrome)
-            val isGoogleSearch = packageName == "com.google.android.googlequicksearchbox" || 
-                                 packageName == "com.android.chrome" ||
-                                 packageName.contains("browser")
-            
-            if (!isGoogleSearch) {
+            if (isSystemPackage(packageName)) {
                 return
             }
 

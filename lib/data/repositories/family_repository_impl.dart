@@ -100,6 +100,13 @@ class FamilyRepositoryImpl implements FamilyRepository {
       'updatedAt': FieldValue.serverTimestamp(),
     }).timeout(const Duration(seconds: 5), onTimeout: () => null);
 
+    // Bổ sung tạo document thực thể trong subcollection 'children'
+    // Đảm bảo Firestore snapshots() nhận diện document khi lắng nghe stream real-time
+    await familyRef.collection('children').doc(childUid).set({
+      'childUid': childUid,
+      'createdAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true)).timeout(const Duration(seconds: 5), onTimeout: () => null);
+
     await _firestore.collection('users').doc(childUid).update({
       'familyId': familyId,
     }).timeout(const Duration(seconds: 5), onTimeout: () => null);

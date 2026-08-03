@@ -122,39 +122,51 @@ class TimeRequestRepositoryImpl implements TimeRequestRepository {
     return _firestore
         .collection('families')
         .doc(familyId)
-        .collection('children')
         .snapshots()
-        .switchMap((childrenSnapshot) {
-      if (childrenSnapshot.docs.isEmpty) {
-        return Stream.value(<TimeRequest>[]);
-      }
-      final streams = childrenSnapshot.docs.map((childDoc) {
-        final childUid = childDoc.id;
-        return _firestore
-            .collection('families')
-            .doc(familyId)
-            .collection('children')
-            .doc(childUid)
-            .collection('timeRequests')
-            .snapshots()
-            .map((snapshot) {
-          return snapshot.docs
-              .map((doc) => TimeRequest.fromFirestore(doc))
-              .where((req) => req.status == TimeRequestStatus.pending)
-              .toList();
-        }).handleError((error) {
-          debugPrint('[watchPendingRequests] Error reading timeRequests for $childUid: $error');
-          return <TimeRequest>[];
-        });
-      }).toList();
+        .switchMap((familySnapshot) {
+      final familyData = familySnapshot.data() ?? {};
+      final List<dynamic> rawChildUids = familyData['childUids'] ?? [];
+      final Set<String> childUids = rawChildUids.map((e) => e.toString()).toSet();
 
-      return Rx.combineLatestList(streams).map((listOfLists) {
-        final combined = listOfLists.expand((list) => list).toList();
-        combined.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-        return combined.take(50).toList();
-      }).handleError((error) {
-        debugPrint('[watchPendingRequests] combineLatestList error: $error');
-        return <TimeRequest>[];
+      return _firestore
+          .collection('families')
+          .doc(familyId)
+          .collection('children')
+          .snapshots()
+          .switchMap((childrenSnapshot) {
+        final allChildUids = Set<String>.from(childUids);
+        for (final doc in childrenSnapshot.docs) {
+          allChildUids.add(doc.id);
+        }
+
+        if (allChildUids.isEmpty) {
+          return Stream.value(<TimeRequest>[]);
+        }
+
+        final streams = allChildUids.map((childUid) {
+          return _firestore
+              .collection('families')
+              .doc(familyId)
+              .collection('children')
+              .doc(childUid)
+              .collection('timeRequests')
+              .snapshots()
+              .map((snapshot) {
+            return snapshot.docs
+                .map((doc) => TimeRequest.fromFirestore(doc))
+                .where((req) => req.status == TimeRequestStatus.pending)
+                .toList();
+          }).handleError((error) {
+            debugPrint('[watchPendingRequests] Error reading timeRequests for $childUid: $error');
+            return <TimeRequest>[];
+          });
+        }).toList();
+
+        return Rx.combineLatestList(streams).map((listOfLists) {
+          final combined = listOfLists.expand((list) => list).toList();
+          combined.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+          return combined.take(50).toList();
+        });
       });
     }).handleError((error) {
       debugPrint('[watchPendingRequests] switchMap outer error: $error');
@@ -167,36 +179,48 @@ class TimeRequestRepositoryImpl implements TimeRequestRepository {
     return _firestore
         .collection('families')
         .doc(familyId)
-        .collection('children')
         .snapshots()
-        .switchMap((childrenSnapshot) {
-      if (childrenSnapshot.docs.isEmpty) {
-        return Stream.value(<TimeRequest>[]);
-      }
-      final streams = childrenSnapshot.docs.map((childDoc) {
-        final childUid = childDoc.id;
-        return _firestore
-            .collection('families')
-            .doc(familyId)
-            .collection('children')
-            .doc(childUid)
-            .collection('timeRequests')
-            .snapshots()
-            .map((snapshot) {
-          return snapshot.docs.map((doc) => TimeRequest.fromFirestore(doc)).toList();
-        }).handleError((error) {
-          debugPrint('[watchAllRequests] Error reading timeRequests for $childUid: $error');
-          return <TimeRequest>[];
-        });
-      }).toList();
+        .switchMap((familySnapshot) {
+      final familyData = familySnapshot.data() ?? {};
+      final List<dynamic> rawChildUids = familyData['childUids'] ?? [];
+      final Set<String> childUids = rawChildUids.map((e) => e.toString()).toSet();
 
-      return Rx.combineLatestList(streams).map((listOfLists) {
-        final combined = listOfLists.expand((list) => list).toList();
-        combined.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-        return combined.take(50).toList();
-      }).handleError((error) {
-        debugPrint('[watchAllRequests] combineLatestList error: $error');
-        return <TimeRequest>[];
+      return _firestore
+          .collection('families')
+          .doc(familyId)
+          .collection('children')
+          .snapshots()
+          .switchMap((childrenSnapshot) {
+        final allChildUids = Set<String>.from(childUids);
+        for (final doc in childrenSnapshot.docs) {
+          allChildUids.add(doc.id);
+        }
+
+        if (allChildUids.isEmpty) {
+          return Stream.value(<TimeRequest>[]);
+        }
+
+        final streams = allChildUids.map((childUid) {
+          return _firestore
+              .collection('families')
+              .doc(familyId)
+              .collection('children')
+              .doc(childUid)
+              .collection('timeRequests')
+              .snapshots()
+              .map((snapshot) {
+            return snapshot.docs.map((doc) => TimeRequest.fromFirestore(doc)).toList();
+          }).handleError((error) {
+            debugPrint('[watchAllRequests] Error reading timeRequests for $childUid: $error');
+            return <TimeRequest>[];
+          });
+        }).toList();
+
+        return Rx.combineLatestList(streams).map((listOfLists) {
+          final combined = listOfLists.expand((list) => list).toList();
+          combined.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+          return combined.take(50).toList();
+        });
       });
     }).handleError((error) {
       debugPrint('[watchAllRequests] switchMap outer error: $error');

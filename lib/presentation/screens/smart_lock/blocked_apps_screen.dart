@@ -185,10 +185,7 @@ class _MonitoredAppTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Bug 1 fix: fallback sang AppUtils.getAppName nếu appName trống
-    final displayName = app.appName.isNotEmpty
-        ? app.appName
-        : AppUtils.getAppName(app.appPackageName);
+    final displayName = AppUtils.getAppNameFromLog(app.appPackageName, app.appName);
     return SwitchListTile(
       title: Text(displayName),
       subtitle: Text(

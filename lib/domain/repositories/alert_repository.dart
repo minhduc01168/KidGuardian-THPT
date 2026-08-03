@@ -263,45 +263,60 @@ class AlertRepositoryImpl implements AlertRepository {
     return _firestore
         .collection('families')
         .doc(familyId)
-        .collection('children')
         .snapshots()
-        .switchMap((childrenSnapshot) {
-      if (childrenSnapshot.docs.isEmpty) {
-        return Stream.value(<AlertModel>[]);
-      }
-      final streams = childrenSnapshot.docs.map((childDoc) {
-        final childUid = childDoc.id;
-        // FIX BUG #3: Không dùng orderBy trong query → tránh lỗi Firestore composite index
-        // Sắp xếp sẽ được thực hiện trong Dart sau khi tải dữ liệu
-        return _firestore
-            .collection('families')
-            .doc(familyId)
-            .collection('children')
-            .doc(childUid)
-            .collection('alerts')
-            .snapshots()
-            .handleError((error) {
-              debugPrint('AlertRepository: stream error for child $childUid: $error');
-            })
-            .map((alertSnapshot) {
-          return alertSnapshot.docs
-              .map((doc) => AlertModel.fromFirestore(doc))
-              .where((alert) => alert.type == 'keyword_detected')
-              .toList();
-        });
-      }).toList();
+        .switchMap((familySnapshot) {
+      final familyData = familySnapshot.data() ?? {};
+      final List<dynamic> rawChildUids = familyData['childUids'] ?? [];
+      final Set<String> childUids = rawChildUids.map((e) => e.toString()).toSet();
 
-      return Rx.combineLatestList(streams).map((listOfLists) {
-        final combined = listOfLists.expand((list) => list).toList();
-        // Sắp xếp theo timestamp giảm dần trong Dart (an toàn, không cần Firestore index)
-        combined.sort((a, b) {
-          if (a.timestamp == null && b.timestamp == null) return 0;
-          if (a.timestamp == null) return 1;
-          if (b.timestamp == null) return -1;
-          return b.timestamp!.compareTo(a.timestamp!);
+      return _firestore
+          .collection('families')
+          .doc(familyId)
+          .collection('children')
+          .snapshots()
+          .switchMap((childrenSnapshot) {
+        final allChildUids = Set<String>.from(childUids);
+        for (final doc in childrenSnapshot.docs) {
+          allChildUids.add(doc.id);
+        }
+
+        if (allChildUids.isEmpty) {
+          return Stream.value(<AlertModel>[]);
+        }
+
+        final streams = allChildUids.map((childUid) {
+          return _firestore
+              .collection('families')
+              .doc(familyId)
+              .collection('children')
+              .doc(childUid)
+              .collection('alerts')
+              .snapshots()
+              .handleError((error) {
+                debugPrint('AlertRepository: stream error for child $childUid: $error');
+              })
+              .map((alertSnapshot) {
+            return alertSnapshot.docs
+                .map((doc) => AlertModel.fromFirestore(doc))
+                .where((alert) => alert.type == 'keyword_detected')
+                .toList();
+          });
+        }).toList();
+
+        return Rx.combineLatestList(streams).map((listOfLists) {
+          final combined = listOfLists.expand((list) => list).toList();
+          combined.sort((a, b) {
+            if (a.timestamp == null && b.timestamp == null) return 0;
+            if (a.timestamp == null) return 1;
+            if (b.timestamp == null) return -1;
+            return b.timestamp!.compareTo(a.timestamp!);
+          });
+          return combined.take(50).toList();
         });
-        return combined.take(50).toList();
       });
+    }).handleError((error) {
+      debugPrint('[watchAllFamilyAlerts] switchMap outer error: $error');
+      return Stream.value(<AlertModel>[]);
     });
   }
 

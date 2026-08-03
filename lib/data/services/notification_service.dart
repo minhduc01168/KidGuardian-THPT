@@ -142,7 +142,42 @@ class NotificationService {
     debugPrint('Foreground message: ${message.data}');
     if (message.data['type'] == 'time_request') {
       _showTimeRequestNotification(message.data);
+    } else if (message.data['type'] == 'keyword_alert') {
+      _showKeywordAlertNotification(message.data);
     }
+  }
+
+  Future<void> _showKeywordAlertNotification(Map<String, dynamic> data) async {
+    final keyword = data['keyword'] as String? ?? '';
+    final packageName = data['packageName'] as String? ?? '';
+
+    final androidDetails = AndroidNotificationDetails(
+      _channelId,
+      _channelName,
+      channelDescription: _channelDescription,
+      importance: Importance.high,
+      priority: Priority.high,
+      showWhen: true,
+      autoCancel: true,
+    );
+
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    final details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    await _localNotifications.show(
+      id: (keyword + packageName).hashCode.abs(),
+      title: '⚠️ Cảnh báo từ khóa cấm',
+      body: 'Phát hiện từ khóa "$keyword" khi bé dùng ứng dụng $packageName',
+      notificationDetails: details,
+    );
   }
 
   void _handleMessageOpenedApp(RemoteMessage message) {

@@ -90,6 +90,16 @@ class SmartLockRepository {
         limits: {},
       ),
       const AppTimeLimitModel(
+        appPackageName: 'com.instagram.barcelona',
+        appName: 'Threads',
+        limits: {},
+      ),
+      const AppTimeLimitModel(
+        appPackageName: 'com.android.chrome',
+        appName: 'Google Chrome',
+        limits: {},
+      ),
+      const AppTimeLimitModel(
         appPackageName: 'com.zing.zalo',
         appName: 'Zalo',
         limits: {},
@@ -442,6 +452,16 @@ class SmartLockRepository {
       const MonitoredAppModel(
         appPackageName: 'com.instagram.android',
         appName: 'Instagram',
+        isMonitored: true,
+      ),
+      const MonitoredAppModel(
+        appPackageName: 'com.instagram.barcelona',
+        appName: 'Threads',
+        isMonitored: true,
+      ),
+      const MonitoredAppModel(
+        appPackageName: 'com.android.chrome',
+        appName: 'Google Chrome',
         isMonitored: true,
       ),
       const MonitoredAppModel(
