@@ -73,7 +73,7 @@ class _RequestCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final timeStr = DateFormat('dd/MM/yyyy HH:mm').format(request.timestamp);
+    final timeStr = DateFormat('dd/MM/yyyy HH:mm').format(request.timestamp.toLocal());
     final statusColor = request.status == TimeRequestStatus.pending
         ? Colors.orange
         : request.status == TimeRequestStatus.approved

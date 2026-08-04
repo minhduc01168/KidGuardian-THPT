@@ -39,11 +39,12 @@ void main() {
     String date = '2026-05-31',
     String childUid = 'child1',
   }) {
+    final pkg = appName == 'YouTube' ? 'com.google.android.youtube' : 'com.zhiliaoapp.musically';
     return UsageLog(
       docId: 'doc1',
       childUid: childUid,
       familyId: 'fam1',
-      appPackage: 'com.example.app',
+      appPackage: pkg,
       appName: appName,
       startTime: DateTime(2026, 5, 31, 10, 0),
       endTime: DateTime(2026, 5, 31, 10, durationMinutes),
@@ -318,6 +319,58 @@ void main() {
             (e) => e.message,
             'message',
             'Chart error',
+          ),
+        ],
+      );
+    });
+
+    group('Monitored Apps Filtering (Gmail, LinkedIn, etc.)', () {
+      blocTest<DashboardBloc, DashboardState>(
+        'excludes unmonitored apps like Gmail and LinkedIn from Dashboard when not in monitored list',
+        build: () {
+          final mockSmartLock = MockSmartLockRepository();
+          when(() => mockFamilyRepository.getFamily(any()))
+              .thenAnswer((_) async => makeFamily(childUids: ['child1']));
+          when(() => mockUsageRepository.getTotalUsageMinutes(any(), any()))
+              .thenAnswer((_) async => 120);
+          when(() => mockUsageRepository.getUsageByApp('child1', any()))
+              .thenAnswer((_) async => {
+                'com.google.android.gm': 45, // Gmail
+                'com.linkedin.android': 30,  // LinkedIn
+                'com.zhiliaoapp.musically': 45, // TikTok (Monitored)
+              });
+          when(() => mockUsageRepository.getUsageByChild(any(), any()))
+              .thenAnswer((_) async => <UsageLog>[]);
+          when(() => mockUsageRepository.getUsageByDateRange(any(), any(), any()))
+              .thenAnswer((_) async => <UsageLog>[]);
+          when(() => mockSmartLock.getMonitoredApps('fam1', 'child1'))
+              .thenAnswer((_) async => [
+                MonitoredAppModel(
+                  appPackageName: 'com.zhiliaoapp.musically',
+                  appName: 'TikTok',
+                  isMonitored: true,
+                ),
+              ]);
+          when(() => mockSmartLock.getAppTimeLimits(any(), any()))
+              .thenAnswer((_) async => []);
+
+          return DashboardBloc(
+            usageRepository: mockUsageRepository,
+            familyRepository: mockFamilyRepository,
+            smartLockRepository: mockSmartLock,
+          );
+        },
+        act: (bloc) => bloc.add(const LoadDashboard(familyId: 'fam1')),
+        expect: () => [
+          isA<DashboardLoading>(),
+          isA<DashboardLoaded>().having(
+            (s) => s.usageByApp,
+            'usageByApp excludes Gmail and LinkedIn',
+            {'TikTok': 45},
+          ).having(
+            (s) => s.totalMinutesToday,
+            'totalMinutesToday counts only TikTok',
+            45,
           ),
         ],
       );

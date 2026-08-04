@@ -30,29 +30,60 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 
-  /// Trả về:
-  ///   - null: không có bộ lọc (repo chưa inject hoặc familyId null) → chỉ lọc system app
-  ///   - empty Set: đã có danh sách nhưng không app nào được bật → show tất cả user app
-  ///   - non-empty Set: whitelist chính xác → chỉ show app trong danh sách
-  Future<Set<String>?> _getMonitoredPackages(String? familyId, String childUid) async {
-    if (_smartLockRepository == null || familyId == null) return null;
+  static final Set<String> _defaultPopularPackages = {
+    'com.zhiliaoapp.musically',
+    'TikTok',
+    'com.facebook.katana',
+    'Facebook',
+    'com.google.android.youtube',
+    'YouTube',
+    'com.instagram.android',
+    'Instagram',
+    'com.instagram.barcelona',
+    'Threads',
+    'com.android.chrome',
+    'Google Chrome',
+    'com.zing.zalo',
+    'Zalo',
+    'com.roblox.client',
+    'Roblox',
+    'com.dts.freefireth',
+    'Free Fire',
+  };
+
+  Set<String> _buildPackageSet(List<dynamic> apps) {
+    final set = <String>{};
+    for (final app in apps) {
+      final isMonitored = (app.isMonitored ?? true) as bool;
+      if (isMonitored) {
+        final pkg = app.appPackageName as String;
+        set.add(pkg);
+        final name = (app.appName as String?);
+        if (name != null && name.isNotEmpty) set.add(name);
+        set.add(AppUtils.getAppName(pkg));
+      }
+    }
+    return set;
+  }
+
+  Future<Set<String>> _getMonitoredPackages(String? familyId, String childUid) async {
+    if (_smartLockRepository == null || familyId == null) {
+      return _defaultPopularPackages;
+    }
     try {
       final monitoredApps = await _smartLockRepository.getMonitoredApps(familyId, childUid);
-      if (monitoredApps.isEmpty) return null; // Chưa cấu hình bất kỳ ứng dụng nào → không lọc
-      return monitoredApps
-          .where((a) => a.isMonitored)
-          .map((a) => a.appPackageName)
-          .toSet();
+      if (monitoredApps.isEmpty) {
+        return _defaultPopularPackages;
+      }
+      return _buildPackageSet(monitoredApps);
     } catch (e) {
-      return null; // Lỗi mạng → không lọc, show data bình thường
+      return _defaultPopularPackages;
     }
   }
 
-  bool _isAppAllowed(String packageOrName, Set<String>? monitoredPackages) {
+  bool _isAppAllowed(String packageOrName, Set<String> monitoredPackages) {
     if (AppUtils.isSystemOrUnmonitoredApp(packageOrName)) return false;
-    if (monitoredPackages == null || monitoredPackages.isEmpty) return true;
     final cleanName = AppUtils.getAppName(packageOrName);
-    // Match theo package name hoặc display name (ví dụ: "TikTok")
     return monitoredPackages.contains(packageOrName) || monitoredPackages.contains(cleanName);
   }
 
@@ -180,17 +211,11 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
 
       if (usageByApp.isNotEmpty) {
         totalToday = usageByApp.values.fold(0, (sum, val) => sum + val);
-      } else if (hasMonitoredFilter) {
-        totalToday = 0;
       } else {
         totalToday = totalTodayRaw;
       }
 
-      if (hasMonitoredFilter) {
-        totalYesterday = dailyTotals[yesterday] ?? 0;
-      } else {
-        totalYesterday = totalYesterdayRaw;
-      }
+      totalYesterday = dailyTotals[yesterday] ?? totalYesterdayRaw;
 
       emit(DashboardLoaded(
         totalMinutesToday: totalToday,

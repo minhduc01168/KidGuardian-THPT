@@ -171,3 +171,83 @@ exports.onKeywordAlertCreated = onDocumentCreated(
     }
   }
 );
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Trigger khi phụ huynh phê duyệt / từ chối yêu cầu thêm giờ
+// → Gửi FCM push notification tới thiết bị của bé
+// ─────────────────────────────────────────────────────────────────────────────
+const { onDocumentUpdated } = require("firebase-functions/v2/firestore");
+
+exports.onTimeRequestUpdated = onDocumentUpdated(
+  "families/{familyId}/children/{childUid}/timeRequests/{requestId}",
+  async (event) => {
+    const change = event.data;
+    if (!change) return;
+
+    const beforeData = change.before.data();
+    const afterData = change.after.data();
+    const { childUid } = event.params;
+
+    // Chỉ gửi thông báo khi trạng thái chuyển từ pending sang approved/rejected
+    if (beforeData.status !== "pending") return;
+    if (afterData.status !== "approved" && afterData.status !== "rejected") return;
+
+    try {
+      const childDoc = await db.collection("users").doc(childUid).get();
+      if (!childDoc.exists) {
+        console.warn(`[TimeRequestUpdated] Child user ${childUid} not found`);
+        return;
+      }
+
+      const childFcmToken = childDoc.data()?.fcmToken;
+      if (!childFcmToken) {
+        console.warn(`[TimeRequestUpdated] No FCM token for child ${childUid}`);
+        return;
+      }
+
+      const isApproved = afterData.status === "approved";
+      const appName = afterData.appName || "Ứng dụng";
+      const minutes = afterData.requestedMinutes || 0;
+
+      const title = isApproved
+        ? "✅ Yêu cầu đã được phê duyệt"
+        : "❌ Yêu cầu bị từ chối";
+
+      const body = isApproved
+        ? `Bố mẹ đã phê duyệt thêm ${minutes} phút cho ${appName}`
+        : `Bố mẹ đã từ chối yêu cầu gia hạn thêm giờ cho ${appName}`;
+
+      const message = {
+        token: childFcmToken,
+        notification: {
+          title: title,
+          body: body,
+        },
+        data: {
+          type: "time_request_response",
+          requestId: change.after.id,
+          status: afterData.status,
+          appName: appName,
+          requestedMinutes: String(minutes),
+        },
+        android: {
+          priority: "high",
+          notification: {
+            channelId: "kidguardian_requests",
+            priority: "high",
+            defaultSound: true,
+            defaultVibrateTimings: true,
+          },
+        },
+      };
+
+      const response = await fcm.send(message);
+      console.log(
+        `[TimeRequestUpdated] Push sent to child ${childUid} (status: ${afterData.status}), msgId: ${response}`
+      );
+    } catch (e) {
+      console.error(`[TimeRequestUpdated] Error sending FCM to child ${childUid}:`, e);
+    }
+  }
+);
+

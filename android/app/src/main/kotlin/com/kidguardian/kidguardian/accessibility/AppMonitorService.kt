@@ -148,37 +148,45 @@ class AppMonitorService : AccessibilityService() {
                     blockApp(packageName)
                 }
             }
-        } else if (event?.eventType == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED ||
-                   event?.eventType == AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED) {
-
+        } else if (event?.eventType == AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED) {
             val packageName = event.packageName?.toString() ?: return
-            
-            if (isSystemPackage(packageName)) {
-                return
-            }
-
-            Log.d(TAG, "Content/Text changed in: $packageName, type: ${event.eventType}")
+            if (isSystemPackage(packageName)) return
 
             val source = event.source
-            val nodeToScan = source ?: rootInActiveWindow
-
-            if (nodeToScan == null) {
-                Log.d(TAG, "No source node available")
-                return
-            }
+            if (source == null) return
 
             try {
-                val extractedText = extractTextFromNode(nodeToScan, maxDepth = MAX_TREE_DEPTH)
-                Log.d(TAG, "Extracted text length: ${extractedText.length}, preview: ${extractedText.take(100)}")
-
-                if (extractedText.isNotEmpty() && extractedText != lastExtractedText) {
+                val extractedText = extractTextFromNode(source, maxDepth = 3)
+                if (extractedText.isNotBlank() && extractedText != lastExtractedText) {
                     lastExtractedText = extractedText
                     checkTextForKeywords(extractedText, packageName)
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Error extracting text from accessibility tree", e)
+                Log.e(TAG, "Error extracting text from input source", e)
             } finally {
-                source?.recycle()
+                source.recycle()
+            }
+        } else if (event?.eventType == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
+            // Chỉ scan khi source là EditText hoặc SearchInput
+            val packageName = event.packageName?.toString() ?: return
+            if (isSystemPackage(packageName)) return
+
+            val source = event.source ?: return
+            val className = source.className?.toString() ?: ""
+            if (className.contains("EditText", ignoreCase = true) || className.contains("Search", ignoreCase = true)) {
+                try {
+                    val extractedText = extractTextFromNode(source, maxDepth = 3)
+                    if (extractedText.isNotBlank() && extractedText != lastExtractedText) {
+                        lastExtractedText = extractedText
+                        checkTextForKeywords(extractedText, packageName)
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error extracting text from content change node", e)
+                } finally {
+                    source.recycle()
+                }
+            } else {
+                source.recycle()
             }
         }
     }

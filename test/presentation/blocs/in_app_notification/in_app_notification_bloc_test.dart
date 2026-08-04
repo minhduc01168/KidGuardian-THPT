@@ -17,6 +17,11 @@ void main() {
   setUp(() {
     mockAlertRepository = MockAlertRepository();
     mockTimeRequestRepository = MockTimeRequestRepository();
+    when(() => mockAlertRepository.markAlertAsReviewed(
+          familyId: any(named: 'familyId'),
+          childUid: any(named: 'childUid'),
+          alertId: any(named: 'alertId'),
+        )).thenAnswer((_) async {});
     bloc = InAppNotificationBloc(
       alertRepository: mockAlertRepository,
       timeRequestRepository: mockTimeRequestRepository,

@@ -139,27 +139,31 @@ class InAppNotificationBloc extends Bloc<InAppNotificationEvent, InAppNotificati
         .listen(
       (alerts) {
         for (final alert in alerts) {
-          final existing = _notifications.where((n) => n.id == alert.id).firstOrNull;
-          if (existing == null) {
-            final notification = InAppNotification(
-              id: alert.id,
-              type: 'alert',
-              title: 'Cảnh báo an toàn',
-              body: 'Phát hiện từ khóa "${alert.keyword}" trong ${alert.packageName}',
-              timestamp: alert.timestamp ?? DateTime.now(),
-              isRead: _readIds.contains(alert.id),
-              data: {
-                'familyId': event.familyId,
-                'childUid': alert.childUid,
-                'alertId': alert.id,
-                'keyword': alert.keyword,
-                'packageName': alert.packageName,
-              },
-            );
+          final isRead = alert.isReviewed || _readIds.contains(alert.id);
+          final existingIndex = _notifications.indexWhere((n) => n.id == alert.id);
+          final notification = InAppNotification(
+            id: alert.id,
+            type: 'alert',
+            title: 'Cảnh báo an toàn',
+            body: 'Phát hiện từ khóa "${alert.keyword}" trong ${alert.packageName}',
+            timestamp: (alert.timestamp ?? DateTime.now()).toLocal(),
+            isRead: isRead,
+            data: {
+              'familyId': event.familyId,
+              'childUid': alert.childUid,
+              'alertId': alert.id,
+              'keyword': alert.keyword,
+              'packageName': alert.packageName,
+            },
+          );
+
+          if (existingIndex != -1) {
+            _notifications[existingIndex] = notification;
+          } else {
             _notifications.add(notification);
-            add(InAppNotificationReceived(notification));
           }
         }
+        _sortAndEmit(emit);
       },
       onError: (error) {
         debugPrint('Alert stream error: $error');
@@ -172,27 +176,31 @@ class InAppNotificationBloc extends Bloc<InAppNotificationEvent, InAppNotificati
         .listen(
       (requests) {
         for (final req in requests) {
-          final existing = _notifications.where((n) => n.id == req.id).firstOrNull;
-          if (existing == null) {
-            final notification = InAppNotification(
-              id: req.id,
-              type: 'time_request',
-              title: 'Yêu cầu thêm thời gian',
-              body: 'Yêu cầu ${req.requestedMinutes} phút cho ${req.appName}',
-              timestamp: req.timestamp,
-              isRead: _readIds.contains(req.id),
-              data: {
-                'familyId': event.familyId,
-                'childUid': req.childUid,
-                'requestId': req.id,
-                'packageName': req.appPackageName,
-                'requestedMinutes': req.requestedMinutes,
-              },
-            );
+          final isRead = req.status != 'pending' || _readIds.contains(req.id);
+          final existingIndex = _notifications.indexWhere((n) => n.id == req.id);
+          final notification = InAppNotification(
+            id: req.id,
+            type: 'time_request',
+            title: 'Yêu cầu thêm thời gian',
+            body: 'Yêu cầu ${req.requestedMinutes} phút cho ${req.appName}',
+            timestamp: req.timestamp.toLocal(),
+            isRead: isRead,
+            data: {
+              'familyId': event.familyId,
+              'childUid': req.childUid,
+              'requestId': req.id,
+              'packageName': req.appPackageName,
+              'requestedMinutes': req.requestedMinutes,
+            },
+          );
+
+          if (existingIndex != -1) {
+            _notifications[existingIndex] = notification;
+          } else {
             _notifications.add(notification);
-            add(InAppNotificationReceived(notification));
           }
         }
+        _sortAndEmit(emit);
       },
       onError: (error) {
         debugPrint('TimeRequest stream error: $error');
@@ -216,7 +224,25 @@ class InAppNotificationBloc extends Bloc<InAppNotificationEvent, InAppNotificati
     _readIds.add(event.notificationId);
     final index = _notifications.indexWhere((n) => n.id == event.notificationId);
     if (index != -1) {
-      _notifications[index] = _notifications[index].copyWith(isRead: true);
+      final notif = _notifications[index];
+      _notifications[index] = notif.copyWith(isRead: true);
+
+      // Nếu là alert, đồng bộ markAlertAsReviewed lên Firestore
+      if (notif.type == 'alert') {
+        final familyId = notif.data['familyId'] as String? ?? _familyId;
+        final childUid = notif.data['childUid'] as String?;
+        final alertId = notif.data['alertId'] as String? ?? notif.id;
+
+        if (familyId != null && childUid != null) {
+          alertRepository.markAlertAsReviewed(
+            familyId: familyId,
+            childUid: childUid,
+            alertId: alertId,
+          ).catchError((e) {
+            debugPrint('Failed to mark alert as reviewed on Firestore: $e');
+          });
+        }
+      }
     }
     _sortAndEmit(emit);
   }
@@ -226,8 +252,25 @@ class InAppNotificationBloc extends Bloc<InAppNotificationEvent, InAppNotificati
     Emitter<InAppNotificationState> emit,
   ) {
     for (var i = 0; i < _notifications.length; i++) {
-      _readIds.add(_notifications[i].id);
-      _notifications[i] = _notifications[i].copyWith(isRead: true);
+      final notif = _notifications[i];
+      _readIds.add(notif.id);
+      _notifications[i] = notif.copyWith(isRead: true);
+
+      if (notif.type == 'alert') {
+        final familyId = notif.data['familyId'] as String? ?? _familyId;
+        final childUid = notif.data['childUid'] as String?;
+        final alertId = notif.data['alertId'] as String? ?? notif.id;
+
+        if (familyId != null && childUid != null) {
+          alertRepository.markAlertAsReviewed(
+            familyId: familyId,
+            childUid: childUid,
+            alertId: alertId,
+          ).catchError((e) {
+            debugPrint('Failed to mark alert as reviewed on Firestore: $e');
+          });
+        }
+      }
     }
     _sortAndEmit(emit);
   }

@@ -211,6 +211,70 @@ void main() {
         expect(result.familyId, 'family-1');
         expect(result.totalMinutes, 90);
       });
+
+      test('should filter out unmonitored apps like Gmail and LinkedIn from daily summary', () async {
+        final mockQuerySnapshotEmpty = MockQuerySnapshot();
+        when(() => mockSummariesCollection.where('childUid', isEqualTo: any(named: 'isEqualTo')))
+            .thenReturn(mockSummariesCollection);
+        when(() => mockSummariesCollection.where('date', isEqualTo: any(named: 'isEqualTo')))
+            .thenReturn(mockSummariesCollection);
+        when(() => mockSummariesCollection.limit(any())).thenReturn(mockSummariesCollection);
+        when(() => mockSummariesCollection.get()).thenAnswer((_) async => mockQuerySnapshotEmpty);
+        when(() => mockQuerySnapshotEmpty.docs).thenReturn([]);
+
+        when(() => mockUsageRepository.getUsageByChild('child-1', '2026-05-24'))
+            .thenAnswer((_) async => [
+                  UsageLog(
+                    docId: 'log-1',
+                    childUid: 'child-1',
+                    familyId: 'family-1',
+                    appPackage: 'com.zhiliaoapp.musically',
+                    appName: 'TikTok',
+                    startTime: DateTime(2026, 5, 24, 10, 0),
+                    endTime: DateTime(2026, 5, 24, 11, 30),
+                    durationMinutes: 90, // Monitored
+                    date: '2026-05-24',
+                  ),
+                  UsageLog(
+                    docId: 'log-2',
+                    childUid: 'child-1',
+                    familyId: 'family-1',
+                    appPackage: 'com.google.android.gm',
+                    appName: 'Gmail',
+                    startTime: DateTime(2026, 5, 24, 12, 0),
+                    endTime: DateTime(2026, 5, 24, 12, 30),
+                    durationMinutes: 30, // Not in default popular list
+                    date: '2026-05-24',
+                  ),
+                  UsageLog(
+                    docId: 'log-3',
+                    childUid: 'child-1',
+                    familyId: 'family-1',
+                    appPackage: 'com.linkedin.android',
+                    appName: 'LinkedIn',
+                    startTime: DateTime(2026, 5, 24, 13, 0),
+                    endTime: DateTime(2026, 5, 24, 13, 20),
+                    durationMinutes: 20, // Not in default popular list
+                    date: '2026-05-24',
+                  ),
+                ]);
+
+        when(() => mockAlertRepository.watchAllAlerts(
+              familyId: 'family-1',
+              childUid: 'child-1',
+            )).thenAnswer((_) => Stream.value([]));
+
+        final mockDocRef = MockDocumentReference();
+        when(() => mockSummariesCollection.add(any())).thenAnswer((_) async => mockDocRef);
+        when(() => mockDocRef.id).thenReturn('new-summary-id');
+
+        final result = await repository.generateDailySummary('child-1', 'family-1', '2026-05-24');
+
+        expect(result.totalMinutes, 90); // Only TikTok (90) should be counted, Gmail(30) + LinkedIn(20) excluded
+        expect(result.usageByApp.keys, contains('TikTok'));
+        expect(result.usageByApp.keys, isNot(contains('Gmail')));
+        expect(result.usageByApp.keys, isNot(contains('LinkedIn')));
+      });
     });
   });
 }

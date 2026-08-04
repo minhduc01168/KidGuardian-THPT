@@ -6,20 +6,75 @@ import '../../domain/repositories/report_repository.dart';
 import '../../domain/repositories/usage_repository.dart';
 import '../models/weekly_report_model.dart';
 import '../models/monthly_report_model.dart';
+import '../repositories/smart_lock_repository.dart';
 import '../services/email_service.dart';
 
 class ReportRepositoryImpl implements ReportRepository {
   final FirebaseFirestore _firestore;
   final UsageRepository _usageRepository;
   final EmailService _emailService;
+  final SmartLockRepository? _smartLockRepository;
 
   ReportRepositoryImpl({
     FirebaseFirestore? firestore,
     required UsageRepository usageRepository,
     EmailService? emailService,
+    SmartLockRepository? smartLockRepository,
   })  : _firestore = firestore ?? FirebaseFirestore.instance,
         _usageRepository = usageRepository,
-        _emailService = emailService ?? EmailService();
+        _emailService = emailService ?? EmailService(),
+        _smartLockRepository = smartLockRepository;
+
+  static final Set<String> _defaultPopularPackages = {
+    'com.zhiliaoapp.musically',
+    'TikTok',
+    'com.facebook.katana',
+    'Facebook',
+    'com.google.android.youtube',
+    'YouTube',
+    'com.instagram.android',
+    'Instagram',
+    'com.instagram.barcelona',
+    'Threads',
+    'com.android.chrome',
+    'Google Chrome',
+    'com.zing.zalo',
+    'Zalo',
+    'com.roblox.client',
+    'Roblox',
+    'com.dts.freefireth',
+    'Free Fire',
+  };
+
+  Set<String> _buildPackageSet(List<dynamic> apps) {
+    final set = <String>{};
+    for (final app in apps) {
+      final isMonitored = (app.isMonitored ?? true) as bool;
+      if (isMonitored) {
+        final pkg = app.appPackageName as String;
+        set.add(pkg);
+        final name = (app.appName as String?);
+        if (name != null && name.isNotEmpty) set.add(name);
+        set.add(AppUtils.getAppName(pkg));
+      }
+    }
+    return set;
+  }
+
+  Future<Set<String>> _getMonitoredPackages(String familyId, String childUid) async {
+    if (_smartLockRepository == null) {
+      return _defaultPopularPackages;
+    }
+    try {
+      final monitoredApps = await _smartLockRepository.getMonitoredApps(familyId, childUid);
+      if (monitoredApps.isEmpty) {
+        return _defaultPopularPackages;
+      }
+      return _buildPackageSet(monitoredApps);
+    } catch (_) {
+      return _defaultPopularPackages;
+    }
+  }
 
   @override
   Future<WeeklyReport> generateWeeklyReport(
@@ -51,15 +106,21 @@ class ReportRepositoryImpl implements ReportRepository {
       prevWeekEndStr,
     );
 
+    final monitoredPackages = await _getMonitoredPackages(familyId, childUid);
+
     // Lọc bỏ system app / unmonitored apps (KidGuardian, Xm, daemon)
     final currentWeekLogs = currentWeekLogsRaw.where((log) {
       final pkg = log.appPackage.isNotEmpty ? log.appPackage : log.appName;
-      return !AppUtils.isSystemOrUnmonitoredApp(pkg);
+      if (AppUtils.isSystemOrUnmonitoredApp(pkg)) return false;
+      final cleanName = AppUtils.getAppName(pkg);
+      return monitoredPackages.contains(pkg) || monitoredPackages.contains(cleanName);
     }).toList();
 
     final previousWeekLogs = previousWeekLogsRaw.where((log) {
       final pkg = log.appPackage.isNotEmpty ? log.appPackage : log.appName;
-      return !AppUtils.isSystemOrUnmonitoredApp(pkg);
+      if (AppUtils.isSystemOrUnmonitoredApp(pkg)) return false;
+      final cleanName = AppUtils.getAppName(pkg);
+      return monitoredPackages.contains(pkg) || monitoredPackages.contains(cleanName);
     }).toList();
 
     // Calculate totals
@@ -260,14 +321,20 @@ class ReportRepositoryImpl implements ReportRepository {
       prevMonthEndStr,
     );
 
+    final monitoredPackages = await _getMonitoredPackages(familyId, childUid);
+
     final currentMonthLogs = currentMonthLogsRaw.where((log) {
       final pkg = log.appPackage.isNotEmpty ? log.appPackage : log.appName;
-      return !AppUtils.isSystemOrUnmonitoredApp(pkg);
+      if (AppUtils.isSystemOrUnmonitoredApp(pkg)) return false;
+      final cleanName = AppUtils.getAppName(pkg);
+      return monitoredPackages.contains(pkg) || monitoredPackages.contains(cleanName);
     }).toList();
 
     final previousMonthLogs = previousMonthLogsRaw.where((log) {
       final pkg = log.appPackage.isNotEmpty ? log.appPackage : log.appName;
-      return !AppUtils.isSystemOrUnmonitoredApp(pkg);
+      if (AppUtils.isSystemOrUnmonitoredApp(pkg)) return false;
+      final cleanName = AppUtils.getAppName(pkg);
+      return monitoredPackages.contains(pkg) || monitoredPackages.contains(cleanName);
     }).toList();
 
     int totalMinutes = 0;

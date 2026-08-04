@@ -236,14 +236,60 @@ class TimeRequestRepositoryImpl implements TimeRequestRepository {
     String? response,
   }) async {
     try {
-      await _firestore
+      final reqDocRef = _firestore
           .collection('families')
           .doc(familyId)
           .collection('children')
           .doc(childUid)
           .collection('timeRequests')
-          .doc(requestId)
-          .update({
+          .doc(requestId);
+
+      final reqSnap = await reqDocRef.get();
+      if (reqSnap.exists) {
+        final reqData = reqSnap.data() ?? {};
+        final appPackageName = reqData['appPackageName'] as String? ?? '';
+        final requestedMinutes = reqData['requestedMinutes'] as int? ?? 0;
+        final appName = reqData['appName'] as String? ?? '';
+
+        if (appPackageName.isNotEmpty && requestedMinutes > 0) {
+          final limitRef = _firestore
+              .collection('families')
+              .doc(familyId)
+              .collection('children')
+              .doc(childUid)
+              .collection('timeLimits')
+              .doc(appPackageName);
+
+          final limitSnap = await limitRef.get();
+          const dayKeys = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+          final dayOfWeek = dayKeys[DateTime.now().weekday - 1];
+
+          if (limitSnap.exists) {
+            final limitData = limitSnap.data() ?? {};
+            final Map<String, dynamic> limits = Map<String, dynamic>.from(limitData['limits'] ?? {});
+            final int currentLimit = (limits[dayOfWeek] as int?) ?? (limits['everyday'] as int?) ?? 60;
+            limits[dayOfWeek] = currentLimit + requestedMinutes;
+            await limitRef.set({
+              'appPackageName': appPackageName,
+              'appName': appName.isNotEmpty ? appName : (limitData['appName'] ?? appPackageName),
+              'limits': limits,
+              'isBlocked': false,
+            }, SetOptions(merge: true));
+          } else {
+            await limitRef.set({
+              'appPackageName': appPackageName,
+              'appName': appName,
+              'limits': {
+                dayOfWeek: 60 + requestedMinutes,
+              },
+              'isBlocked': false,
+            });
+          }
+          debugPrint('[approveRequest] Added $requestedMinutes mins to $appPackageName limit ($dayOfWeek)');
+        }
+      }
+
+      await reqDocRef.update({
         'status': 'approved',
         'parentResponse': response ?? 'Đã chấp nhận',
       }).timeout(

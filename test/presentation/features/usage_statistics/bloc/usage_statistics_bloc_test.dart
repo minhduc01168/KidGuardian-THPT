@@ -37,7 +37,7 @@ void main() {
       docId: '1',
       childUid: 'child1',
       familyId: 'family1',
-      appPackage: 'com.tiktok',
+      appPackage: 'com.zhiliaoapp.musically',
       appName: 'TikTok',
       startTime: now,
       endTime: now.add(const Duration(minutes: 30)),
@@ -48,7 +48,7 @@ void main() {
       docId: '2',
       childUid: 'child1',
       familyId: 'family1',
-      appPackage: 'com.facebook',
+      appPackage: 'com.facebook.katana',
       appName: 'Facebook',
       startTime: now.add(const Duration(hours: 2)),
       endTime: now.add(const Duration(hours: 2, minutes: 45)),
@@ -145,12 +145,12 @@ void main() {
         when(() => mockSmartLock.getMonitoredApps('fam1', 'child1'))
             .thenAnswer((_) async => [
               const MonitoredAppModel(
-                appPackageName: 'com.tiktok',
+                appPackageName: 'com.zhiliaoapp.musically',
                 appName: 'TikTok',
                 isMonitored: true,
               ),
               const MonitoredAppModel(
-                appPackageName: 'com.facebook',
+                appPackageName: 'com.facebook.katana',
                 appName: 'Facebook',
                 isMonitored: false,
               ),
