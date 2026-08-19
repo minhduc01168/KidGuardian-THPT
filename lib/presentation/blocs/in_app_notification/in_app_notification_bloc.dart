@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:kidguardian/domain/repositories/alert_repository.dart';
 import 'package:kidguardian/domain/repositories/time_request_repository.dart';
 
@@ -105,6 +106,10 @@ class InAppNotificationError extends InAppNotificationState {
   List<Object?> get props => [message];
 }
 
+class _NotificationsUpdated extends InAppNotificationEvent {
+  const _NotificationsUpdated();
+}
+
 // BLoC
 class InAppNotificationBloc extends Bloc<InAppNotificationEvent, InAppNotificationState> {
   final AlertRepository alertRepository;
@@ -115,6 +120,8 @@ class InAppNotificationBloc extends Bloc<InAppNotificationEvent, InAppNotificati
   String? _familyId;
   final List<InAppNotification> _notifications = [];
   final Set<String> _readIds = {};
+  // BUG-3 FIX: SharedPreferences key để persist trạng thái đã đọc
+  static const String _readIdsPrefKey = 'notif_read_ids';
 
   InAppNotificationBloc({
     required this.alertRepository,
@@ -124,12 +131,35 @@ class InAppNotificationBloc extends Bloc<InAppNotificationEvent, InAppNotificati
     on<MarkInAppNotificationAsRead>(_onMarkAsRead);
     on<MarkAllInAppNotificationsAsRead>(_onMarkAllAsRead);
     on<InAppNotificationReceived>(_onNotificationReceived);
+    on<_NotificationsUpdated>((event, emit) => _sortAndEmit(emit));
+  }
+
+  // BUG-3 FIX: Load _readIds từ SharedPreferences khi khởi động
+  Future<void> _loadPersistedReadIds() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final saved = prefs.getStringList(_readIdsPrefKey) ?? [];
+      _readIds.addAll(saved);
+    } catch (e) {
+      debugPrint('InAppNotificationBloc: Failed to load persisted readIds: $e');
+    }
+  }
+
+  // BUG-3 FIX: Persist _readIds sau khi mark as read
+  Future<void> _persistReadIds() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList(_readIdsPrefKey, _readIds.toList());
+    } catch (e) {
+      debugPrint('InAppNotificationBloc: Failed to persist readIds: $e');
+    }
   }
 
   void _onLoad(LoadInAppNotifications event, Emitter<InAppNotificationState> emit) {
     _familyId = event.familyId;
     _notifications.clear();
-    _readIds.clear();
+    // BUG-3 FIX: Không clear _readIds trước — load từ prefs trước
+    _loadPersistedReadIds();
 
     emit(InAppNotificationLoading());
 
@@ -163,7 +193,7 @@ class InAppNotificationBloc extends Bloc<InAppNotificationEvent, InAppNotificati
             _notifications.add(notification);
           }
         }
-        _sortAndEmit(emit);
+        add(const _NotificationsUpdated());
       },
       onError: (error) {
         debugPrint('Alert stream error: $error');
@@ -175,16 +205,17 @@ class InAppNotificationBloc extends Bloc<InAppNotificationEvent, InAppNotificati
         .watchPendingRequests(familyId: event.familyId)
         .listen(
       (requests) {
+        // BUG-3 FIX: REPLACE toàn bộ time_request entries thay vì append
+        // Khi request approved → stream dừng emit nó → phải xóa khỏi list
+        _notifications.removeWhere((n) => n.type == 'time_request');
         for (final req in requests) {
-          final isRead = req.status != 'pending' || _readIds.contains(req.id);
-          final existingIndex = _notifications.indexWhere((n) => n.id == req.id);
-          final notification = InAppNotification(
+          _notifications.add(InAppNotification(
             id: req.id,
             type: 'time_request',
             title: 'Yêu cầu thêm thời gian',
             body: 'Yêu cầu ${req.requestedMinutes} phút cho ${req.appName}',
             timestamp: req.timestamp.toLocal(),
-            isRead: isRead,
+            isRead: _readIds.contains(req.id),
             data: {
               'familyId': event.familyId,
               'childUid': req.childUid,
@@ -192,15 +223,9 @@ class InAppNotificationBloc extends Bloc<InAppNotificationEvent, InAppNotificati
               'packageName': req.appPackageName,
               'requestedMinutes': req.requestedMinutes,
             },
-          );
-
-          if (existingIndex != -1) {
-            _notifications[existingIndex] = notification;
-          } else {
-            _notifications.add(notification);
-          }
+          ));
         }
-        _sortAndEmit(emit);
+        add(const _NotificationsUpdated());
       },
       onError: (error) {
         debugPrint('TimeRequest stream error: $error');
@@ -222,6 +247,8 @@ class InAppNotificationBloc extends Bloc<InAppNotificationEvent, InAppNotificati
     Emitter<InAppNotificationState> emit,
   ) {
     _readIds.add(event.notificationId);
+    // BUG-3 FIX: Persist ngay sau khi mark as read
+    _persistReadIds();
     final index = _notifications.indexWhere((n) => n.id == event.notificationId);
     if (index != -1) {
       final notif = _notifications[index];

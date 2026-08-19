@@ -4,10 +4,17 @@ import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.Context
 import android.content.Intent
+import android.graphics.PixelFormat
+import android.provider.Settings
 import android.util.Log
+import android.view.LayoutInflater
+import android.view.View
+import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
+import android.widget.TextView
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.kidguardian.kidguardian.R
 import kotlin.math.max
 import kotlin.math.min
 
@@ -63,7 +70,8 @@ class AppMonitorService : AccessibilityService() {
 
         private val SYSTEM_PACKAGES = setOf(
             "com.android.systemui",
-            "com.google.android.googlequicksearchbox",
+            // BUG-1 FIX: ĐÃ XÓA com.google.android.googlequicksearchbox
+            // App này cần được giám sát keyword vì là Google Search mặc định
             "com.android.launcher",
             "com.android.launcher2",
             "com.android.launcher3",
@@ -110,6 +118,51 @@ class AppMonitorService : AccessibilityService() {
     private var currentPackageName: String? = null
     private var activeAppStartMillis: Long = 0L
     private var lastExtractedText = ""
+    // BUG-2 FIX: Native overlay view được quản lý bởi WindowManager
+    private var blockOverlayView: View? = null
+    private val windowManager: WindowManager by lazy {
+        getSystemService(Context.WINDOW_SERVICE) as WindowManager
+    }
+
+    // BUG-2 FIX: Hiển overlay đè lên app bị chặn — độc lập với Flutter UI
+    private fun showNativeBlockOverlay(packageName: String) {
+        if (!Settings.canDrawOverlays(this)) {
+            Log.w(TAG, "showNativeBlockOverlay: SYSTEM_ALERT_WINDOW not granted, skipping overlay")
+            return
+        }
+        hideNativeBlockOverlay() // Xoá overlay cũ nếu có
+        try {
+            val params = WindowManager.LayoutParams(
+                WindowManager.LayoutParams.MATCH_PARENT,
+                WindowManager.LayoutParams.MATCH_PARENT,
+                WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+                PixelFormat.TRANSLUCENT
+            )
+            val view = LayoutInflater.from(this).inflate(R.layout.native_block_overlay, null)
+            view.findViewById<TextView>(R.id.app_name_text)?.text = packageName
+            windowManager.addView(view, params)
+            blockOverlayView = view
+            Log.d(TAG, "BUG-2: showNativeBlockOverlay() — showing overlay for $packageName")
+        } catch (e: Exception) {
+            Log.e(TAG, "showNativeBlockOverlay error", e)
+        }
+    }
+
+    // BUG-2 FIX: Ẩn overlay khi app được unblock
+    private fun hideNativeBlockOverlay() {
+        blockOverlayView?.let {
+            try {
+                windowManager.removeView(it)
+                Log.d(TAG, "BUG-2: hideNativeBlockOverlay() — overlay removed")
+            } catch (e: Exception) {
+                Log.w(TAG, "hideNativeBlockOverlay: could not remove view", e)
+            }
+        }
+        blockOverlayView = null
+    }
 
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
@@ -146,6 +199,20 @@ class AppMonitorService : AccessibilityService() {
 
                 if (blockedApps.contains(packageName)) {
                     blockApp(packageName)
+                }
+
+                // BUG-1 FIX: Với Chrome và Google Search, scan URL bar khi app mở
+                // vì TYPE_VIEW_TEXT_CHANGED không fire cho address bar
+                if (packageName == "com.android.chrome" || packageName == "com.google.android.googlequicksearchbox") {
+                    val root = rootInActiveWindow
+                    if (root != null) {
+                        val query = extractBrowserSearchQuery(root)
+                        if (!query.isNullOrBlank() && query != lastExtractedText) {
+                            lastExtractedText = query
+                            checkTextForKeywords(query, packageName)
+                        }
+                        root.recycle()
+                    }
                 }
             }
         } else if (event?.eventType == AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED) {
@@ -186,7 +253,23 @@ class AppMonitorService : AccessibilityService() {
                     source.recycle()
                 }
             } else {
-                source.recycle()
+                // BUG-1 FIX: Với Chrome, thử lấy URL/search query từ address bar
+                // kể cả khi class không phải EditText
+                if (packageName == "com.android.chrome") {
+                    try {
+                        val query = extractBrowserSearchQuery(source)
+                        if (!query.isNullOrBlank() && query != lastExtractedText) {
+                            lastExtractedText = query
+                            checkTextForKeywords(query, packageName)
+                        }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error extracting Chrome URL bar text", e)
+                    } finally {
+                        source.recycle()
+                    }
+                } else {
+                    source.recycle()
+                }
             }
         }
     }
@@ -210,6 +293,32 @@ class AppMonitorService : AccessibilityService() {
             }
         }
         return textBuilder.toString()
+    }
+
+    // BUG-1 FIX: Lấy search query từ Chrome/Google Search address bar
+    // bằng cách tìm kiếm theo resource ID của các node phổ biến
+    private fun extractBrowserSearchQuery(rootNode: AccessibilityNodeInfo?): String? {
+        if (rootNode == null) return null
+        val knownUrlBarIds = listOf(
+            "com.android.chrome:id/url_bar",
+            "com.android.chrome:id/search_box_text",
+            "org.chromium.chrome:id/url_bar",
+            "com.google.android.googlequicksearchbox:id/search_box_text",
+            "com.google.android.googlequicksearchbox:id/text"
+        )
+        for (resourceId in knownUrlBarIds) {
+            try {
+                val nodes = rootNode.findAccessibilityNodeInfosByViewId(resourceId)
+                if (nodes != null && nodes.isNotEmpty()) {
+                    val text = nodes.first().text?.toString()
+                    nodes.forEach { it.recycle() }
+                    if (!text.isNullOrBlank()) return text
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "extractBrowserSearchQuery error for $resourceId: ${e.message}")
+            }
+        }
+        return null
     }
 
     private fun checkTextForKeywords(text: String, packageName: String) {
@@ -284,23 +393,22 @@ class AppMonitorService : AccessibilityService() {
     }
 
     /**
-     * FIX C2: Khoá app bằng cách ép về Home Screen thực sự.
-     * Trước đây dùng sendBroadcast() → KidGuardian chỉ hiện LockScreen nhưng TikTok vẫn chạy.
-     * Bây giờ: performGlobalAction(HOME) → hệ điều hành ép về màn hình chính ngay lập tức.
+     * FIX C2 + BUG-2 FIX: Khoá app bằng cách ép về Home Screen và hiển native overlay.
+     * Native overlay độc lập Flutter UI — chặn triệt để dù KidGuardian ở background.
      */
     private fun blockApp(packageName: String) {
-        Log.d(TAG, "Blocking app (FIX C2): $packageName → forcing HOME")
+        Log.d(TAG, "BUG-2: blockApp() — $packageName")
         // 1. Ép về Home ngay lập tức
         performGlobalAction(GLOBAL_ACTION_HOME)
-        // 2. Báo cho Flutter cập nhật UI (hiện LockScreen) qua LocalBroadcast
+        // 2. Hiển native overlay đè lên app bị chặn (không cần Flutter nhìn thấy)
+        showNativeBlockOverlay(packageName)
+        // 3. Báo cho Flutter cập nhật UI (hiện LockScreen) qua LocalBroadcast
         val broadcastIntent = Intent(com.kidguardian.kidguardian.service.MonitorForegroundService.ACTION_APP_EVENT).apply {
             putExtra(EXTRA_PACKAGE_NAME, packageName)
             putExtra(EXTRA_EVENT_TYPE, "blocked")
         }
         LocalBroadcastManager.getInstance(this).sendBroadcast(broadcastIntent)
-        // FIX Bug 6: Forward trực tiếp lên Flutter EventSink — đảm bảo LockScreen
-        // hiện lại khi con mở lại app bị khóa lần 2+ (LocalBroadcast đôi khi không đủ
-        // nhanh khi Flutter EventSink chưa được MonitorForegroundService tiếp nhận)
+        // 4. Forward trực tiếp lên Flutter EventSink
         com.kidguardian.kidguardian.service.MonitorForegroundService.sendEventDirectly(mapOf(
             "type" to "app_event",
             "packageName" to packageName,
@@ -337,6 +445,8 @@ class AppMonitorService : AccessibilityService() {
 
     override fun onDestroy() {
         super.onDestroy()
+        // BUG-2 FIX: Xóa overlay khi service bị hủy
+        hideNativeBlockOverlay()
         if (instance == this) instance = null
     }
 }

@@ -42,6 +42,24 @@ class SmartLockRepository {
         .toList();
   }
 
+  // BUG-4 FIX: Realtime stream để child device biết ngay khi phụ huynh
+  // approve time request và cộng giờ vào timeLimits (không cần đợi 30s timer)
+  Stream<List<AppTimeLimitModel>> watchTimeLimits(
+    String familyId,
+    String childId,
+  ) {
+    return _firestore
+        .collection('families')
+        .doc(familyId)
+        .collection('children')
+        .doc(childId)
+        .collection('timeLimits')
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => AppTimeLimitModel.fromJson(doc.data()))
+            .toList());
+  }
+
   Future<void> saveAppTimeLimit(
     String familyId,
     String childId,

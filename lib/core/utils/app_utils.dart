@@ -51,7 +51,8 @@ class AppUtils {
   }
 
   static String getAppName(String packageOrName) {
-    if (packageOrName.isEmpty) return 'Ứng dụng không xác định';
+    // BUG-5 FIX: Trả về packageOrName thay vì "không xác định" khi rỗng
+    if (packageOrName.isEmpty) return packageOrName;
     if (_appNameMap.containsKey(packageOrName)) {
       return _appNameMap[packageOrName]!;
     }

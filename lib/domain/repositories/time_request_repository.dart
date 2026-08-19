@@ -119,58 +119,23 @@ class TimeRequestRepositoryImpl implements TimeRequestRepository {
 
   @override
   Stream<List<TimeRequest>> watchPendingRequests({required String familyId}) {
+    // BUG-4 FIX: Dùng collectionGroup query thay vì double switchMap
+    // switchMap cũ restart toàn bộ stream mỗi khi family doc thay đổi
+    // → gây _RequestsUpdated emit liên tục → UI hiện lặp
     return _firestore
-        .collection('families')
-        .doc(familyId)
+        .collectionGroup('timeRequests')
+        .where('familyId', isEqualTo: familyId)
+        .where('status', isEqualTo: 'pending')
+        .orderBy('timestamp', descending: true)
+        .limit(50)
         .snapshots()
-        .switchMap((familySnapshot) {
-      final familyData = familySnapshot.data() ?? {};
-      final List<dynamic> rawChildUids = familyData['childUids'] ?? [];
-      final Set<String> childUids = rawChildUids.map((e) => e.toString()).toSet();
-
-      return _firestore
-          .collection('families')
-          .doc(familyId)
-          .collection('children')
-          .snapshots()
-          .switchMap((childrenSnapshot) {
-        final allChildUids = Set<String>.from(childUids);
-        for (final doc in childrenSnapshot.docs) {
-          allChildUids.add(doc.id);
-        }
-
-        if (allChildUids.isEmpty) {
-          return Stream.value(<TimeRequest>[]);
-        }
-
-        final streams = allChildUids.map((childUid) {
-          return _firestore
-              .collection('families')
-              .doc(familyId)
-              .collection('children')
-              .doc(childUid)
-              .collection('timeRequests')
-              .snapshots()
-              .map((snapshot) {
-            return snapshot.docs
-                .map((doc) => TimeRequest.fromFirestore(doc))
-                .where((req) => req.status == TimeRequestStatus.pending)
-                .toList();
-          }).handleError((error) {
-            debugPrint('[watchPendingRequests] Error reading timeRequests for $childUid: $error');
-            return <TimeRequest>[];
-          });
-        }).toList();
-
-        return Rx.combineLatestList(streams).map((listOfLists) {
-          final combined = listOfLists.expand((list) => list).toList();
-          combined.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-          return combined.take(50).toList();
-        });
-      });
-    }).handleError((error) {
-      debugPrint('[watchPendingRequests] switchMap outer error: $error');
-      return <TimeRequest>[];
+        .map((snap) =>
+            snap.docs.map((doc) => TimeRequest.fromFirestore(doc)).toList())
+        .distinct((prev, next) {
+      // Chỉ emit khi danh sách ID thực sự thay đổi
+      final prevIds = prev.map((r) => r.id).join(',');
+      final nextIds = next.map((r) => r.id).join(',');
+      return prevIds == nextIds;
     });
   }
 

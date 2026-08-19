@@ -141,6 +141,8 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
 
   StreamSubscription? _accessibilitySubscription;
   StreamSubscription? _keywordsSubscription;
+  // BUG-4 FIX: Listener realtime cho timeLimits — force re-check ngay khi PH approve
+  StreamSubscription? _timeLimitsSubscription;
   // P2: Timer for continuous time checking
   Timer? _limitCheckTimer;
   String? _familyId;
@@ -254,6 +256,20 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
 
     _syncInstalledApps();
 
+    // BUG-4 FIX: Lắng nghe realtime timeLimits — khi phụ huynh approve time request,
+    // child device sẽ re-check ngay lập tức thay vì đợi 30 giây timer
+    _timeLimitsSubscription?.cancel();
+    _timeLimitsSubscription = smartLockRepository
+        .watchTimeLimits(_familyId!, _childUid!)
+        .listen((_) {
+      if (_isMonitoring) {
+        debugPrint('AppMonitorBloc: timeLimits updated (parent may have approved), force re-check');
+        add(const CheckCurrentAppLimit());
+      }
+    }, onError: (e) {
+      debugPrint('AppMonitorBloc._timeLimitsSubscription error: $e');
+    });
+
     emit(AppMonitorRunning());
   }
 
@@ -273,10 +289,15 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
           .toList();
 
       final List<Map<String, dynamic>> appDataList = filteredApps.map((app) {
+        // BUG-5 FIX: Fallback về packageName nếu app.name null hoặc rỗng
+        // tránh "Ứng dụng không xác định" trên màn hình phụ huynh
+        final appName = (app.name != null && app.name!.isNotEmpty)
+            ? app.name!
+            : app.packageName;
         return {
           'packageName': app.packageName,
-          'appName': app.name,
-          'versionName': app.versionName,
+          'appName': appName,
+          'versionName': app.versionName ?? '',
         };
       }).toList();
 
@@ -655,6 +676,8 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
     _accessibilitySubscription?.cancel();
     _keywordsSubscription?.cancel();
     _limitCheckTimer?.cancel();
+    // BUG-4 FIX: Cancel timeLimits subscription
+    _timeLimitsSubscription?.cancel();
     _logCurrentAppUsage();
     return super.close();
   }

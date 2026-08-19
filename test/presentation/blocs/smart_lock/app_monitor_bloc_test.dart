@@ -46,6 +46,9 @@ void main() {
         .thenAnswer((_) => Stream.value([]));
     when(() => mockSmartLockRepository.getMonitoredApps(any(), any()))
         .thenAnswer((_) async => []);
+    // BUG-4 FIX: Stub watchTimeLimits — required after _timeLimitsSubscription added
+    when(() => mockSmartLockRepository.watchTimeLimits(any(), any()))
+        .thenAnswer((_) => Stream.value([]));
 
     bloc = AppMonitorBloc(
       checkAppAccessUseCase: mockCheckAppAccessUseCase,

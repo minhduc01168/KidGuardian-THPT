@@ -291,6 +291,9 @@ class AlertRepositoryImpl implements AlertRepository {
               .collection('children')
               .doc(childUid)
               .collection('alerts')
+              // BUG-3 FIX: Chỉ lấy alert chưa xem để tránh emit lại alert cũ
+              .where('isReviewed', isEqualTo: false)
+              .where('isDismissed', isEqualTo: false)
               .snapshots()
               .handleError((error) {
                 debugPrint('AlertRepository: stream error for child $childUid: $error');
