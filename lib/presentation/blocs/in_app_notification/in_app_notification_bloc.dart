@@ -171,11 +171,36 @@ class InAppNotificationBloc extends Bloc<InAppNotificationEvent, InAppNotificati
         for (final alert in alerts) {
           final isRead = alert.isReviewed || _readIds.contains(alert.id);
           final existingIndex = _notifications.indexWhere((n) => n.id == alert.id);
+
+          // BUG-E FIX: Tạo title/body phù hợp theo từng loại alert
+          String title;
+          String body;
+          String notifType;
+          switch (alert.type) {
+            case 'keyword_detected':
+              title = '⚠️ Cảnh báo từ khóa';
+              body = 'Phát hiện từ khóa "${alert.keyword}" trong ${alert.packageName}';
+              notifType = 'alert';
+              break;
+            case 'app_blocked':
+              title = '🔒 Ứng dụng bị chặn';
+              body = '${alert.packageName} đã bị chặn do vượt giới hạn thời gian';
+              notifType = 'alert';
+              break;
+            case 'time_request':
+              // Bỏ qua time_request type từ alerts — đã được xử lý qua timeRequestRepository stream
+              continue;
+            default:
+              title = 'Thông báo';
+              body = alert.textContext.isNotEmpty ? alert.textContext : 'Có sự kiện mới';
+              notifType = 'alert';
+          }
+
           final notification = InAppNotification(
             id: alert.id,
-            type: 'alert',
-            title: 'Cảnh báo an toàn',
-            body: 'Phát hiện từ khóa "${alert.keyword}" trong ${alert.packageName}',
+            type: notifType,
+            title: title,
+            body: body,
             timestamp: (alert.timestamp ?? DateTime.now()).toLocal(),
             isRead: isRead,
             data: {
@@ -184,6 +209,7 @@ class InAppNotificationBloc extends Bloc<InAppNotificationEvent, InAppNotificati
               'alertId': alert.id,
               'keyword': alert.keyword,
               'packageName': alert.packageName,
+              'alertType': alert.type,
             },
           );
 

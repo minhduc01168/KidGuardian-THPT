@@ -299,9 +299,11 @@ class AlertRepositoryImpl implements AlertRepository {
                 debugPrint('AlertRepository: stream error for child $childUid: $error');
               })
               .map((alertSnapshot) {
+            // BUG-E FIX: Bỏ filter cứng type == 'keyword_detected'
+            // Để tất cả loại alert (keyword_detected, time_request, app_blocked)
+            // đều hiển thị trong notification panel của phụ huynh
             return alertSnapshot.docs
                 .map((doc) => AlertModel.fromFirestore(doc))
-                .where((alert) => alert.type == 'keyword_detected')
                 .toList();
           });
         }).toList();

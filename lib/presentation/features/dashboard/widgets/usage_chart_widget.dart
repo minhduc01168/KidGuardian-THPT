@@ -74,13 +74,31 @@ class _UsageChartWidgetState extends State<UsageChartWidget> {
   }
 
   Widget _buildDailyChart() {
-    if (widget.appTotals.isEmpty) {
+    // BUG-C FIX: Kiểm tra cả appTotals và dailyTotals để đưa ra empty state đúng
+    final bool hasAppData = widget.appTotals.isNotEmpty &&
+        widget.appTotals.values.any((v) => v > 0);
+    if (!hasAppData) {
       return SizedBox(
         height: 200,
         child: Center(
-          child: Text(
-            'Chưa có dữ liệu',
-            style: TextStyle(color: AppColors.textSecondary),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.bar_chart_outlined, size: 48, color: Colors.grey[400]),
+              const SizedBox(height: 8),
+              Text(
+                'Chưa có dữ liệu hôm nay',
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+              ),
+              if (widget.dailyTotals.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    'Tổng tuần: ${widget.dailyTotals.values.fold(0, (a, b) => a + b)} phút',
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                  ),
+                ),
+            ],
           ),
         ),
       );

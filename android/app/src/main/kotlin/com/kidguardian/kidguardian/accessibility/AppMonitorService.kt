@@ -55,6 +55,26 @@ class AppMonitorService : AccessibilityService() {
             }
         }
 
+        // BUG-A FIX: Persist và restore blockedApps qua SharedPreferences
+        // Đảm bảo danh sách chặn không bị reset khi AccessibilityService restart
+        private const val KEY_BLOCKED_APPS = "blocked_apps"
+
+        fun saveBlockedAppsToPrefs(context: Context) {
+            val prefs = context.getSharedPreferences("kidguardian_native_prefs", Context.MODE_PRIVATE)
+            prefs.edit().putStringSet(KEY_BLOCKED_APPS, blockedApps.toSet()).apply()
+            android.util.Log.d("AppMonitorService", "Saved ${blockedApps.size} blocked apps to SharedPreferences")
+        }
+
+        fun loadBlockedAppsFromPrefs(context: Context) {
+            val prefs = context.getSharedPreferences("kidguardian_native_prefs", Context.MODE_PRIVATE)
+            val savedSet = prefs.getStringSet(KEY_BLOCKED_APPS, null)
+            if (savedSet != null) {
+                blockedApps.clear()
+                blockedApps.addAll(savedSet)
+                android.util.Log.d("AppMonitorService", "Restored ${blockedApps.size} blocked apps from SharedPreferences: $savedSet")
+            }
+        }
+
         @Volatile
         private var _monitoredKeywords = setOf("tự tử", "đánh nhau", "cờ bạc", "ma túy")
         var monitoredKeywords: Set<String>
@@ -168,6 +188,9 @@ class AppMonitorService : AccessibilityService() {
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (event?.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
             val packageName = event.packageName?.toString() ?: return
+
+            // BUG-B FIX: Không bao giờ tự chặn chính app KidGuardian
+            if (packageName == applicationContext.packageName) return
 
             if (isSystemPackage(packageName)) return
 
@@ -429,6 +452,8 @@ class AppMonitorService : AccessibilityService() {
         super.onServiceConnected()
         instance = this
         loadMonitoredPackagesFromPrefs(this)
+        // BUG-A FIX: Khôi phục danh sách ứng dụng bị chặn sau khi service restart
+        loadBlockedAppsFromPrefs(this)
         val info = AccessibilityServiceInfo()
         info.eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or
                 AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED or
@@ -436,7 +461,7 @@ class AppMonitorService : AccessibilityService() {
         info.feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC
         info.flags = AccessibilityServiceInfo.DEFAULT
         this.serviceInfo = info
-        Log.d(TAG, "Accessibility Service Connected ✅")
+        Log.d(TAG, "Accessibility Service Connected ✅ (blocked: ${blockedApps.size} apps)")
     }
 
     override fun onInterrupt() {

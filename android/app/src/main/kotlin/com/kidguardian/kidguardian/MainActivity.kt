@@ -36,6 +36,8 @@ class MainActivity : FlutterActivity() {
                         if (apps != null) {
                             AppMonitorService.blockedApps.clear()
                             AppMonitorService.blockedApps.addAll(apps)
+                            // BUG-A FIX: Persist blocked apps để khôi phục khi service restart
+                            AppMonitorService.saveBlockedAppsToPrefs(this)
                             result.success(true)
                         } else {
                             result.error("INVALID_ARGS", "Apps list is null", null)
