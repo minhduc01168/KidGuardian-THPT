@@ -19,6 +19,7 @@ import '../bloc/dashboard_bloc.dart';
 import '../bloc/dashboard_event.dart';
 import '../bloc/dashboard_state.dart';
 import '../../../blocs/emergency_access/emergency_access_screen.dart';
+import '../widgets/child_analytics_widget.dart'; // Analytics Two-way tracking
 import 'dart:math' as math;
 import 'package:kidguardian/presentation/blocs/smart_lock/smart_lock_bloc.dart';
 import 'package:kidguardian/presentation/blocs/smart_lock/smart_lock_event.dart';
@@ -870,14 +871,13 @@ class _ChildDashboardState extends State<ChildDashboard> {
     );
   }
 
+  /// Build tab Thống kê sử dụng — Two-way tracking: dùng ChildAnalyticsWidget
+  /// có thể tái sử dụng trên cả Parent và Child Dashboard.
   Widget _buildUsageTab(User user) {
-    return BlocBuilder<DashboardBloc, DashboardState>(
-      builder: (context, state) {
-        if (state is DashboardLoaded && state.dailyTotals.isNotEmpty) {
-          return _buildUsageContent(state);
-        }
-        return _buildUsageEmpty(user);
-      },
+    return ChildAnalyticsWidget(
+      childUid: user.uid,
+      themeColor: AppColors.childPrimary,
+      title: 'Thống kê của tôi',
     );
   }
 

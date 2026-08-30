@@ -29,6 +29,12 @@ void main() {
     });
 
     test('SubmitTimeRequest emits TimeRequestSubmitted on success', () async {
+      when(() => mockRepository.countRecentRequests(
+            familyId: 'family1',
+            childUid: 'child1',
+            appPackageName: 'com.test.app',
+            window: const Duration(hours: 1),
+          )).thenAnswer((_) async => 0);
       when(() => mockRepository.submitRequest(any())).thenAnswer((_) async {});
 
       bloc.add(const SubmitTimeRequest(
@@ -47,6 +53,12 @@ void main() {
     });
 
     test('SubmitTimeRequest emits TimeRequestError on failure', () async {
+      when(() => mockRepository.countRecentRequests(
+            familyId: 'family1',
+            childUid: 'child1',
+            appPackageName: 'com.test.app',
+            window: const Duration(hours: 1),
+          )).thenAnswer((_) async => 0);
       when(() => mockRepository.submitRequest(any())).thenThrow(Exception('Network error'));
 
       bloc.add(const SubmitTimeRequest(
@@ -60,6 +72,29 @@ void main() {
       await Future.delayed(const Duration(milliseconds: 200));
 
       expect(bloc.state, isA<TimeRequestError>());
+    });
+
+    test('SubmitTimeRequest emits TimeRequestError when rate limit exceeded (>=3)', () async {
+      when(() => mockRepository.countRecentRequests(
+            familyId: 'family1',
+            childUid: 'child1',
+            appPackageName: 'com.test.app',
+            window: const Duration(hours: 1),
+          )).thenAnswer((_) async => 3);
+
+      bloc.add(const SubmitTimeRequest(
+        familyId: 'family1',
+        childUid: 'child1',
+        appPackageName: 'com.test.app',
+        appName: 'TestApp',
+        requestedMinutes: 30,
+        reason: 'Need more time',
+      ));
+      await Future.delayed(const Duration(milliseconds: 200));
+
+      expect(bloc.state, isA<TimeRequestError>());
+      final state = bloc.state as TimeRequestError;
+      expect(state.message, contains('3 lần/giờ'));
     });
 
     test('LoadTimeRequests starts listening and emits TimeRequestsLoaded', () async {

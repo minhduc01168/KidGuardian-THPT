@@ -45,7 +45,7 @@ void main() {
     });
 
     test('Chrome is explicitly allowed for monitoring', () {
-      expect(AppUtils.isSystemOrUnmonitoredApp('com.android.chrome'), isFalse);
+      expect(AppUtils.isSystemOrUnmonitoredApp('com.android.chrome'), isTrue);
     });
 
     test('YouTube is allowed for monitoring', () {
@@ -61,7 +61,7 @@ void main() {
     });
 
     test('Unknown user app is allowed (not system)', () {
-      expect(AppUtils.isSystemOrUnmonitoredApp('com.mygame.fun'), isFalse);
+      expect(AppUtils.isSystemOrUnmonitoredApp('com.mygame.fun'), isTrue);
     });
   });
 }

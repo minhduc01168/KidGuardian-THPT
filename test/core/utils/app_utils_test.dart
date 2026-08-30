@@ -3,14 +3,23 @@ import 'package:kidguardian/core/utils/app_utils.dart';
 
 void main() {
   group('AppUtils.isSystemOrUnmonitoredApp tests', () {
-    test('Should allow monitored user applications', () {
-      expect(AppUtils.isSystemOrUnmonitoredApp('com.zhiliaoapp.musically'), isFalse);
+    test('Should ONLY allow 8 hardcoded social apps (monitored)', () {
       expect(AppUtils.isSystemOrUnmonitoredApp('com.facebook.katana'), isFalse);
-      expect(AppUtils.isSystemOrUnmonitoredApp('com.garena.game.kgvn'), isFalse);
-      expect(AppUtils.isSystemOrUnmonitoredApp('com.android.chrome'), isFalse);
+      expect(AppUtils.isSystemOrUnmonitoredApp('com.zhiliaoapp.musically'), isFalse);
+      expect(AppUtils.isSystemOrUnmonitoredApp('com.ss.android.ugc.trill'), isFalse);
+      expect(AppUtils.isSystemOrUnmonitoredApp('com.instagram.android'), isFalse);
+      expect(AppUtils.isSystemOrUnmonitoredApp('com.zing.zalo'), isFalse);
       expect(AppUtils.isSystemOrUnmonitoredApp('com.google.android.youtube'), isFalse);
-      expect(AppUtils.isSystemOrUnmonitoredApp('com.google.android.gm'), isFalse);
-      expect(AppUtils.isSystemOrUnmonitoredApp('com.google.android.apps.maps'), isFalse);
+      expect(AppUtils.isSystemOrUnmonitoredApp('com.instagram.barcelona'), isFalse);
+      expect(AppUtils.isSystemOrUnmonitoredApp('com.locket.android'), isFalse);
+      expect(AppUtils.isSystemOrUnmonitoredApp('com.discord'), isFalse);
+    });
+
+    test('Should completely exclude non-8 apps (games, browsers, google apps)', () {
+      expect(AppUtils.isSystemOrUnmonitoredApp('com.garena.game.kgvn'), isTrue);
+      expect(AppUtils.isSystemOrUnmonitoredApp('com.android.chrome'), isTrue);
+      expect(AppUtils.isSystemOrUnmonitoredApp('com.google.android.gm'), isTrue);
+      expect(AppUtils.isSystemOrUnmonitoredApp('com.google.android.apps.maps'), isTrue);
     });
 
     test('Should exclude self and third-party monitoring tools (KidGuardian & Xm)', () {

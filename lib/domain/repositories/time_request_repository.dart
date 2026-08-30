@@ -71,6 +71,7 @@ abstract class TimeRequestRepository {
   Stream<List<TimeRequest>> watchAllRequests({required String familyId});
   Future<void> approveRequest({required String familyId, required String childUid, required String requestId, String? response});
   Future<void> rejectRequest({required String familyId, required String childUid, required String requestId, String? response});
+  Future<int> countRecentRequests({required String familyId, required String childUid, required String appPackageName, required Duration window});
 }
 
 class TimeRequestRepositoryImpl implements TimeRequestRepository {
@@ -119,23 +120,33 @@ class TimeRequestRepositoryImpl implements TimeRequestRepository {
 
   @override
   Stream<List<TimeRequest>> watchPendingRequests({required String familyId}) {
-    // BUG-4 FIX: Dùng collectionGroup query thay vì double switchMap
-    // switchMap cũ restart toàn bộ stream mỗi khi family doc thay đổi
-    // → gây _RequestsUpdated emit liên tục → UI hiện lặp
-    return _firestore
-        .collectionGroup('timeRequests')
-        .where('familyId', isEqualTo: familyId)
-        .where('status', isEqualTo: 'pending')
-        .orderBy('timestamp', descending: true)
-        .limit(50)
-        .snapshots()
-        .map((snap) =>
-            snap.docs.map((doc) => TimeRequest.fromFirestore(doc)).toList())
-        .distinct((prev, next) {
-      // Chỉ emit khi danh sách ID thực sự thay đổi
-      final prevIds = prev.map((r) => r.id).join(',');
-      final nextIds = next.map((r) => r.id).join(',');
-      return prevIds == nextIds;
+    // FIX: Sử dụng RAM Filtering thay vì collectionGroup + where + orderBy
+    // để tránh lỗi FAILED_PRECONDITION do thiếu Composite Index trên Firestore.
+    return watchAllRequests(familyId: familyId).asyncMap((requests) async {
+      final now = DateTime.now();
+      final pendingRequests = <TimeRequest>[];
+
+      for (final req in requests) {
+        if (req.status == TimeRequestStatus.pending) {
+          final age = now.difference(req.timestamp);
+          if (age.inHours >= 24) {
+            // Midnight Purge: Tự động từ chối nếu request quá 24h
+            try {
+              await rejectRequest(
+                familyId: req.familyId,
+                childUid: req.childUid,
+                requestId: req.id,
+                response: 'Từ chối tự động (Quá 24h)',
+              );
+            } catch (e) {
+              debugPrint('[watchPendingRequests] Auto-reject failed: $e');
+            }
+          } else {
+            pendingRequests.add(req);
+          }
+        }
+      }
+      return pendingRequests;
     });
   }
 
@@ -292,6 +303,40 @@ class TimeRequestRepositoryImpl implements TimeRequestRepository {
     } catch (e) {
       if (e is TimeoutException) return;
       throw Exception('Failed to reject request: $e');
+    }
+  }
+
+  @override
+  Future<int> countRecentRequests({
+    required String familyId,
+    required String childUid,
+    required String appPackageName,
+    required Duration window,
+  }) async {
+    try {
+      final since = DateTime.now().subtract(window);
+      final snapshot = await _firestore
+          .collection('families')
+          .doc(familyId)
+          .collection('children')
+          .doc(childUid)
+          .collection('timeRequests')
+          .where('appPackageName', isEqualTo: appPackageName)
+          .get();
+      
+      int count = 0;
+      for (final doc in snapshot.docs) {
+        final data = doc.data();
+        final timestamp = (data['timestamp'] as Timestamp?)?.toDate();
+        if (timestamp != null && timestamp.isAfter(since)) {
+          count++;
+        }
+      }
+      return count;
+    } catch (e) {
+      debugPrint('[countRecentRequests] Error counting recent requests: $e');
+      // Trả về 0 nếu lỗi, hoặc ném exception tùy thiết kế. Hiện tại an toàn là 0
+      return 0;
     }
   }
 }

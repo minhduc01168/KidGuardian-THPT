@@ -31,6 +31,7 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue(FakeTimeRequest());
+    registerFallbackValue(Duration.zero); // Cần cho `any()` trên type Duration
   });
 
   late MockTimeRequestRepository mockRepository;
@@ -43,6 +44,13 @@ void main() {
         .thenAnswer((_) => Stream.value([]));
     when(() => mockRepository.watchAllRequests(familyId: any(named: 'familyId')))
         .thenAnswer((_) => Stream.value([]));
+    // Stub mới cho rate limit check — mặc định trả về 0 (chưa gửi lần nào)
+    when(() => mockRepository.countRecentRequests(
+          familyId: any(named: 'familyId'),
+          childUid: any(named: 'childUid'),
+          appPackageName: any(named: 'appPackageName'),
+          window: any(named: 'window'),
+        )).thenAnswer((_) async => 0);
   });
 
   // ─────────────────────────────────────────────────────────────────────────

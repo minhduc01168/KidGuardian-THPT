@@ -89,7 +89,7 @@ void main() {
       when(() => mockSmartLockRepository.getMonitoredApps(any(), any()))
           .thenAnswer((_) async => const [
                 MonitoredAppModel(
-                  appPackageName: 'com.test.app',
+                  appPackageName: 'com.facebook.katana',
                   appName: 'Test App',
                   isMonitored: true,
                 )
@@ -109,12 +109,12 @@ void main() {
       bloc.add(const AppEventReceived({
         'type': 'app_event',
         'eventType': 'opened',
-        'packageName': 'com.test.app',
+        'packageName': 'com.facebook.katana',
       }));
       bloc.add(const AppEventReceived({
         'type': 'app_event',
         'eventType': 'blocked',
-        'packageName': 'com.test.app',
+        'packageName': 'com.facebook.katana',
       }));
 
       await expectLater(
@@ -166,14 +166,14 @@ void main() {
       final now = DateTime.now();
       final resetTime = DateTime(now.year, now.month, now.day + 1);
       final state1 = AppBlockedState(
-        appPackageName: 'com.test.app',
+        appPackageName: 'com.facebook.katana',
         appName: 'TestApp',
         limitMinutes: 60,
         usedMinutes: 45,
         resetTime: resetTime,
       );
       final state2 = AppBlockedState(
-        appPackageName: 'com.test.app',
+        appPackageName: 'com.facebook.katana',
         appName: 'TestApp',
         limitMinutes: 60,
         usedMinutes: 45,
@@ -188,14 +188,14 @@ void main() {
       final now = DateTime.now();
       final resetTime = DateTime(now.year, now.month, now.day + 1);
       final state1 = AppBlockedState(
-        appPackageName: 'com.test.app',
+        appPackageName: 'com.facebook.katana',
         appName: 'TestApp',
         limitMinutes: 60,
         usedMinutes: 45,
         resetTime: resetTime,
       );
       final state2 = AppBlockedState(
-        appPackageName: 'com.test.app',
+        appPackageName: 'com.facebook.katana',
         appName: 'TestApp',
         limitMinutes: 60,
         usedMinutes: 60,
@@ -211,7 +211,7 @@ void main() {
       final now = DateTime.now();
       final resetTime = DateTime(now.year, now.month, now.day + 1);
       final state = AppBlockedState(
-        appPackageName: 'com.test.app',
+        appPackageName: 'com.facebook.katana',
         appName: 'TestApp',
         limitMinutes: 60,
         usedMinutes: 60,
@@ -226,7 +226,7 @@ void main() {
       final now = DateTime.now();
       final resetTime = DateTime(now.year, now.month, now.day + 1);
       final state = AppBlockedState(
-        appPackageName: 'com.test.app',
+        appPackageName: 'com.facebook.katana',
         appName: 'TestApp',
         limitMinutes: 0,
         usedMinutes: 0,
@@ -243,7 +243,7 @@ void main() {
       final now = DateTime.now();
       final resetTime = DateTime(now.year, now.month, now.day + 1);
       final state = AppBlockedState(
-        appPackageName: 'com.test.app',
+        appPackageName: 'com.facebook.katana',
         appName: 'TestApp',
         limitMinutes: 60,
         usedMinutes: 60,
@@ -257,7 +257,7 @@ void main() {
       final now = DateTime.now();
       final resetTime = DateTime(now.year, now.month, now.day + 1);
       final state1 = AppBlockedState(
-        appPackageName: 'com.test.app',
+        appPackageName: 'com.facebook.katana',
         appName: 'TestApp',
         limitMinutes: 60,
         usedMinutes: 60,
@@ -266,7 +266,7 @@ void main() {
         scheduleName: 'Giờ ngủ',
       );
       final state2 = AppBlockedState(
-        appPackageName: 'com.test.app',
+        appPackageName: 'com.facebook.katana',
         appName: 'TestApp',
         limitMinutes: 60,
         usedMinutes: 60,
@@ -295,7 +295,7 @@ void main() {
 
       bloc.add(const KeywordDetectedEvent(
         keyword: 'tự tử',
-        packageName: 'com.test.app',
+        packageName: 'com.facebook.katana',
         textContext: 'tôi muốn tự tử',
       ));
       
@@ -305,7 +305,7 @@ void main() {
             familyId: 'family1',
             childUid: 'child1',
             keyword: 'tự tử',
-            packageName: 'com.test.app',
+            packageName: 'com.facebook.katana',
             textContext: 'tôi muốn tự tử',
           )).called(1);
     });

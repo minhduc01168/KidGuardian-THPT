@@ -4,15 +4,13 @@ import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.Context
 import android.content.Intent
-import android.graphics.PixelFormat
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
-import android.widget.TextView
+import android.widget.Toast
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.kidguardian.kidguardian.R
 import kotlin.math.max
@@ -38,7 +36,8 @@ class AppMonitorService : AccessibilityService() {
         var instance: AppMonitorService? = null
 
         private const val MAX_TREE_DEPTH = 20
-        private const val KEYWORD_COOLDOWN_MS = 60_000L
+        // GAP Fix: Nâng Cooldown từ 1 phút lên 5 phút để tránh cạn kiệt Firestore Writes Quota
+        private const val KEYWORD_COOLDOWN_MS = 300_000L
 
         var blockedApps = mutableSetOf<String>()
         var appLimits = mutableMapOf<String, Int>()
@@ -133,56 +132,60 @@ class AppMonitorService : AccessibilityService() {
                 keywordAlertCooldown[key] = System.currentTimeMillis()
             }
         }
+
+        /** Trả về giá trị cooldown hiện tại — dùng để Unit Test có thể verify */
+        fun getCooldownMs(): Long = KEYWORD_COOLDOWN_MS
+
+        /** Chỉ dùng trong Unit Test — xóa toàn bộ cooldown state */
+        fun clearCooldownsForTest() {
+            synchronized(cooldownLock) {
+                keywordAlertCooldown.clear()
+            }
+        }
     }
 
     private var currentPackageName: String? = null
     private var activeAppStartMillis: Long = 0L
     private var lastExtractedText = ""
-    // BUG-2 FIX: Native overlay view được quản lý bởi WindowManager
-    private var blockOverlayView: View? = null
-    private val windowManager: WindowManager by lazy {
-        getSystemService(Context.WINDOW_SERVICE) as WindowManager
-    }
+    // FIX: Đã gỡ bỏ blockOverlayView và windowManager (Native Overlay rác)
 
-    // BUG-2 FIX: Hiển overlay đè lên app bị chặn — độc lập với Flutter UI
-    private fun showNativeBlockOverlay(packageName: String) {
-        if (!Settings.canDrawOverlays(this)) {
-            Log.w(TAG, "showNativeBlockOverlay: SYSTEM_ALERT_WINDOW not granted, skipping overlay")
-            return
-        }
-        hideNativeBlockOverlay() // Xoá overlay cũ nếu có
-        try {
-            val params = WindowManager.LayoutParams(
-                WindowManager.LayoutParams.MATCH_PARENT,
-                WindowManager.LayoutParams.MATCH_PARENT,
-                WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
-                PixelFormat.TRANSLUCENT
-            )
-            val view = LayoutInflater.from(this).inflate(R.layout.native_block_overlay, null)
-            view.findViewById<TextView>(R.id.app_name_text)?.text = packageName
-            windowManager.addView(view, params)
-            blockOverlayView = view
-            Log.d(TAG, "BUG-2: showNativeBlockOverlay() — showing overlay for $packageName")
-        } catch (e: Exception) {
-            Log.e(TAG, "showNativeBlockOverlay error", e)
-        }
-    }
+    // ── Midnight Rollover Fix ─────────────────────────────────────────────────
+    // Handler kiểm tra định kỳ mỗi 30 giây xem trẻ có đang dùng app bị chặn không.
+    // Giải quyết kịch bản: trẻ mở app lúc 23:59, đến 00:00 vào khung giờ cấm
+    // nhưng AccessibilityService không có event mới → app không bị văng ra.
+    private val midnightCheckHandler = Handler(Looper.getMainLooper())
+    private val CHECK_INTERVAL_MS = 30_000L // 30 giây
 
-    // BUG-2 FIX: Ẩn overlay khi app được unblock
-    private fun hideNativeBlockOverlay() {
-        blockOverlayView?.let {
-            try {
-                windowManager.removeView(it)
-                Log.d(TAG, "BUG-2: hideNativeBlockOverlay() — overlay removed")
-            } catch (e: Exception) {
-                Log.w(TAG, "hideNativeBlockOverlay: could not remove view", e)
+    private val midnightRolloverRunnable = object : Runnable {
+        override fun run() {
+            val pkg = currentPackageName
+            if (pkg != null && blockedApps.contains(pkg)) {
+                Log.d(TAG, "[MidnightRollover] App $pkg vẫn đang mở trong khung giờ cấm → kích hoạt block")
+                blockApp(pkg)
             }
+            // Lên lịch lại lần kiểm tra tiếp theo
+            midnightCheckHandler.postDelayed(this, CHECK_INTERVAL_MS)
         }
-        blockOverlayView = null
     }
+
+    /** Phơi ra để Unit Test có thể kiểm tra logic rollover */
+    fun getCheckIntervalMs(): Long = CHECK_INTERVAL_MS
+
+    /**
+     * Giả lập việc kiểm tra rollover để Unit Test không cần đợi 30 giây.
+     * Trả về true nếu đã kích hoạt block, false nếu không cần.
+     */
+    fun checkAndBlockIfNeeded(): Boolean {
+        val pkg = currentPackageName
+        return if (pkg != null && blockedApps.contains(pkg)) {
+            blockApp(pkg)
+            true
+        } else {
+            false
+        }
+    }
+
+
 
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
@@ -192,17 +195,18 @@ class AppMonitorService : AccessibilityService() {
             // BUG-B FIX: Không bao giờ tự chặn chính app KidGuardian
             if (packageName == applicationContext.packageName) return
 
-            if (isSystemPackage(packageName)) return
+            val isSystem = isSystemPackage(packageName)
 
             if (currentPackageName != packageName) {
                 if (currentPackageName != null) {
                     val durationMs = System.currentTimeMillis() - activeAppStartMillis
                     // FIX #1+#5 Native: Lưu offline log cho monitored apps (Nếu rỗng → theo dõi tất cả user apps)
                     val prevIsMonitored = monitoredPackages.isEmpty() || monitoredPackages.contains(currentPackageName!!)
-                    if (activeAppStartMillis > 0 && durationMs >= 5000 && !isSystemPackage(currentPackageName!!) && prevIsMonitored) {
+                    val prevIsSystem = isSystemPackage(currentPackageName!!)
+                    if (activeAppStartMillis > 0 && durationMs >= 5000 && !prevIsSystem && prevIsMonitored) {
                         saveOfflineUsageLog(currentPackageName!!, activeAppStartMillis, System.currentTimeMillis(), durationMs / 1000)
                     }
-                    if (prevIsMonitored) {
+                    if (prevIsMonitored && !prevIsSystem) {
                         sendAppEvent(currentPackageName!!, "closed")
                     }
                 }
@@ -212,35 +216,40 @@ class AppMonitorService : AccessibilityService() {
                 lastExtractedText = ""
                 Log.d(TAG, "Window State Changed: $packageName")
 
-                // FIX #1+#5 Native: Gửi 'opened' event lên Flutter (Nếu rỗng → theo dõi tất cả user apps).
-                val isMonitored = monitoredPackages.isEmpty() || monitoredPackages.contains(packageName)
-                if (isMonitored) {
-                    sendAppEvent(packageName, "opened")
-                } else {
-                    Log.d(TAG, "Skipping non-monitored app event (native filter): $packageName")
-                }
+                if (!isSystem) {
+                    // FIX #1+#5 Native: Gửi 'opened' event lên Flutter (Nếu rỗng → theo dõi tất cả user apps).
+                    val isMonitored = monitoredPackages.isEmpty() || monitoredPackages.contains(packageName)
+                    if (isMonitored) {
+                        sendAppEvent(packageName, "opened")
+                    } else {
+                        Log.d(TAG, "Skipping non-monitored app event (native filter): $packageName")
+                    }
 
-                if (blockedApps.contains(packageName)) {
-                    blockApp(packageName)
-                }
+                    if (blockedApps.contains(packageName)) {
+                        blockApp(packageName)
+                    }
 
-                // BUG-1 FIX: Với Chrome và Google Search, scan URL bar khi app mở
-                // vì TYPE_VIEW_TEXT_CHANGED không fire cho address bar
-                if (packageName == "com.android.chrome" || packageName == "com.google.android.googlequicksearchbox") {
-                    val root = rootInActiveWindow
-                    if (root != null) {
-                        val query = extractBrowserSearchQuery(root)
-                        if (!query.isNullOrBlank() && query != lastExtractedText) {
-                            lastExtractedText = query
-                            checkTextForKeywords(query, packageName)
+                    // BUG-1 FIX: Với Chrome và Google Search, scan URL bar khi app mở
+                    // vì TYPE_VIEW_TEXT_CHANGED không fire cho address bar
+                    if (packageName == "com.android.chrome" || packageName == "com.google.android.googlequicksearchbox") {
+                        val root = rootInActiveWindow
+                        if (root != null) {
+                            val query = extractBrowserSearchQuery(root)
+                            if (!query.isNullOrBlank() && query != lastExtractedText) {
+                                lastExtractedText = query
+                                checkTextForKeywords(query, packageName)
+                            }
+                            root.recycle()
                         }
-                        root.recycle()
                     }
                 }
             }
         } else if (event?.eventType == AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED) {
             val packageName = event.packageName?.toString() ?: return
-            if (isSystemPackage(packageName)) return
+            // GAP Fix: Chỉ theo dõi text trên Chrome và Google Search, KHÔNG giám sát các app khác
+            val isKeywordMonitorTarget = packageName == "com.android.chrome" ||
+                    packageName == "com.google.android.googlequicksearchbox"
+            if (!isKeywordMonitorTarget) return
 
             val source = event.source
             if (source == null) return
@@ -257,9 +266,11 @@ class AppMonitorService : AccessibilityService() {
                 source.recycle()
             }
         } else if (event?.eventType == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
-            // Chỉ scan khi source là EditText hoặc SearchInput
+            // GAP Fix: Chỉ xử lý Chrome và Google Search — tự động lọc bỏ tất cả app khác
             val packageName = event.packageName?.toString() ?: return
-            if (isSystemPackage(packageName)) return
+            val isKeywordMonitorTarget = packageName == "com.android.chrome" ||
+                    packageName == "com.google.android.googlequicksearchbox"
+            if (!isKeywordMonitorTarget) return
 
             val source = event.source ?: return
             val className = source.className?.toString() ?: ""
@@ -416,21 +427,23 @@ class AppMonitorService : AccessibilityService() {
     }
 
     /**
-     * FIX C2 + BUG-2 FIX: Khoá app bằng cách ép về Home Screen và hiển native overlay.
-     * Native overlay độc lập Flutter UI — chặn triệt để dù KidGuardian ở background.
+     * FIX: Khoá app bằng cách ép về Home Screen và hiện Toast.
      */
     private fun blockApp(packageName: String) {
-        Log.d(TAG, "BUG-2: blockApp() — $packageName")
-        // 1. Ép về Home ngay lập tức
+        Log.d(TAG, "blockApp() — Kicked to Home: $packageName")
+        // 1. Ép về Home ngay lập tức để cắt truy cập
         performGlobalAction(GLOBAL_ACTION_HOME)
-        // 2. Hiển native overlay đè lên app bị chặn (không cần Flutter nhìn thấy)
-        showNativeBlockOverlay(packageName)
+        
+        // 2. Hiện thông báo ngắn gọn cho trẻ
+        Toast.makeText(this, "Đã hết thời gian sử dụng ứng dụng này!", Toast.LENGTH_SHORT).show()
+        
         // 3. Báo cho Flutter cập nhật UI (hiện LockScreen) qua LocalBroadcast
         val broadcastIntent = Intent(com.kidguardian.kidguardian.service.MonitorForegroundService.ACTION_APP_EVENT).apply {
             putExtra(EXTRA_PACKAGE_NAME, packageName)
             putExtra(EXTRA_EVENT_TYPE, "blocked")
         }
         LocalBroadcastManager.getInstance(this).sendBroadcast(broadcastIntent)
+        
         // 4. Forward trực tiếp lên Flutter EventSink
         com.kidguardian.kidguardian.service.MonitorForegroundService.sendEventDirectly(mapOf(
             "type" to "app_event",
@@ -461,7 +474,9 @@ class AppMonitorService : AccessibilityService() {
         info.feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC
         info.flags = AccessibilityServiceInfo.DEFAULT
         this.serviceInfo = info
-        Log.d(TAG, "Accessibility Service Connected ✅ (blocked: ${blockedApps.size} apps)")
+        // Midnight Rollover Fix: Bắt đầu vòng kiểm tra định kỳ
+        midnightCheckHandler.postDelayed(midnightRolloverRunnable, CHECK_INTERVAL_MS)
+        Log.d(TAG, "Accessibility Service Connected ✅ (blocked: ${blockedApps.size} apps, rollover check: every ${CHECK_INTERVAL_MS/1000}s)")
     }
 
     override fun onInterrupt() {
@@ -470,8 +485,8 @@ class AppMonitorService : AccessibilityService() {
 
     override fun onDestroy() {
         super.onDestroy()
-        // BUG-2 FIX: Xóa overlay khi service bị hủy
-        hideNativeBlockOverlay()
+        // Midnight Rollover Fix: Dừng handler để tránh memory leak
+        midnightCheckHandler.removeCallbacks(midnightRolloverRunnable)
         if (instance == this) instance = null
     }
 }

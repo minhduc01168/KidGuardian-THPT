@@ -171,6 +171,20 @@ class TimeRequestBloc extends Bloc<TimeRequestEvent, TimeRequestState> {
   Future<void> _onSubmitRequest(SubmitTimeRequest event, Emitter<TimeRequestState> emit) async {
     emit(TimeRequestSubmitting());
     try {
+      // RATE LIMIT: Tối đa 3 lần / giờ / ứng dụng
+      final recentCount = await repository.countRecentRequests(
+        familyId: event.familyId,
+        childUid: event.childUid,
+        appPackageName: event.appPackageName,
+        window: const Duration(hours: 1),
+      );
+
+      if (recentCount >= 3) {
+        emit(const TimeRequestError(
+            'Bạn chỉ được xin thêm giờ tối đa 3 lần/giờ cho ứng dụng này. Vui lòng thử lại sau.'));
+        return;
+      }
+
       final request = TimeRequest(
         id: '',
         familyId: event.familyId,

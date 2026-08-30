@@ -109,7 +109,7 @@ void main() {
       bloc.add(const AppEventReceived({
         'type': 'app_event',
         'eventType': 'opened',
-        'packageName': 'com.tiktok',
+        'packageName': 'com.zhiliaoapp.musically',
       }));
 
       // Chờ timeLimits stream emit (sau 50ms) và CheckCurrentAppLimit được trigger
@@ -215,20 +215,20 @@ void main() {
       bloc.add(const AppEventReceived({
         'type': 'app_event',
         'eventType': 'opened',
-        'packageName': 'com.tiktok',
+        'packageName': 'com.zhiliaoapp.musically',
       }));
 
       // Native gửi blocked event (simulate overlay hiện xong gửi về Flutter)
       bloc.add(const AppEventReceived({
         'type': 'app_event',
         'eventType': 'blocked',
-        'packageName': 'com.tiktok',
+        'packageName': 'com.zhiliaoapp.musically',
       }));
 
       await expectLater(
         bloc.stream,
         emitsThrough(isA<AppBlockedState>()
-            .having((s) => s.appPackageName, 'packageName', 'com.tiktok')),
+            .having((s) => s.appPackageName, 'packageName', 'com.zhiliaoapp.musically')),
       );
 
       await bloc.close();

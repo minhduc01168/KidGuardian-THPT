@@ -10,34 +10,28 @@ class AppUtils {
   };
   static const Map<String, String> _appNameMap = {
     'com.zhiliaoapp.musically': 'TikTok',
+    'com.ss.android.ugc.trill': 'TikTok',
     'com.facebook.katana': 'Facebook',
-    'com.facebook.orca': 'Messenger',
-    'com.google.android.youtube': 'YouTube',
     'com.instagram.android': 'Instagram',
     'com.zing.zalo': 'Zalo',
-    'com.roblox.client': 'Roblox',
-    'com.dts.freefireth': 'Free Fire',
-    'com.garena.game.kgvn': 'Liên Quân Mobile',
-    'com.ss.android.ugc.trill': 'TikTok',
+    'com.google.android.youtube': 'YouTube',
     'com.instagram.barcelona': 'Threads',
+    'com.locket.android': 'Locket',
+    'com.discord': 'Discord',
+    
+    // Giữ lại các alias phòng trường hợp hiển thị log cũ
+    'com.facebook.orca': 'Messenger',
     'com.android.chrome': 'Google Chrome',
     'com.google.android.gm': 'Gmail',
     'com.google.android.apps.maps': 'Google Maps',
-    'org.telegram.messenger': 'Telegram',
-    'com.lemon.lvoverseas': 'CapCut',
-    'com.shopee.vn': 'Shopee',
-    'com.mservice.momotransfer': 'MoMo',
     'TikTok': 'TikTok',
     'Facebook': 'Facebook',
-    'YouTube': 'YouTube',
     'Instagram': 'Instagram',
-    'Threads': 'Threads',
     'Zalo': 'Zalo',
-    'Roblox': 'Roblox',
-    'Free Fire': 'Free Fire',
-    'Messenger': 'Messenger',
-    'Google Chrome': 'Google Chrome',
-    'Gmail': 'Gmail',
+    'YouTube': 'YouTube',
+    'Threads': 'Threads',
+    'Locket': 'Locket',
+    'Discord': 'Discord',
   };
 
   static String getAppNameFromLog(String appPackage, String appName) {
@@ -75,6 +69,27 @@ class AppUtils {
     return packageOrName;
   }
 
+  // FIX GAP 1: Danh sách 8 ứng dụng MXH cố định được phép giám sát
+  static const Set<String> _hardcodedSocialApps = {
+    'com.facebook.katana', // Facebook
+    'facebook',
+    'com.zhiliaoapp.musically', // TikTok
+    'com.ss.android.ugc.trill', // TikTok (thị trường khác)
+    'tiktok',
+    'com.instagram.android', // Instagram
+    'instagram',
+    'com.zing.zalo', // Zalo
+    'zalo',
+    'com.google.android.youtube', // YouTube
+    'youtube',
+    'com.instagram.barcelona', // Threads
+    'threads',
+    'com.locket.android', // Locket
+    'locket',
+    'com.discord', // Discord
+    'discord',
+  };
+
   static bool isSystemOrUnmonitoredApp(String packageName) {
     if (packageName.isEmpty) return true;
     final lower = packageName.toLowerCase();
@@ -82,76 +97,14 @@ class AppUtils {
     // 0. Self-excluded: KidGuardian app và monitoring tools không được giám sát
     if (_selfExcludedPackages.contains(lower)) return true;
 
-    // Ngoại lệ: CÁC ỨNG DỤNG ĐƯỢC PHÉP GIÁM SÁT (Luôn cho phép)
-    if (lower == 'com.android.chrome' || lower == 'google chrome') {
+    // 1. Allow-list khắt khe: CHỈ 8 ứng dụng MXH này mới trả về false (Được giám sát)
+    if (_hardcodedSocialApps.contains(lower)) {
       return false;
     }
-    const allowedGoogleApps = {
-      'com.google.android.youtube',
-      'com.google.android.gm',
-      'com.google.android.apps.maps',
-    };
-    if (allowedGoogleApps.contains(lower)) return false;
 
-    // 1. Chặn các gói chính xác của hệ thống/launcher/settings/store
-    const systemExact = {
-      'com.android.systemui',
-      'com.google.android.googlequicksearchbox',
-      'com.android.launcher',
-      'com.android.launcher2',
-      'com.android.launcher3',
-      'com.google.android.apps.nexuslauncher',
-      'com.sec.android.app.launcher',
-      'com.huawei.android.launcher',
-      'com.miui.home',
-      'com.android.inputmethod.latin',
-      'com.google.android.inputmethod.latin',
-      'com.android.inputmethod.lazyswipe',
-      'com.android.settings',
-      'com.android.vending',
-      'com.google.android.packageinstaller',
-      'com.android.packageinstaller',
-      'com.google.android.permissioncontroller',
-      'com.android.permissioncontroller',
-      'android',
-    };
-    if (systemExact.contains(lower)) return true;
-
-    // 2. Chặn theo từ khóa nhạy cảm tiến trình hệ thống
-    if (lower.contains('permissioncontroller') ||
-        lower.contains('packageinstaller') ||
-        lower.contains('inputmethod') ||
-        lower.contains('systemui') ||
-        lower.contains('.providers.') ||
-        lower.contains('.overlay')) {
-      return true;
-    }
-
-    // 3. Chặn các prefix dịch vụ hệ thống của Android & Google Daemons
-    if (lower.startsWith('com.android.')) return true;
-    if (lower.startsWith('android.')) return true;
-    if (lower.startsWith('com.google.android.')) {
-      // Các dịch vụ nền của Google (GMS, GSF, WebView, NetworkStack, ConfigUpdater, v.v.)
-      return true;
-    }
-
-    // 4. Chặn các prefix dịch vụ hệ thống của nhà sản xuất phần cứng (Vendor Daemons)
-    const vendorPrefixes = [
-      'com.sec.android.',
-      'com.samsung.android.',
-      'com.miui.',
-      'com.xiaomi.',
-      'com.oppo.',
-      'com.coloros.',
-      'com.vivo.',
-      'com.mediatek.',
-      'com.qualcomm.',
-    ];
-    for (final prefix in vendorPrefixes) {
-      if (lower.startsWith(prefix)) return true;
-    }
-
-    return false;
+    // 2. Mọi ứng dụng khác (kể cả game, chrome, hệ thống) đều KHÔNG được hiển thị 
+    // trong danh sách quản lý thời gian và báo cáo thống kê.
+    return true;
   }
 
   static Color getAppColor(String packageOrName) {
@@ -159,14 +112,12 @@ class AppUtils {
     final colors = {
       'TikTok': Colors.black,
       'Facebook': const Color(0xFF1877F2),
-      'Messenger': const Color(0xFF00B2FF),
       'Instagram': const Color(0xFFE4405F),
-      'Threads': const Color(0xFF000000),
-      'YouTube': const Color(0xFFFF0000),
       'Zalo': const Color(0xFF0068FF),
-      'Roblox': const Color(0xFFE50914),
-      'Free Fire': const Color(0xFFFF9900),
-      'Google Chrome': const Color(0xFF4285F4),
+      'YouTube': const Color(0xFFFF0000),
+      'Threads': const Color(0xFF000000),
+      'Locket': const Color(0xFFFFB800),
+      'Discord': const Color(0xFF5865F2),
     };
     return colors[name] ?? AppColors.primary;
   }
@@ -176,14 +127,12 @@ class AppUtils {
     final icons = {
       'TikTok': Icons.music_note,
       'Facebook': Icons.facebook,
-      'Messenger': Icons.chat_bubble,
       'Instagram': Icons.camera_alt,
-      'Threads': Icons.alternate_email,
-      'YouTube': Icons.play_circle_filled,
       'Zalo': Icons.chat,
-      'Roblox': Icons.gamepad,
-      'Free Fire': Icons.sports_esports,
-      'Google Chrome': Icons.public,
+      'YouTube': Icons.play_circle_filled,
+      'Threads': Icons.alternate_email,
+      'Locket': Icons.lock,
+      'Discord': Icons.discord,
     };
     return icons[name] ?? Icons.apps;
   }
