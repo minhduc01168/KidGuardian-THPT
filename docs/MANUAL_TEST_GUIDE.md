@@ -3,7 +3,7 @@
 **Ứng dụng:** KidGuardian - Đồng Hành Số  
 **Mục đích:** Quản lý và bảo vệ trẻ em trên không gian mạng, kiểm soát thời gian sử dụng ứng dụng thông minh  
 **File APK:** `build/app/outputs/flutter-apk/app-debug.apk`  
-**Cập nhật lần cuối:** 11/07/2026 (Đồng bộ 100% với 650/650 Automated Unit/Widget/BLoC Tests & Tối ưu Quota Firebase + Index-Defensive Architecture)  
+**Cập nhật lần cuối:** 31/08/2026 (Đồng bộ 100% với 778/778 Automated Unit/Widget/BLoC Tests & Hoàn thiện 100% GAP Analysis Core Features)  
 
 ---
 
@@ -92,7 +92,12 @@ Do cấu trúc Database trên Cloud đã được tối ưu bảo vệ Quota và
 | **FIX C5** | **Khóa trần Reads (`.limit(50)`)** | Giới hạn tối đa 50 tài liệu mới nhất trên mọi luồng Stream Cảnh báo (`AlertRepository`), bảo vệ hạn ngạch 50.000 Reads/ngày | [Flow 16](#17-test-flow-16-bảo-vệ-hạn-ngạch-firebase--cơ-chế-cooldown-fix-c4-c5-c6) |
 | **FIX C6** | **Offline SharedPreferences Cache** | Tự động đọc dữ liệu từ cache cục bộ (`SharedPreferences`) khi mất mạng hoặc timeout, đảm bảo app không văng/lỗi | [Flow 16](#17-test-flow-16-bảo-vệ-hạn-ngạch-firebase--cơ-chế-cooldown-fix-c4-c5-c6) |
 | **FIX C7** | **Index-Defensive Architecture** | Lọc dải ngày và sắp xếp dữ liệu trên Client Dart memory (`SummaryRepository`, `ReportRepository`, `UsageRepository`) thay vì dùng composite index phức tạp trên Firestore | [Flow 16](#17-test-flow-16-bảo-vệ-hạn-ngạch-firebase--cơ-chế-cooldown-fix-c4-c5-c6) |
-| **FIX C8** | **Granular App Selector** | Dropdown chọn ứng dụng cụ thể trong `RequestTimeDialog` khi trẻ xin thêm giờ từ màn hình Dashboard (`general_time`), tích hợp kiểm tra quy tắc qua `RulesRepository` | [Flow 10](#11-test-flow-10-tương-tác-parent-child-xin-thêm-giờ) |
+| **FIX C8** | **Granular App Selector** | Dropdown chọn ứng dụng cụ thể trong `RequestTimeDialog` khi trẻ xin thêm giờ từ màn hình Dashboard (`general_time`) | [Flow 10](#11-test-flow-10-tương-tác-parent-child-xin-thêm-giờ) |
+| **FIX C9** | **8-App Whitelist (RAM Filter)** | Giới hạn thu thập & hiển thị thống kê nghiêm ngặt vào đúng 8 ứng dụng MXH (Facebook, TikTok, Instagram...) trên RAM Client | [Flow 6](#7-test-flow-6-báo-cáo--thống-kê-sử-dụng) |
+| **FIX C10** | **Midnight Rollover** | Vòng lặp ngầm 30s của `AppMonitorService` kích hoạt khóa chặn lúc 00:00 ngay cả khi màn hình trẻ không tương tác | [Flow 4](#5-test-flow-4-smart-lock--lịch-trình-chặn) |
+| **FIX C11** | **Keyword Monitor Scope** | Giới hạn tính năng quét từ khóa chỉ hoạt động trên 2 ứng dụng: Google Search và Chrome, Cooldown nâng lên 5 phút | [Flow 15](#16-test-flow-15-cảnh-báo--quản-lý-từ-khóa-nhạy-cảm-epic-4---21-từ-khóa) |
+| **FIX C12** | **Two-way Analytics** | Widget `ChildAnalyticsWidget` phân tích biểu đồ dùng chung cho cả Child và Parent Dashboard | [Flow 6](#7-test-flow-6-báo-cáo--thống-kê-sử-dụng) |
+| **FIX C13** | **Time Request Spam Block** | Chặn spam yêu cầu xin giờ từ trẻ: tối đa 3 lần / 1 giờ cho mỗi ứng dụng, dọn dẹp các yêu cầu lỗi hạn/qua ngày | [Flow 10](#11-test-flow-10-tương-tác-parent-child-xin-thêm-giờ) |
 
 ### 1.6 Hướng dẫn test với 1 thiết bị thật (Single Device Testing)
 - **Thiết bị thật (Child Role):** Cài APK, đăng nhập role Con, bật Accessibility Service và Usage Stats. Thử nghiệm mở TikTok/Facebook để test khóa app thực tế.
@@ -150,7 +155,13 @@ Do cấu trúc Database trên Cloud đã được tối ưu bảo vệ Quota và
 | Bước | Hành động | Kết quả mong đợi | Pass/Fail |
 | :---: | :--- | :--- | :---: |
 | 1 | Trên máy Parent, vào Smart Lock → Chọn TikTok → Đặt giới hạn `1 phút/ngày` | Lưu thiết lập thành công | ☐ |
-| 2 | Trên máy Child, mở TikTok dùng quá 1 phút | TikTok lập tức bị đóng, hiển thị màn hình khóa KidGuardian | ☐ |
+| 2 | Trên máy Child, mở TikTok dùng quá 1 phút | TikTok lập tức bị đóng bằng cơ chế `GLOBAL_ACTION_HOME` mượt mà, văng thẳng về màn hình chính | ☐ |
+
+### TC-LOCK-002: Vượt rào qua ngày (Midnight Rollover)
+| Bước | Hành động | Kết quả mong đợi | Pass/Fail |
+| :---: | :--- | :--- | :---: |
+| 1 | Giả lập thời gian máy Child là `23:59`. Phụ huynh đã đặt Lịch trình giờ ngủ bắt đầu từ `00:00`. | Lịch trình thiết lập thành công | ☐ |
+| 2 | Trẻ mở ứng dụng TikTok và không chạm vào màn hình trong 2 phút (chờ đồng hồ chuyển sang `00:00` hoặc `00:01`) | Dù không có tương tác (`AccessibilityEvent`), `Handler` 30s chạy ngầm vẫn phát hiện ra vi phạm giờ ngủ và tự động văng app về Home | ☐ |
 
 ---
 
@@ -170,7 +181,13 @@ Do cấu trúc Database trên Cloud đã được tối ưu bảo vệ Quota và
 | Bước | Hành động | Kết quả mong đợi | Pass/Fail |
 | :---: | :--- | :--- | :---: |
 | 1 | Phụ huynh vào mục Báo cáo (Reports) → Chọn tab Ngày, Tuần, Tháng (30 ngày) | Biểu đồ tròn/cột hiển thị tổng thời gian sử dụng theo từng nhóm ứng dụng | ☐ |
-| 2 | Kiểm tra tính năng gom nhóm theo giờ (`groupByHour`) | Các mốc giờ cao điểm hiển thị chính xác lượng thời gian tiêu thụ | ☐ |
+| 2 | Kiểm tra danh sách ứng dụng trong báo cáo | Chỉ xuất hiện **đúng 8 ứng dụng mạng xã hội** (Facebook, TikTok, v.v.), không có ứng dụng hệ thống rác | ☐ |
+
+### TC-STAT-002: Thống kê 2 chiều cho Child Dashboard (Two-way Analytics)
+| Bước | Hành động | Kết quả mong đợi | Pass/Fail |
+| :---: | :--- | :--- | :---: |
+| 1 | Đăng nhập tài khoản Child → Mở tab **Sử dụng** trên trang chủ | `ChildAnalyticsWidget` hiển thị bảng tóm tắt: Hôm nay, 7 ngày, Trung bình | ☐ |
+| 2 | Kéo xuống xem biểu đồ và lịch sử 7 ngày | Trẻ có thể tự xem biểu đồ thống kê cá nhân (chỉ hiển thị 8 app MXH), giống giao diện của Parent | ☐ |
 
 ---
 
@@ -217,9 +234,15 @@ Do cấu trúc Database trên Cloud đã được tối ưu bảo vệ Quota và
 ### TC-REQ-002: Trẻ xin thêm thời gian từ Dashboard (`general_time` + App Selector Dropdown)
 | Bước | Hành động | Kết quả mong đợi | Pass/Fail |
 | :---: | :--- | :--- | :---: |
-| 1 | Từ màn hình chính (Dashboard) trên máy Child, bấm nút **"Xin thêm thời gian"** (`general_time`) | Dialog hiển thị thêm một **Dropdown chọn ứng dụng (`AppSelector`)** liệt kê các ứng dụng đang có quy tắc giới hạn từ `RulesRepository` (VD: TikTok, YouTube, Facebook) | ☐ |
+| 1 | Từ màn hình chính (Dashboard) trên máy Child, bấm nút **"Xin thêm thời gian"** (`general_time`) | Dialog hiển thị thêm một **Dropdown chọn ứng dụng (`AppSelector`)** liệt kê các ứng dụng đang có quy tắc giới hạn | ☐ |
 | 2 | Bấm vào Dropdown và chọn `YouTube`, chọn số phút `45 phút`, nhập lý do | Hệ thống tự động kiểm tra app đó có nằm trong danh sách chặn/quy tắc hay không | ☐ |
 | 3 | Bấm **"Gửi yêu cầu"** | Yêu cầu được tạo với `appPackageName` và `appName` chính xác của `YouTube` gửi tới phụ huynh duyệt | ☐ |
+
+### TC-REQ-003: Chống Spam Yêu cầu (Tối đa 3 lần/giờ)
+| Bước | Hành động | Kết quả mong đợi | Pass/Fail |
+| :---: | :--- | :--- | :---: |
+| 1 | Máy Child bấm xin thêm thời gian cho `TikTok` liên tục **3 lần** trong vài phút | 3 yêu cầu đầu tiên được gửi đi thành công | ☐ |
+| 2 | Trẻ cố tình gửi tiếp yêu cầu xin giờ lần thứ 4 cho `TikTok` | Bị chặn lại với SnackBar báo lỗi: *"Bạn chỉ được gửi tối đa 3 yêu cầu trong vòng 1 giờ cho mỗi ứng dụng."* | ☐ |
 
 ---
 
@@ -329,9 +352,15 @@ Do cấu trúc Database trên Cloud đã được tối ưu bảo vệ Quota và
 ### TC-KEYWORD-002: Phát hiện từ khóa nhạy cảm và gửi cảnh báo vi phạm
 | Bước | Hành động | Kết quả mong đợi | Pass/Fail |
 | :---: | :--- | :--- | :---: |
-| 1 | Máy Child đang bật giám sát Accessibility, gõ văn bản hoặc tìm kiếm cụm từ `tự tử` trên trình duyệt/app | Hệ thống phát hiện vi phạm, tạo sự kiện `KeywordDetectedEvent` và lưu vào `AlertRepository` | ☐ |
-| 2 | Máy Parent kiểm tra thông báo/lịch sử cảnh báo (`Alert History`) | Nhận được cảnh báo realtime ghi rõ từ khóa vi phạm và tên ứng dụng phát sinh vi phạm | ☐ |
-| 3 | Phụ huynh bấm vào cảnh báo vi phạm → Chọn "Đánh dấu đã xử lý" | Trạng thái cảnh báo chuyển từ Chưa xử lý sang Đã xử lý (`FilterByStatus`) | ☐ |
+| 1 | Máy Child đang bật giám sát Accessibility, gõ văn bản hoặc tìm kiếm cụm từ `tự tử` trên trình duyệt **Chrome** hoặc **Google Search** | Hệ thống phát hiện vi phạm, tạo sự kiện `KeywordDetectedEvent` và lưu vào `AlertRepository` | ☐ |
+| 2 | Trẻ gõ cụm từ tương tự trên ứng dụng Ghi chú, Zalo hoặc Tin nhắn (Không thuộc scope Chrome/Google) | Hệ thống KHÔNG quét văn bản, đảm bảo quyền riêng tư và tối ưu hóa hiệu năng | ☐ |
+| 3 | Máy Parent kiểm tra thông báo/lịch sử cảnh báo (`Alert History`) | Nhận được cảnh báo realtime ghi rõ từ khóa vi phạm (chỉ từ Chrome/Google) | ☐ |
+
+### TC-KEYWORD-003: Giới hạn Cooldown 5 phút khi gõ từ khóa
+| Bước | Hành động | Kết quả mong đợi | Pass/Fail |
+| :---: | :--- | :--- | :---: |
+| 1 | Máy Child tìm kiếm từ `tự tử` trên Chrome | Hệ thống lập tức bắn 1 cảnh báo lên Firestore cho phụ huynh | ☐ |
+| 2 | Trẻ tiếp tục gõ/tìm kiếm từ `tự tử` thêm 5 lần nữa trong vòng **3 phút** tiếp theo | Hệ thống âm thầm chặn ghi đè. Firestore KHÔNG tạo thêm cảnh báo nào mới (nhờ Cooldown 5 phút) | ☐ |
 
 ---
 
@@ -418,15 +447,18 @@ Khi phát hiện lỗi trong quá trình test thực tế, vui lòng sao chép v
 - [ ] TC-SET-001: Đổi Theme Sáng/Tối & Ngôn ngữ Tiếng Việt
 - [ ] TC-HELP-001: FAQ (`ToggleFaqItem`) & Gửi tin nhắn hỗ trợ
 
-### ⭐ Kiến trúc & Bảo vệ Quota (FIX C1 -> C8 & Epic 4)
+### ⭐ Kiến trúc & Bảo vệ Quota (FIX C1 -> C13)
 - [ ] TC-C1-001 -> TC-C1-003: Foreground Service (`START_STICKY`) không bị kill khi swipe/Force Stop
 - [ ] TC-C2-001 -> TC-C2-003: Native App Blocking (`GLOBAL_ACTION_HOME`) qua Accessibility Service
 - [ ] TC-C3-001 -> TC-C3-002: Realtime Time Request Notification qua Firestore Stream dưới 5 giây
-- [ ] TC-KEYWORD-001 -> TC-KEYWORD-002: Bộ **21 từ khóa nhạy cảm mặc định** & cảnh báo vi phạm
+- [ ] TC-KEYWORD-001 -> TC-KEYWORD-003: Giới hạn Scope trên Chrome/Google & Cooldown 5 phút
 - [ ] TC-QUOTA-001: Cooldown 5 phút/app (`_lastAlertSentMap`) chống spam Writes lên Firestore
 - [ ] TC-QUOTA-002: Khóa trần `.limit(50)` cho luồng Stream Cảnh báo (`AlertRepository`)
 - [ ] TC-QUOTA-003: Tự động chuyển cache cục bộ (`SharedPreferences`) khi mất kết nối Internet
 - [ ] TC-QUOTA-004: Index-Defensive Querying trên Client memory (chống `FAILED_PRECONDITION`)
+- [ ] TC-LOCK-002: Middleware Midnight Rollover đếm ngược 30s khóa chặn tự động lúc 00:00
+- [ ] TC-STAT-001 -> TC-STAT-002: 8-App Whitelist và Two-way Analytics (Thống kê cho Child)
+- [ ] TC-REQ-003: Chống Spam xin giờ (Tối đa 3 lần/1 giờ)
 
 ---
 *Tài liệu được phát triển và chuẩn hóa bởi nhóm Kỹ sư Hệ thống KidGuardian — Sẵn sàng cho giai đoạn Kiểm thử Thực tế & Nghiệm thu Sản phẩm.*
