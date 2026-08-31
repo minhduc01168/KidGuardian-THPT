@@ -124,6 +124,39 @@ void main() {
         ]),
       );
     });
+
+    test('ignores events for com.kidguardian.kidguardian (Bug #2 self-exclusion)', () async {
+      when(() => mockSmartLockRepository.getAppTimeLimits(any(), any()))
+          .thenAnswer((_) async => []);
+      when(() => mockUsageRepository.getUsageByApp(any(), any()))
+          .thenAnswer((_) async => {});
+      when(() => mockSmartLockRepository.getSmartLockSettings(any(), any()))
+          .thenAnswer((_) async => null);
+      when(() => mockSmartLockRepository.getMonitoredApps(any(), any()))
+          .thenAnswer((_) async => []);
+      when(() => mockCheckAppAccessUseCase.execute(
+            familyId: any(named: 'familyId'),
+            childUid: any(named: 'childUid'),
+            appPackageName: any(named: 'appPackageName'),
+          )).thenAnswer((_) async => false); // would normally block
+      when(() => mockSmartLockRepository.getSchedules(any(), any()))
+          .thenAnswer((_) async => []);
+
+      bloc.add(const StartMonitoring('family1', 'child1'));
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      bloc.add(const AppEventReceived({
+        'type': 'app_event',
+        'eventType': 'blocked',
+        'packageName': 'com.kidguardian.kidguardian',
+      }));
+
+      // wait a bit
+      await Future.delayed(const Duration(milliseconds: 50));
+      
+      // Should remain AppMonitorRunning, no AppBlockedState emitted
+      expect(bloc.state, isA<AppMonitorRunning>());
+    });
   });
 
   group('AppBlockedState extended fields', () {

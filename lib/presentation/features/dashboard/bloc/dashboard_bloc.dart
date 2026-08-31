@@ -82,7 +82,20 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   }
 
   bool _isAppAllowed(String packageOrName, Set<String> monitoredPackages) {
-    if (AppUtils.isSystemOrUnmonitoredApp(packageOrName)) return false;
+    if (packageOrName.isEmpty) return false;
+    // Luôn loại trừ KidGuardian và launcher system apps
+    const _systemExclude = {'com.kidguardian.kidguardian', 'com.android.launcher', 
+        'com.android.settings', 'android'};
+    if (_systemExclude.contains(packageOrName.toLowerCase())) return false;
+    
+    // Nếu monitoredPackages trống → hiển thị tất cả app (không phải system app thuần túy)
+    if (monitoredPackages.isEmpty) {
+      // Chỉ loại trừ các system package có dấu hiệu rõ ràng là launcher/system
+      final lower = packageOrName.toLowerCase();
+      if (lower.startsWith('android.') || lower == 'android') return false;
+      return true;
+    }
+    
     final cleanName = AppUtils.getAppName(packageOrName);
     return monitoredPackages.contains(packageOrName) || monitoredPackages.contains(cleanName);
   }

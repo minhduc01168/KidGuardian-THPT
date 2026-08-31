@@ -428,8 +428,15 @@ class AppMonitorService : AccessibilityService() {
 
     /**
      * FIX: Khoá app bằng cách ép về Home Screen và hiện Toast.
+     * BUG-2 FIX: Self-exclusion guard — KidGuardian KHÔNG BAO GIỜ tự chặn chính mình.
      */
     private fun blockApp(packageName: String) {
+        // BUG-2 FIX: Bảo vệ tuyệt đối — không chặn chính KidGuardian app ở tầng native
+        if (packageName == "com.kidguardian.kidguardian" || packageName.isBlank()) {
+            Log.w(TAG, "blockApp() — Bỏ qua self-block cho: $packageName")
+            return
+        }
+        
         Log.d(TAG, "blockApp() — Kicked to Home: $packageName")
         // 1. Ép về Home ngay lập tức để cắt truy cập
         performGlobalAction(GLOBAL_ACTION_HOME)

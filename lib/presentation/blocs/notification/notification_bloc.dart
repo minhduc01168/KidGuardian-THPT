@@ -4,6 +4,7 @@ import 'package:flutter/painting.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:kidguardian/core/utils/app_utils.dart';
 import 'package:kidguardian/domain/repositories/alert_repository.dart';
 import 'package:kidguardian/domain/repositories/time_request_repository.dart';
 
@@ -315,7 +316,7 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     await _showNotification(
       id: alert.id.hashCode,
       title: '⚠️ Cảnh báo từ khoá nguy hiểm',
-      body: 'Phát hiện "${alert.keyword}" trong ${alert.packageName}. Nhấn để xem chi tiết.',
+      body: 'Phát hiện "${alert.keyword}" trong ${AppUtils.getAppName(alert.packageName)}. Nhấn để xem chi tiết.',
       payload: alert.id,
     );
 

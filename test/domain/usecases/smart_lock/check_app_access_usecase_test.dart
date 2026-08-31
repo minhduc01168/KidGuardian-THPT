@@ -28,7 +28,7 @@ void main() {
     const appPackage = 'com.tiktok.app';
 
     test('should return true if no limits exist', () async {
-      when(() => mockSmartLockRepository.getAppTimeLimits(familyId, childUid))
+      when(() => mockSmartLockRepository.getAppTimeLimits(familyId, childUid, forceServer: any(named: 'forceServer')))
           .thenAnswer((_) async => []);
       
       final result = await useCase.execute(
@@ -41,7 +41,7 @@ void main() {
     });
 
     test('should return true if usage is under limit', () async {
-      when(() => mockSmartLockRepository.getAppTimeLimits(familyId, childUid))
+      when(() => mockSmartLockRepository.getAppTimeLimits(familyId, childUid, forceServer: any(named: 'forceServer')))
           .thenAnswer((_) async => [
                 AppTimeLimitModel(
                   appPackageName: appPackage,
@@ -62,7 +62,7 @@ void main() {
     });
 
     test('should return false if usage equals or exceeds limit', () async {
-      when(() => mockSmartLockRepository.getAppTimeLimits(familyId, childUid))
+      when(() => mockSmartLockRepository.getAppTimeLimits(familyId, childUid, forceServer: any(named: 'forceServer')))
           .thenAnswer((_) async => [
                 AppTimeLimitModel(
                   appPackageName: appPackage,
@@ -80,6 +80,19 @@ void main() {
       );
 
       expect(result, isFalse);
+    });
+
+    test('Bug #1: should fetch limits with forceServer=true to avoid race condition cache issue', () async {
+      when(() => mockSmartLockRepository.getAppTimeLimits(familyId, childUid, forceServer: any(named: 'forceServer')))
+          .thenAnswer((_) async => []);
+      
+      await useCase.execute(
+        familyId: familyId,
+        childUid: childUid,
+        appPackageName: appPackage,
+      );
+
+      verify(() => mockSmartLockRepository.getAppTimeLimits(familyId, childUid, forceServer: true)).called(1);
     });
   });
 }

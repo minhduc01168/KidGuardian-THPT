@@ -27,15 +27,16 @@ class SmartLockRepository {
 
   Future<List<AppTimeLimitModel>> getAppTimeLimits(
     String familyId,
-    String childId,
-  ) async {
+    String childId, {
+    bool forceServer = false, // BUG-1 FIX: force fetch từ server thay vì Firestore local cache
+  }) async {
     final snapshot = await _firestore
         .collection('families')
         .doc(familyId)
         .collection('children')
         .doc(childId)
         .collection('timeLimits')
-        .get();
+        .get(forceServer ? const GetOptions(source: Source.server) : null);
 
     return snapshot.docs
         .map((doc) => AppTimeLimitModel.fromJson(doc.data()))

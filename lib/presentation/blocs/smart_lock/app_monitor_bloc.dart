@@ -261,10 +261,14 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
     _timeLimitsSubscription?.cancel();
     _timeLimitsSubscription = smartLockRepository
         .watchTimeLimits(_familyId!, _childUid!)
-        .listen((_) {
+        .listen((_) async {
       if (_isMonitoring) {
         debugPrint('AppMonitorBloc: timeLimits updated (parent may have approved), force re-check');
-        add(const CheckCurrentAppLimit());
+        // BUG-1 FIX: Đợi 1s để đảm bảo cache Firestore đã đồng bộ hoàn toàn trước khi use case đọc lại
+        await Future.delayed(const Duration(seconds: 1));
+        if (!isClosed) {
+          add(const CheckCurrentAppLimit());
+        }
       }
     }, onError: (e) {
       debugPrint('AppMonitorBloc._timeLimitsSubscription error: $e');
@@ -414,6 +418,8 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
     final packageName = event.event['packageName'] as String?;
 
     if (packageName == null || !_isAppAllowedToLog(packageName)) return;
+    // BUG-2 FIX: Bảo vệ tuyệt đối tầng Flutter — không bao giờ emit AppBlockedState cho chính KidGuardian
+    if (packageName == 'com.kidguardian.kidguardian') return;
 
     if (type == 'app_event') {
       final eventType = event.event['eventType'] ?? event.event['event_type'];

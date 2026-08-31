@@ -15,6 +15,7 @@ void main() {
   late MockTimeRequestRepository mockTimeRequestRepository;
 
   setUp(() {
+    TestWidgetsFlutterBinding.ensureInitialized();
     mockAlertRepository = MockAlertRepository();
     mockTimeRequestRepository = MockTimeRequestRepository();
     when(() => mockAlertRepository.markAlertAsReviewed(

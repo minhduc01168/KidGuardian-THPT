@@ -88,3 +88,30 @@ Tài liệu này tổng hợp các yêu cầu cốt lõi (Jobs-to-be-Done), các
 ### 💻 Tiêu chí nghiệm thu kỹ thuật (Dev - Amelia)
 * **Client-side Filtering & Sorting:** Toàn bộ việc filter thời gian (date range) để vẽ biểu đồ phải được xử lý tại bộ nhớ RAM (Dart layer) thay vì dựa vào Index phức tạp trên Firestore.
 * **Đồng bộ luồng UI:** Do giao diện thống kê áp dụng cho cả Parent và Child, cần thiết kế Widget dùng chung (Reusable Widget) nhận vào `uid` của trẻ làm tham số để đảm bảo tính nhất quán trên UI.
+
+---
+
+## 5. Resolution Logs & Automated Test Coverage (Aug 2026)
+
+### 🐛 Bug #1: Time Request Approval Sync (Race Condition)
+* **Root Cause:** Khi phụ huynh phê duyệt yêu cầu thêm thời gian, Client đọc cache Firestore nội bộ do dùng `.get()` mặc định thay vì lấy từ server.
+* **Resolution:** 
+  - Cập nhật `getAppTimeLimits` để nhận cờ `forceServer: true` và dùng `Source.server`.
+  - Thêm delay 1s trong `_timeLimitsSubscription` để đảm bảo Firestore Cloud đã đồng bộ trước khi trigger `CheckCurrentAppLimit`.
+* **Test Coverage:** Thêm test vào `check_app_access_usecase_test.dart` xác minh UseCase sử dụng `forceServer: true`.
+
+### 🐛 Bug #2: KidGuardian Self-Blocking 
+* **Root Cause:** Native Kotlin không có bypass cho chính ứng dụng KidGuardian, khiến Service ép ứng dụng về Home.
+* **Resolution:** 
+  - Cập nhật `blockApp` trong `AppMonitorService.kt` chặn khóa `com.kidguardian.kidguardian`.
+  - Cập nhật `AppMonitorBloc` ở tầng Flutter không bao giờ emit `AppBlockedState` nếu package là KidGuardian.
+* **Test Coverage:** Thêm test vào `app_monitor_bloc_test.dart` xác minh Bloc bỏ qua event khóa KidGuardian và ở trạng thái `AppMonitorRunning`.
+
+### 🐛 Bug #3: Dashboard Empty Charts
+* **Root Cause:** `_isAppAllowed` trong `DashboardBloc` dùng sai hàm lọc `isSystemOrUnmonitoredApp` (vốn chỉ dành cho monitoring), khiến biểu đồ thống kê các app bị ẩn.
+* **Resolution:** Viết lại logic `_isAppAllowed` trong `DashboardBloc.dart` để cho phép hiển thị non-system apps (Chrome, Free Fire, Roblox, v.v.) ngay cả khi `monitoredApps` trống.
+* **Test Coverage:** Thêm test vào `dashboard_bloc_test.dart` đảm bảo Chrome, Free Fire không bị loại bỏ khỏi danh sách khi truy vấn biểu đồ thống kê.
+
+### 🐛 Bug #4: Raw Package Name on UI Notifications
+* **Root Cause:** Cảnh báo và chi tiết hiển thị trực tiếp `packageName` thô thay vì tên ứng dụng thân thiện với người dùng.
+* **Resolution:** Thay thế toàn bộ hiển thị thô trong `alert_history_screen.dart`, `alert_detail_screen.dart`, và `notification_bloc.dart` thành `AppUtils.getAppName(alert.packageName)`.

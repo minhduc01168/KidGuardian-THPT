@@ -44,7 +44,9 @@ class CheckAppAccessUseCase {
     final now = DateTime.now();
     final dateStr = DateFormat('yyyy-MM-dd').format(now);
 
-    final limits = await smartLockRepository.getAppTimeLimits(familyId, childUid);
+    // BUG-1 FIX: forceServer=true để luôn đọc giới hạn mới nhất từ Firestore server
+    // tránh race condition khi phụ huynh vừa approve mà client còn đọc cache cũ
+    final limits = await smartLockRepository.getAppTimeLimits(familyId, childUid, forceServer: true);
     AppTimeLimitModel? appLimit;
     for (final limit in limits) {
       if (limit.appPackageName == appPackageName) {
