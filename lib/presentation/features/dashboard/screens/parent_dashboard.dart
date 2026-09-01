@@ -238,33 +238,58 @@ class _ParentDashboardState extends State<ParentDashboard> {
             // Welcome card
             Container(
               width: double.infinity,
-              padding: EdgeInsets.all(20),
+              padding: EdgeInsets.all(24),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [AppColors.primary, AppColors.primaryDark],
+                  colors: [AppColors.primary.withOpacity(0.85), AppColors.primaryDark],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withOpacity(0.3),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
-                  Text(
-                    'Xin chào, ${user.displayName}!',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Xin chào,\n${user.displayName}!',
+                          style: const TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            height: 1.2,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Sẵn sàng giám sát an toàn hôm nay?',
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: Colors.white.withOpacity(0.9),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Tổng quan sử dụng hôm nay',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.white70,
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white.withOpacity(0.5), width: 2),
                     ),
+                    child: const Icon(Icons.person_outline_rounded, size: 36, color: Colors.white),
                   ),
                 ],
               ),
@@ -277,17 +302,17 @@ class _ParentDashboardState extends State<ParentDashboard> {
                 Expanded(
                   child: _SummaryCard(
                     title: 'Hôm nay',
-                    value: '${state.totalMinutesToday} phút',
-                    icon: Icons.today,
+                    minutes: state.totalMinutesToday,
+                    icon: Icons.today_rounded,
                     color: AppColors.primary,
                   ),
                 ),
-                SizedBox(width: 16),
+                const SizedBox(width: 16),
                 Expanded(
                   child: _SummaryCard(
                     title: 'Hôm qua',
-                    value: '${state.totalMinutesYesterday} phút',
-                    icon: Icons.history,
+                    minutes: state.totalMinutesYesterday,
+                    icon: Icons.history_rounded,
                     color: AppColors.textSecondary,
                   ),
                 ),
@@ -298,28 +323,40 @@ class _ParentDashboardState extends State<ParentDashboard> {
             // Change indicator
             if (state.totalMinutesYesterday > 0)
               Container(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 decoration: BoxDecoration(
                   color: state.percentChangeFromYesterday > 0
                       ? AppColors.error.withOpacity(0.1)
                       : AppColors.success.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(100),
                 ),
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      state.percentChangeFromYesterday > 0
-                          ? Icons.trending_up
-                          : Icons.trending_down,
-                      color: state.percentChangeFromYesterday > 0
-                          ? AppColors.error
-                          : AppColors.success,
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: state.percentChangeFromYesterday > 0
+                            ? AppColors.error.withOpacity(0.2)
+                            : AppColors.success.withOpacity(0.2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        state.percentChangeFromYesterday > 0
+                            ? Icons.arrow_upward_rounded
+                            : Icons.arrow_downward_rounded,
+                        color: state.percentChangeFromYesterday > 0
+                            ? AppColors.error
+                            : AppColors.success,
+                        size: 16,
+                      ),
                     ),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 12),
                     Text(
                       '${state.percentChangeFromYesterday > 0 ? "+" : ""}${state.percentChangeFromYesterday}% so với hôm qua',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
+                        fontSize: 14,
                         color: state.percentChangeFromYesterday > 0
                             ? AppColors.error
                             : AppColors.success,
@@ -1014,44 +1051,69 @@ class _ParentDashboardState extends State<ParentDashboard> {
 
 class _SummaryCard extends StatelessWidget {
   final String title;
-  final String value;
+  final int minutes;
   final IconData icon;
   final Color color;
 
   const _SummaryCard({
     required this.title,
-    required this.value,
+    required this.minutes,
     required this.icon,
     required this.color,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Icon(icon, size: 32, color: color),
-            SizedBox(height: 8),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 14,
-                color: AppColors.textSecondary,
-              ),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(14),
             ),
-            SizedBox(height: 4),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
+            child: Icon(icon, size: 28, color: color),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 14,
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w500,
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 4),
+          TweenAnimationBuilder<int>(
+            tween: IntTween(begin: 0, end: minutes),
+            duration: const Duration(seconds: 1),
+            curve: Curves.easeOutCubic,
+            builder: (context, value, child) {
+              return Text(
+                '$value phút',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+              );
+            },
+          ),
+        ],
       ),
     );
   }
@@ -1072,29 +1134,54 @@ class _QuickActionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: EdgeInsets.all(20),
-          child: Column(
-            children: [
-              Icon(
-                icon,
-                size: 40,
-                color: color,
-              ),
-              SizedBox(height: 12),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.1),
+            blurRadius: 15,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(20),
+          highlightColor: color.withOpacity(0.05),
+          splashColor: color.withOpacity(0.1),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    icon,
+                    size: 32,
+                    color: color,
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 12),
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
