@@ -47,7 +47,10 @@ class SmartLockBloc extends Bloc<SmartLockEvent, SmartLockState> {
         event.childId,
       );
 
-      final monitoredApps = await repository.getMonitoredApps(event.familyId, event.childId);
+      var monitoredApps = await repository.getMonitoredApps(event.familyId, event.childId);
+      if (monitoredApps.isEmpty) {
+        monitoredApps = repository.getPopularMonitoredApps();
+      }
       final activeMonitoredPackages = monitoredApps.where((a) => a.isMonitored).map((a) => a.appPackageName).toSet();
 
       final popularApps = repository.getPopularApps();

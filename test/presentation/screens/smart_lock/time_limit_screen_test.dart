@@ -33,6 +33,7 @@ void main() {
     when(() => mockRepository.getAppTimeLimits(any(), any())).thenAnswer((_) async => []);
     when(() => mockRepository.getPopularApps()).thenReturn([]);
     when(() => mockRepository.getMonitoredApps(any(), any())).thenAnswer((_) async => []);
+    when(() => mockRepository.getPopularMonitoredApps()).thenReturn([]);
     
     await tester.pumpWidget(buildScreen());
     

@@ -52,7 +52,7 @@ class MostUsedAppsList extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ListTile(
-                contentPadding: EdgeInsets.zero,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 4.0),
                 leading: CircleAvatar(
                   backgroundColor:
                       Theme.of(context).primaryColor.withValues(alpha: 0.1),

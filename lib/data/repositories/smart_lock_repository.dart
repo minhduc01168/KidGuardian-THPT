@@ -109,28 +109,23 @@ class SmartLockRepository {
         limits: {},
       ),
       const AppTimeLimitModel(
-        appPackageName: 'com.instagram.barcelona',
-        appName: 'Threads',
-        limits: {},
-      ),
-      const AppTimeLimitModel(
-        appPackageName: 'com.android.chrome',
-        appName: 'Google Chrome',
-        limits: {},
-      ),
-      const AppTimeLimitModel(
         appPackageName: 'com.zing.zalo',
         appName: 'Zalo',
         limits: {},
       ),
       const AppTimeLimitModel(
-        appPackageName: 'com.roblox.client',
-        appName: 'Roblox',
+        appPackageName: 'com.instagram.barcelona',
+        appName: 'Threads',
         limits: {},
       ),
       const AppTimeLimitModel(
-        appPackageName: 'com.dts.freefireth',
-        appName: 'Free Fire',
+        appPackageName: 'com.locket.android',
+        appName: 'Locket',
+        limits: {},
+      ),
+      const AppTimeLimitModel(
+        appPackageName: 'com.discord',
+        appName: 'Discord',
         limits: {},
       ),
     ];
@@ -474,28 +469,23 @@ class SmartLockRepository {
         isMonitored: true,
       ),
       const MonitoredAppModel(
-        appPackageName: 'com.instagram.barcelona',
-        appName: 'Threads',
-        isMonitored: true,
-      ),
-      const MonitoredAppModel(
-        appPackageName: 'com.android.chrome',
-        appName: 'Google Chrome',
-        isMonitored: true,
-      ),
-      const MonitoredAppModel(
         appPackageName: 'com.zing.zalo',
         appName: 'Zalo',
         isMonitored: true,
       ),
       const MonitoredAppModel(
-        appPackageName: 'com.roblox.client',
-        appName: 'Roblox',
+        appPackageName: 'com.instagram.barcelona',
+        appName: 'Threads',
         isMonitored: true,
       ),
       const MonitoredAppModel(
-        appPackageName: 'com.dts.freefireth',
-        appName: 'Free Fire',
+        appPackageName: 'com.locket.android',
+        appName: 'Locket',
+        isMonitored: true,
+      ),
+      const MonitoredAppModel(
+        appPackageName: 'com.discord',
+        appName: 'Discord',
         isMonitored: true,
       ),
     ];
