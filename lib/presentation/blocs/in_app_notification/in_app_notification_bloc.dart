@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:kidguardian/domain/repositories/alert_repository.dart';
+import 'package:kidguardian/core/utils/app_utils.dart';
 import 'package:kidguardian/domain/repositories/time_request_repository.dart';
 
 // Events
@@ -179,12 +180,12 @@ class InAppNotificationBloc extends Bloc<InAppNotificationEvent, InAppNotificati
           switch (alert.type) {
             case 'keyword_detected':
               title = '⚠️ Cảnh báo từ khóa';
-              body = 'Phát hiện từ khóa "${alert.keyword}" trong ${alert.packageName}';
+              body = 'Phát hiện từ khóa "${alert.keyword}" trong ${AppUtils.getAppName(alert.packageName)}';
               notifType = 'alert';
               break;
             case 'app_blocked':
               title = '🔒 Ứng dụng bị chặn';
-              body = '${alert.packageName} đã bị chặn do vượt giới hạn thời gian';
+              body = '${AppUtils.getAppName(alert.packageName)} đã bị chặn do vượt giới hạn thời gian';
               notifType = 'alert';
               break;
             case 'time_request':
@@ -239,7 +240,7 @@ class InAppNotificationBloc extends Bloc<InAppNotificationEvent, InAppNotificati
             id: req.id,
             type: 'time_request',
             title: 'Yêu cầu thêm thời gian',
-            body: 'Yêu cầu ${req.requestedMinutes} phút cho ${req.appName}',
+            body: 'Yêu cầu ${req.requestedMinutes} phút cho ${AppUtils.getAppNameFromLog(req.appPackageName, req.appName)}',
             timestamp: req.timestamp.toLocal(),
             isRead: _readIds.contains(req.id),
             data: {

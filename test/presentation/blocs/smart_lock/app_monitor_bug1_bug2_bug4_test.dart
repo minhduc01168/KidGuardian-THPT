@@ -195,6 +195,65 @@ void main() {
       await bloc.close();
     });
 
+    test('BUG-1 FIX: blockAppUseCase.unblockApp() được gọi và emit AppMonitorRunning khi CheckCurrentAppLimit trả về true', () async {
+      when(() => mockSmartLockRepository.getMonitoredApps(any(), any()))
+          .thenAnswer((_) async => []);
+      when(() => mockSmartLockRepository.getSmartLockSettings(any(), any()))
+          .thenAnswer((_) async => null);
+      when(() => mockSmartLockRepository.getSchedules(any(), any()))
+          .thenAnswer((_) async => []);
+      when(() => mockSmartLockRepository.getAppTimeLimits(any(), any()))
+          .thenAnswer((_) async => []);
+      when(() => mockUsageRepository.getUsageByApp(any(), any()))
+          .thenAnswer((_) async => {});
+      
+      // Giả lập: App đang bị chặn trong state cũ
+      when(() => mockCheckAppAccessUseCase.execute(
+            familyId: any(named: 'familyId'),
+            childUid: any(named: 'childUid'),
+            appPackageName: any(named: 'appPackageName'),
+          )).thenAnswer((_) async => true); // Đã được duyệt thêm giờ -> cho phép
+      
+      when(() => mockBlockAppUseCase.unblockApp(
+            appPackageName: any(named: 'appPackageName'),
+          )).thenAnswer((_) async {});
+
+      final bloc = _buildBloc();
+      bloc.add(const StartMonitoring('fam1', 'child1'));
+      await Future.delayed(const Duration(milliseconds: 50));
+      
+      // Set state to AppBlockedState
+      bloc.emit(AppBlockedState(
+        appPackageName: 'com.zhiliaoapp.musically',
+        appName: 'TikTok',
+        blockReason: 'time_limit',
+        limitMinutes: 60,
+        usedMinutes: 61,
+        resetTime: DateTime.now().add(const Duration(days: 1)),
+      ));
+
+      // Trigger limit check directly (như khi watchTimeLimits emit event mới)
+      // Bloc sẽ dùng _currentAppPackage từ state hiện tại hoặc nếu null thì bỏ qua, 
+      // Do đó ta cần gởi event AppEventReceived trước để set _currentAppPackage.
+      bloc.add(const AppEventReceived({
+        'type': 'app_event',
+        'eventType': 'opened',
+        'packageName': 'com.zhiliaoapp.musically',
+      }));
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      bloc.add(const CheckCurrentAppLimit());
+      await Future.delayed(const Duration(milliseconds: 200));
+
+      verify(() => mockBlockAppUseCase.unblockApp(
+            appPackageName: any(named: 'appPackageName'),
+          )).called(greaterThan(0));
+      
+      expect(bloc.state, isA<AppMonitorRunning>());
+
+      await bloc.close();
+    });
+
     test('blocked event từ native → AppBlockedState được emit', () async {
       when(() => mockSmartLockRepository.getSmartLockSettings(any(), any()))
           .thenAnswer((_) async => null);

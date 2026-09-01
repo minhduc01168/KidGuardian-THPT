@@ -63,7 +63,7 @@ void main() {
       'và emit TimeRequestSubmitting → TimeRequestSubmitted',
       build: () {
         when(() => mockRepository.submitRequest(any()))
-            .thenAnswer((_) async {}); // Không throw = thành công
+            .thenAnswer((_) async => 'mock_id'); // Không throw = thành công
         return TimeRequestBloc(repository: mockRepository);
       },
       act: (bloc) => bloc.add(const SubmitTimeRequest(
@@ -94,6 +94,7 @@ void main() {
         when(() => mockRepository.submitRequest(any()))
             .thenAnswer((invocation) async {
           capturedRequest = invocation.positionalArguments[0] as TimeRequest;
+          return 'mock_id';
         });
 
         final TimeRequestBloc bloc = TimeRequestBloc(repository: mockRepository);
@@ -152,7 +153,7 @@ void main() {
       'Step 4: Sau khi submit thành công, TimeRequestSubmitted chứa message xác nhận',
       build: () {
         when(() => mockRepository.submitRequest(any()))
-            .thenAnswer((_) async {});
+            .thenAnswer((_) async => 'mock_id');
         return TimeRequestBloc(repository: mockRepository);
       },
       act: (bloc) => bloc.add(const SubmitTimeRequest(
@@ -188,7 +189,7 @@ void main() {
         // Path này phải khớp chính xác với Cloud Function trigger:
         // onDocumentCreated("families/{familyId}/children/{childUid}/timeRequests/{requestId}")
         when(() => mockRepository.submitRequest(any()))
-            .thenAnswer((_) async {});
+            .thenAnswer((_) async => 'mock_id');
 
         final TimeRequestBloc bloc = TimeRequestBloc(repository: mockRepository);
         bloc.add(const SubmitTimeRequest(

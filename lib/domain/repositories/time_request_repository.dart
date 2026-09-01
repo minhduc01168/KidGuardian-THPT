@@ -65,7 +65,7 @@ class TimeRequest {
 }
 
 abstract class TimeRequestRepository {
-  Future<void> submitRequest(TimeRequest request);
+  Future<String> submitRequest(TimeRequest request);
   Stream<List<TimeRequest>> watchRequests({required String familyId, required String childUid});
   Stream<List<TimeRequest>> watchPendingRequests({required String familyId});
   Stream<List<TimeRequest>> watchAllRequests({required String familyId});
@@ -81,9 +81,9 @@ class TimeRequestRepositoryImpl implements TimeRequestRepository {
       : _firestore = firestore ?? FirebaseFirestore.instance;
 
   @override
-  Future<void> submitRequest(TimeRequest request) async {
+  Future<String> submitRequest(TimeRequest request) async {
     try {
-      await _firestore
+      final docRef = await _firestore
           .collection('families')
           .doc(request.familyId)
           .collection('children')
@@ -94,8 +94,9 @@ class TimeRequestRepositoryImpl implements TimeRequestRepository {
             const Duration(seconds: 3),
             onTimeout: () => throw TimeoutException('Offline sync'),
           );
+      return docRef.id;
     } catch (e) {
-      if (e is TimeoutException) return; // Proceed since data is cached locally
+      if (e is TimeoutException) return ''; // Proceed since data is cached locally
       throw Exception('Failed to submit time request: $e');
     }
   }

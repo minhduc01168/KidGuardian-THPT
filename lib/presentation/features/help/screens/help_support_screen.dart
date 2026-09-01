@@ -47,7 +47,7 @@ class HelpSupportScreen extends StatelessWidget {
             child: ListTile(
               leading: Icon(Icons.email, color: AppColors.accent),
               title: Text('Liên hệ hỗ trợ'),
-              subtitle: Text('Gửi yêu cầu hỗ trợ đến đội ngũ KidGuardian'),
+              subtitle: Text('Gửi yêu cầu hỗ trợ đến đội ngũ Kura'),
               trailing: Icon(Icons.chevron_right),
               onTap: () {
                 Navigator.push(

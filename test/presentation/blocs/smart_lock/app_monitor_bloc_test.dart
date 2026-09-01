@@ -77,7 +77,7 @@ void main() {
           isA<AppMonitorRunning>(),
         ]),
       );
-    }, skip: true);
+    });
 
     test('emits AppBlockedState when app_blocked event is received', () async {
       when(() => mockSmartLockRepository.getAppTimeLimits(any(), any()))

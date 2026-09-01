@@ -206,19 +206,27 @@ class TimeRequestBloc extends Bloc<TimeRequestEvent, TimeRequestState> {
         );
 
         if (shouldAutoApprove) {
-          await repository.submitRequest(request);
-          final submittedRequests = await repository
-              .watchRequests(familyId: event.familyId, childUid: event.childUid)
-              .first;
-          if (submittedRequests.isNotEmpty) {
-            final submittedRequest = submittedRequests.first;
+          final requestId = await repository.submitRequest(request);
+          if (requestId.isNotEmpty) {
             await repository.approveRequest(
               familyId: event.familyId,
               childUid: event.childUid,
-              requestId: submittedRequest.id,
+              requestId: requestId,
               response: 'Tự động duyệt',
             );
-            await rulesRepository!.logAutoApprovedRequest(submittedRequest);
+            await rulesRepository!.logAutoApprovedRequest(
+              TimeRequest(
+                id: requestId,
+                familyId: request.familyId,
+                childUid: request.childUid,
+                appPackageName: request.appPackageName,
+                appName: request.appName,
+                requestedMinutes: request.requestedMinutes,
+                reason: request.reason,
+                status: TimeRequestStatus.approved,
+                timestamp: request.timestamp,
+              )
+            );
             autoApproved = true;
           }
         }

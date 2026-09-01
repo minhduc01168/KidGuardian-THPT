@@ -32,6 +32,7 @@ void main() {
   testWidgets('TimeLimitScreen displays empty list when no apps', (WidgetTester tester) async {
     when(() => mockRepository.getAppTimeLimits(any(), any())).thenAnswer((_) async => []);
     when(() => mockRepository.getPopularApps()).thenReturn([]);
+    when(() => mockRepository.getMonitoredApps(any(), any())).thenAnswer((_) async => []);
     
     await tester.pumpWidget(buildScreen());
     

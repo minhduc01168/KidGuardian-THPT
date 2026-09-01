@@ -406,7 +406,15 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
           scheduleEndTime: scheduleChecker.getScheduleEndTime(activeSchedule, DateTime.now()),
         );
         emit(blockedState);
+        return;
       }
+
+      // BUG-1 FIX: Bỏ chặn (unblock) nếu ứng dụng đã được duyệt thời gian
+      await blockAppUseCase.unblockApp(appPackageName: _currentAppPackage!);
+      if (state is AppBlockedState) {
+        emit(AppMonitorRunning());
+      }
+
     } catch (e) {
       // P8: Log error for debugging
       debugPrint('AppMonitorBloc._onCheckCurrentAppLimit error: $e');

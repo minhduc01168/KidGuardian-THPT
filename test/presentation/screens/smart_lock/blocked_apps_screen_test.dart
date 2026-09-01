@@ -113,7 +113,7 @@ void main() {
     expect(switchList[1].value, false);
   });
 
-  testWidgets('BlockedAppsScreen shows add custom app button',
+  testWidgets('BlockedAppsScreen DOES NOT show add custom app button',
       (WidgetTester tester) async {
     when(() => mockRepository.getPopularMonitoredApps()).thenReturn([]);
     when(() => mockRepository.getMonitoredApps(any(), any()))
@@ -122,7 +122,7 @@ void main() {
     await tester.pumpWidget(buildScreen());
     await tester.pumpAndSettle();
 
-    expect(find.byIcon(Icons.add), findsOneWidget);
+    expect(find.byIcon(Icons.add), findsNothing);
   });
 
   testWidgets('BlockedAppsScreen shows empty state when no apps',

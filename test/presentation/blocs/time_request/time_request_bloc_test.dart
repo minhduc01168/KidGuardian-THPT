@@ -35,7 +35,7 @@ void main() {
             appPackageName: 'com.test.app',
             window: const Duration(hours: 1),
           )).thenAnswer((_) async => 0);
-      when(() => mockRepository.submitRequest(any())).thenAnswer((_) async {});
+      when(() => mockRepository.submitRequest(any())).thenAnswer((_) async => 'mock_id');
 
       bloc.add(const SubmitTimeRequest(
         familyId: 'family1',

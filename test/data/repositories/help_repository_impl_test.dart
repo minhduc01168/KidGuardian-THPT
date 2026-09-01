@@ -51,10 +51,10 @@ void main() {
         expect(items.every((item) => item is FaqItem), isTrue);
       });
 
-      test('first FAQ item should be about KidGuardian', () {
+      test('first FAQ item should be about Kura', () {
         final items = repository.getFaqItems();
 
-        expect(items.first.question, contains('KidGuardian'));
+        expect(items.first.question, contains('Kura'));
       });
     });
   });

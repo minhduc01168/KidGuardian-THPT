@@ -269,7 +269,7 @@ class _AlertDetailContentState extends State<_AlertDetailContent> {
                   );
                 },
                 icon: const Icon(Icons.remove_circle_outline),
-                label: const Text('Bỏ qua (False Positive)'),
+                label: const Text('Bỏ qua'),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.orange,
                 ),

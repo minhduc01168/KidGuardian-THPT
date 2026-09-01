@@ -7,9 +7,9 @@ class HelpRepositoryImpl implements HelpRepository {
   List<FaqItem> getFaqItems() {
     return const [
       FaqItem(
-        question: 'KidGuardian là gì?',
+        question: 'Kura là gì?',
         answer:
-            'KidGuardian (Đồng Hành Số) là ứng dụng giúp phụ huynh quản lý thời gian sử dụng mạng xã hội và thiết bị di động của con em. Ứng dụng cung cấp các tính năng như giám sát sử dụng, khóa ứng dụng, cảnh báo từ khóa nhạy cảm, và quản lý yêu cầu thời gian.',
+            'Kura (Đồng Hành Số) là ứng dụng giúp phụ huynh quản lý thời gian sử dụng mạng xã hội và thiết bị di động của con em. Ứng dụng cung cấp các tính năng như giám sát sử dụng, khóa ứng dụng, cảnh báo từ khóa nhạy cảm, và quản lý yêu cầu thời gian.',
         category: 'Tổng quan',
       ),
       FaqItem(
@@ -72,9 +72,9 @@ class HelpRepositoryImpl implements HelpRepository {
   }) async {
     final Uri emailUri = Uri(
       scheme: 'mailto',
-      path: 'support@kidguardian.vn',
+      path: 'support@kura.vn',
       queryParameters: {
-        'subject': '[KidGuardian Support] $subject',
+        'subject': '[Kura Support] $subject',
         'body': 'Tên: $name\nEmail: $email\n\n$message',
       },
     );

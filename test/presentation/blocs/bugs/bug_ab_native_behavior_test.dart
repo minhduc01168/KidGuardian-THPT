@@ -62,6 +62,10 @@ void main() {
     test(
       'Step 1: Khi LoadMonitoredApps, MethodChannel updateBlockedApps phải được gọi',
       () async {
+        when(() => mockSmartLockRepository.getPopularMonitoredApps())
+            .thenReturn([
+              const MonitoredAppModel(appName: 'FB', appPackageName: 'com.facebook.katana', isMonitored: true),
+            ]);
         when(() => mockSmartLockRepository.getMonitoredApps(any(), any()))
             .thenAnswer((_) async => [
               const MonitoredAppModel(appName: 'FB', appPackageName: 'com.facebook.katana', isMonitored: true),
@@ -101,6 +105,12 @@ void main() {
       'Step 2: Đảm bảo app không vô tình sync own package xuống Native '
       '(Dù native cũng đã có C-level guard)',
       () async {
+        const ownPackageName = 'com.kidguardian.kidguardian';
+        when(() => mockSmartLockRepository.getPopularMonitoredApps())
+            .thenReturn([
+              const MonitoredAppModel(appName: 'FB', appPackageName: 'com.facebook.katana', isMonitored: true),
+              const MonitoredAppModel(appName: 'KidGuardian', appPackageName: ownPackageName, isMonitored: true),
+            ]);
         when(() => mockSmartLockRepository.getMonitoredApps(any(), any()))
             .thenAnswer((_) async => [
               const MonitoredAppModel(appName: 'FB', appPackageName: 'com.facebook.katana', isMonitored: true),

@@ -155,6 +155,19 @@ void main() {
                 isMonitored: false,
               ),
             ]);
+        when(() => mockSmartLock.getPopularMonitoredApps())
+            .thenReturn([
+              const MonitoredAppModel(
+                appPackageName: 'com.zhiliaoapp.musically',
+                appName: 'TikTok',
+                isMonitored: true,
+              ),
+              const MonitoredAppModel(
+                appPackageName: 'com.facebook.katana',
+                appName: 'Facebook',
+                isMonitored: true,
+              ),
+            ]);
         return UsageStatisticsBloc(
           usageRepository: mockRepository,
           smartLockRepository: mockSmartLock,

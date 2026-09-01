@@ -38,6 +38,34 @@ void main() {
       expect(state.filterStatus, AlertFilterStatus.all);
     });
 
+    test('BUG-4: LoadAlerts filters out non-keyword alerts (e.g. app_blocked)', () async {
+      final alerts = [
+        AlertModel(
+          id: '1', type: 'app_blocked', keyword: '',
+          packageName: 'com.test', textContext: '',
+          isReviewed: false,
+        ),
+        AlertModel(
+          id: '2', type: 'keyword_detected', keyword: 'test',
+          packageName: 'com.test', textContext: 'text',
+          isReviewed: false,
+        ),
+      ];
+
+      when(() => mockAlertRepository.watchAllAlerts(
+            familyId: any(named: 'familyId'),
+            childUid: any(named: 'childUid'),
+          )).thenAnswer((_) => Stream.value(alerts));
+
+      bloc.add(const LoadAlerts(familyId: 'family1', childUid: 'child1'));
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      final state = bloc.state as AlertHistoryLoaded;
+      expect(state.allAlerts.length, 1);
+      expect(state.allAlerts.first.type, 'keyword_detected');
+      expect(state.allAlerts.first.id, '2');
+    });
+
     test('FilterByStatus filters unreviewed alerts', () async {
       final alerts = [
         AlertModel(

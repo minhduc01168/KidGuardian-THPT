@@ -76,6 +76,11 @@ void main() {
         when(() => mockRepository.getPopularApps()).thenReturn(popularApps);
         when(() => mockRepository.getAppTimeLimits(familyId, childId))
             .thenAnswer((_) async => configuredApps);
+        when(() => mockRepository.getMonitoredApps(familyId, childId))
+            .thenAnswer((_) async => [
+                  const MonitoredAppModel(appPackageName: 'com.tiktok', appName: 'TikTok', isMonitored: true),
+                  const MonitoredAppModel(appPackageName: 'com.facebook', appName: 'Facebook', isMonitored: true),
+                ]);
         return bloc;
       },
       act: (bloc) => bloc.add(const LoadAppTimeLimits(familyId, childId)),

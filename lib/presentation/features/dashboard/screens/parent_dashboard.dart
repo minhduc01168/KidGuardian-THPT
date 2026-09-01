@@ -546,7 +546,8 @@ class _ParentDashboardState extends State<ParentDashboard> {
                   separatorBuilder: (context, index) => const Divider(height: 1, indent: 48),
                   itemBuilder: (context, index) {
                     final log = state.recentLogs[index];
-                    final timeFormatted = '${log.startTime.hour.toString().padLeft(2, '0')}:${log.startTime.minute.toString().padLeft(2, '0')}';
+                    final localStartTime = log.startTime.toLocal();
+                    final timeFormatted = '${localStartTime.hour.toString().padLeft(2, '0')}:${localStartTime.minute.toString().padLeft(2, '0')}';
                     final cleanName = AppUtils.getAppName(log.appName);
                     return ListTile(
                       dense: true,
@@ -724,29 +725,23 @@ class _ParentDashboardState extends State<ParentDashboard> {
             ),
             Card(
               child: ListTile(
-                leading: Icon(Icons.lock_clock, color: AppColors.error),
-                title: Text('Khóa ứng dụng'),
-                subtitle: Text('Khóa ngay lập tức các ứng dụng'),
+                leading: Icon(Icons.security, color: AppColors.error),
+                title: Text('Quản lý từ khóa cấm'),
+                subtitle: Text('Thêm, sửa, xóa từ khóa cần theo dõi'),
                 trailing: Icon(Icons.chevron_right),
                 onTap: () {
-                  if (user.familyId != null) {
-                    final targetChildId = childUids.isNotEmpty ? childUids.first : user.uid;
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => BlocProvider(
-                          create: (_) => SmartLockBloc(
-                            repository: SmartLockRepository(),
-                          ),
-                          child: SmartLockSettingsScreen(
-                            familyId: user.familyId!,
-                            childId: targetChildId,
-                            childName: user.displayName,
-                          ),
-                        ),
-                      ),
-                    );
+                  if (user.familyId == null) {
+                    _showSetupFamilyDialog(context);
+                    return;
                   }
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => KeywordManagementScreen(
+                        familyId: user.familyId!,
+                      ),
+                    ),
+                  );
                 },
               ),
             ),
@@ -842,43 +837,7 @@ class _ParentDashboardState extends State<ParentDashboard> {
             },
           ),
         ),
-        Card(
-          child: ListTile(
-            leading: Icon(Icons.family_restroom),
-            title: Text('Quản lý gia đình'),
-            trailing: Icon(Icons.chevron_right),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => FamilyManagementScreen(user: user),
-                ),
-              );
-            },
-          ),
-        ),
-        Card(
-          child: ListTile(
-            leading: Icon(Icons.security, color: AppColors.error),
-            title: Text('Quản lý từ khóa cấm'),
-            subtitle: Text('Thêm, sửa, xóa từ khóa cần theo dõi'),
-            trailing: Icon(Icons.chevron_right),
-            onTap: () {
-              if (user.familyId == null) {
-                _showSetupFamilyDialog(context);
-                return;
-              }
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => KeywordManagementScreen(
-                    familyId: user.familyId!,
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
+
         Card(
           child: ListTile(
             leading: Icon(Icons.help),

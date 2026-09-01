@@ -70,11 +70,19 @@ class UsageStatisticsBloc
       return _defaultPopularPackages;
     }
     try {
-      final monitoredApps = await _smartLockRepository.getMonitoredApps(familyId, childUid);
-      if (monitoredApps.isEmpty) {
-        return _defaultPopularPackages;
+      final configuredApps = await _smartLockRepository!.getMonitoredApps(familyId, childUid);
+      final popularApps = _smartLockRepository!.getPopularMonitoredApps();
+      
+      final Map<String, dynamic> mergedApps = {};
+      for (var app in popularApps) {
+        mergedApps[app.appPackageName] = app;
       }
-      return _buildPackageSet(monitoredApps);
+      for (var app in configuredApps) {
+        if (mergedApps.containsKey(app.appPackageName)) {
+           mergedApps[app.appPackageName] = mergedApps[app.appPackageName]!.copyWith(isMonitored: app.isMonitored);
+        }
+      }
+      return _buildPackageSet(mergedApps.values.toList());
     } catch (e) {
       return _defaultPopularPackages;
     }
