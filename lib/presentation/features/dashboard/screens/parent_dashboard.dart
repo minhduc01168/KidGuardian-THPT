@@ -238,19 +238,19 @@ class _ParentDashboardState extends State<ParentDashboard> {
             // Welcome card
             Container(
               width: double.infinity,
-              padding: EdgeInsets.all(24),
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [AppColors.primary.withOpacity(0.85), AppColors.primaryDark],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
                     color: AppColors.primary.withOpacity(0.3),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
+                    blurRadius: 15,
+                    offset: const Offset(0, 8),
                   ),
                 ],
               ),
@@ -263,17 +263,17 @@ class _ParentDashboardState extends State<ParentDashboard> {
                         Text(
                           'Xin chào,\n${user.displayName}!',
                           style: const TextStyle(
-                            fontSize: 28,
+                            fontSize: 24,
                             fontWeight: FontWeight.w900,
                             color: Colors.white,
                             height: 1.2,
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 6),
                         Text(
                           'Sẵn sàng giám sát an toàn hôm nay?',
                           style: TextStyle(
-                            fontSize: 15,
+                            fontSize: 14,
                             color: Colors.white.withOpacity(0.9),
                             fontWeight: FontWeight.w500,
                           ),
@@ -282,14 +282,14 @@ class _ParentDashboardState extends State<ParentDashboard> {
                     ),
                   ),
                   Container(
-                    width: 64,
-                    height: 64,
+                    width: 52,
+                    height: 52,
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.2),
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white.withOpacity(0.5), width: 2),
                     ),
-                    child: const Icon(Icons.person_outline_rounded, size: 36, color: Colors.white),
+                    child: const Icon(Icons.person_outline_rounded, size: 28, color: Colors.white),
                   ),
                 ],
               ),
