@@ -326,10 +326,12 @@ class _ChildDashboardState extends State<ChildDashboard> {
           builder: (context, monitorState) {
             int totalToday = 0;
             Map<String, int> usageByApp = {};
+            Map<String, int> appTimeLimits = {};
 
             if (dashboardState is DashboardLoaded) {
               totalToday = dashboardState.totalMinutesToday;
               usageByApp = Map<String, int>.from(dashboardState.usageByApp);
+              appTimeLimits = Map<String, int>.from(dashboardState.appTimeLimits);
             }
 
             // Đồng bộ dữ liệu thực tế đang đếm nếu có từ AppMonitorBloc
@@ -343,7 +345,7 @@ class _ChildDashboardState extends State<ChildDashboard> {
             }
 
             if (dashboardState is DashboardLoaded || monitorState is AppBlockedState || monitorState is AppMonitorRunning) {
-              return _buildHomeContent(user, totalToday, usageByApp);
+              return _buildHomeContent(user, totalToday, usageByApp, appTimeLimits);
             }
 
             return _buildHomeEmpty(user);
@@ -353,10 +355,34 @@ class _ChildDashboardState extends State<ChildDashboard> {
     );
   }
 
-  Widget _buildHomeContent(User user, int totalMinutesToday, Map<String, int> usageByApp) {
+  Widget _buildHomeContent(User user, int totalMinutesToday, Map<String, int> usageByApp, Map<String, int> appTimeLimits) {
     final remainingMinutes = _dailyLimitMinutes - totalMinutesToday;
     final isOverLimit = remainingMinutes <= 0;
-    final progress = _dailyLimitMinutes > 0 ? (totalMinutesToday / _dailyLimitMinutes) : 0.0;
+    
+    int minRemainingAppTime = 999999;
+    String minRemainingAppName = '';
+    int minRemainingAppLimit = 0;
+
+    appTimeLimits.forEach((pkg, limit) {
+      if (limit > 0) {
+        final usage = usageByApp[pkg] ?? 0;
+        final remaining = limit - usage;
+        if (remaining < minRemainingAppTime) {
+          minRemainingAppTime = remaining;
+          minRemainingAppLimit = limit;
+          minRemainingAppName = AppUtils.getAppName(pkg);
+        }
+      }
+    });
+
+    String statusText = isOverLimit
+        ? 'Bạn đã hết thời gian hôm nay'
+        : 'Còn lại: $remainingMinutes phút / $_dailyLimitMinutes phút';
+
+    if (!isOverLimit && minRemainingAppTime != 999999) {
+      final safeRemaining = minRemainingAppTime < 0 ? 0 : minRemainingAppTime;
+      statusText = 'Thời gian còn lại: $safeRemaining/$minRemainingAppLimit phút $minRemainingAppName';
+    }
 
     return RefreshIndicator(
       onRefresh: () async => _loadDashboard(),
@@ -473,9 +499,7 @@ class _ChildDashboardState extends State<ChildDashboard> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                isOverLimit
-                                    ? 'Bạn đã hết thời gian hôm nay'
-                                    : 'Còn lại: $remainingMinutes phút / $_dailyLimitMinutes phút',
+                                statusText,
                                 style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.bold,
