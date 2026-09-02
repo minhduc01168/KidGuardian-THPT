@@ -74,6 +74,10 @@ void main() {
       'emits [SmartLockLoading, SmartLockLoaded] when LoadAppTimeLimits is added',
       build: () {
         when(() => mockRepository.getPopularApps()).thenReturn(popularApps);
+        when(() => mockRepository.getPopularMonitoredApps()).thenReturn([
+          const MonitoredAppModel(appPackageName: 'com.tiktok', appName: 'TikTok', isMonitored: true),
+          const MonitoredAppModel(appPackageName: 'com.facebook', appName: 'Facebook', isMonitored: true),
+        ]);
         when(() => mockRepository.getAppTimeLimits(familyId, childId))
             .thenAnswer((_) async => configuredApps);
         when(() => mockRepository.getMonitoredApps(familyId, childId))
