@@ -159,7 +159,7 @@ class _ChildAnalyticsWidgetState extends State<ChildAnalyticsWidget> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Dữ liệu sử dụng sẽ xuất hiện sau khi bạn sử dụng một trong 8 ứng dụng MXH được giám sát.',
+            'Dữ liệu sử dụng sẽ xuất hiện sau khi bạn sử dụng các ứng dụng được giám sát.',
             textAlign: TextAlign.center,
             style: TextStyle(color: AppColors.textSecondary, height: 1.5),
           ),
@@ -208,14 +208,6 @@ class _ChildAnalyticsWidgetState extends State<ChildAnalyticsWidget> {
               style: const TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Chỉ thống kê 8 ứng dụng MXH được giám sát',
-              style: TextStyle(
-                fontSize: 13,
-                color: AppColors.textSecondary,
               ),
             ),
             const SizedBox(height: 16),

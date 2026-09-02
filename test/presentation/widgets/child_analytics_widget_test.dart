@@ -310,7 +310,7 @@ void main() {
       expect(find.text('Thống kê của tôi'), findsOneWidget);
     });
 
-    testWidgets('hiển thị mô tả "Chỉ thống kê 8 ứng dụng MXH"', (tester) async {
+    testWidgets('không hiển thị mô tả 8 ứng dụng MXH sau khi đã xóa', (tester) async {
       final state = _makeLoadedState(totalToday: 10);
       whenListen<DashboardState>(
         mockBloc,
@@ -322,7 +322,7 @@ void main() {
 
       expect(
         find.text('Chỉ thống kê 8 ứng dụng MXH được giám sát'),
-        findsOneWidget,
+        findsNothing,
       );
     });
   });

@@ -416,10 +416,9 @@ class _ChildDashboardState extends State<ChildDashboard> {
                 ),
               ),
 
-            // Welcome card
             Container(
               width: double.infinity,
-              padding: EdgeInsets.all(20),
+              padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [AppColors.childPrimary, Color(0xFF388E3C)],
@@ -428,26 +427,26 @@ class _ChildDashboardState extends State<ChildDashboard> {
                 ),
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
-                  Text(
-                    'Xin chào, ${user.displayName}!',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                  Expanded(
+                    child: Text(
+                      'Xin chào, ${user.displayName}! 👋',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
-                  SizedBox(height: 8),
-                  Text(
-                    isOverLimit
-                        ? 'Bạn đã hết thời gian sử dụng hôm nay'
-                        : 'Hôm nay bạn còn $remainingMinutes phút',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.white70,
+                  Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      shape: BoxShape.circle,
                     ),
+                    child: const Icon(Icons.person_outline_rounded, size: 24, color: Colors.white),
                   ),
                 ],
               ),
@@ -474,16 +473,18 @@ class _ChildDashboardState extends State<ChildDashboard> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                isOverLimit ? 'Đã hết thời gian sử dụng' : 'Thời gian còn lại: $remainingMinutes phút',
+                                isOverLimit
+                                    ? 'Bạn đã hết thời gian hôm nay'
+                                    : 'Còn lại: $remainingMinutes phút / $_dailyLimitMinutes phút',
                                 style: TextStyle(
-                                  fontSize: 16,
+                                  fontSize: 15,
                                   fontWeight: FontWeight.bold,
                                   color: isOverLimit ? AppColors.error : AppColors.textPrimary,
                                 ),
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                'Hôm nay: $totalMinutesToday / $_dailyLimitMinutes phút',
+                                'Hôm nay đã dùng: $totalMinutesToday phút',
                                 style: const TextStyle(
                                   fontSize: 13,
                                   color: AppColors.textSecondary,
@@ -877,7 +878,7 @@ class _ChildDashboardState extends State<ChildDashboard> {
     return ChildAnalyticsWidget(
       childUid: user.uid,
       themeColor: AppColors.childPrimary,
-      title: 'Thống kê của tôi',
+      title: 'Thống kê sử dụng',
     );
   }
 
