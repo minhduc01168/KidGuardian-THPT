@@ -28,6 +28,7 @@ import '../../../blocs/smart_lock/smart_lock_bloc.dart';
 import '../../../../data/repositories/smart_lock_repository.dart';
 import '../../../screens/interaction/time_request_approval_screen.dart';
 import '../../../screens/settings/keyword_management_screen.dart';
+import '../../../screens/alerts/alert_history_screen.dart';
 import '../../../blocs/in_app_notification/in_app_notification_bloc.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../bloc/dashboard_event.dart';
@@ -238,58 +239,43 @@ class _ParentDashboardState extends State<ParentDashboard> {
             // Welcome card
             Container(
               width: double.infinity,
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [AppColors.primary.withOpacity(0.85), AppColors.primaryDark],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primary.withOpacity(0.3),
-                    blurRadius: 15,
-                    offset: const Offset(0, 8),
+                    color: AppColors.primary.withOpacity(0.25),
+                    blurRadius: 10,
+                    offset: const Offset(0, 6),
                   ),
                 ],
               ),
               child: Row(
                 children: [
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Xin chào,\n${user.displayName}!',
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                            height: 1.2,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'Sẵn sàng giám sát an toàn hôm nay?',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.white.withOpacity(0.9),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
+                    child: Text(
+                      'Xin chào, ${user.displayName}! 👋',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        height: 1.2,
+                      ),
                     ),
                   ),
                   Container(
-                    width: 52,
-                    height: 52,
+                    width: 42,
+                    height: 42,
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.2),
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white.withOpacity(0.5), width: 2),
                     ),
-                    child: const Icon(Icons.person_outline_rounded, size: 28, color: Colors.white),
+                    child: const Icon(Icons.person_outline_rounded, size: 24, color: Colors.white),
                   ),
                 ],
               ),
@@ -501,11 +487,19 @@ class _ParentDashboardState extends State<ParentDashboard> {
                     color: AppColors.error,
                     onTap: () {
                       if (user.familyId != null) {
+                        final childUids = context.read<DashboardBloc>().state is DashboardLoaded
+                            ? (context.read<DashboardBloc>().state as DashboardLoaded).childUids
+                            : <String>[];
+                        if (childUids.isEmpty) {
+                          _showSetupFamilyDialog(context);
+                          return;
+                        }
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => NotificationCenterScreen(
+                            builder: (_) => AlertHistoryScreen(
                               familyId: user.familyId!,
+                              childUid: childUids.first,
                             ),
                           ),
                         );
@@ -741,22 +735,28 @@ class _ParentDashboardState extends State<ParentDashboard> {
                 subtitle: Text('Đặt giới hạn sử dụng theo ứng dụng'),
                 trailing: Icon(Icons.chevron_right),
                 onTap: () {
-                  if (user.familyId != null) {
-                    final childUids = context.read<DashboardBloc>().state is DashboardLoaded
-                        ? (context.read<DashboardBloc>().state as DashboardLoaded).childUids
-                        : <String>[];
-                    if (childUids.isNotEmpty) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => TimeLimitScreen(
-                            familyId: user.familyId!,
-                            childId: childUids.first,
-                          ),
-                        ),
-                      );
-                    }
+                  if (user.familyId == null) {
+                    _showSetupFamilyDialog(context);
+                    return;
                   }
+                  final childUids = context.read<DashboardBloc>().state is DashboardLoaded
+                      ? (context.read<DashboardBloc>().state as DashboardLoaded).childUids
+                      : <String>[];
+                  if (childUids.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Vui lòng thêm tài khoản con trước')),
+                    );
+                    return;
+                  }
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => TimeLimitScreen(
+                        familyId: user.familyId!,
+                        childId: childUids.first,
+                      ),
+                    ),
+                  );
                 },
               ),
             ),
@@ -1067,37 +1067,37 @@ class _SummaryCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: color.withOpacity(0.08),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(7),
             decoration: BoxDecoration(
               color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, size: 28, color: color),
+            child: Icon(icon, size: 20, color: color),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
           Text(
             title,
             style: const TextStyle(
-              fontSize: 14,
+              fontSize: 12,
               color: AppColors.textSecondary,
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           TweenAnimationBuilder<int>(
             tween: IntTween(begin: 0, end: minutes),
             duration: const Duration(seconds: 1),
@@ -1106,7 +1106,7 @@ class _SummaryCard extends StatelessWidget {
               return Text(
                 '$value phút',
                 style: TextStyle(
-                  fontSize: 24,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: color,
                 ),

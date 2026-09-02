@@ -81,7 +81,6 @@ void main() {
 
     // Verify Welcome Card renders with user name
     expect(find.textContaining('Test Parent'), findsOneWidget);
-    expect(find.textContaining('Sẵn sàng giám sát an toàn hôm nay?'), findsOneWidget);
 
     // Verify Summary Cards render animated numbers
     expect(find.text('Hôm nay'), findsOneWidget);
