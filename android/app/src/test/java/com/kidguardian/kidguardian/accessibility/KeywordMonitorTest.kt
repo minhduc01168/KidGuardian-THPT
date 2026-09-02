@@ -59,6 +59,16 @@ class KeywordMonitorTest {
         AppMonitorService.clearCooldownsForTest()
     }
 
+    @Test
+    fun `test_keywords_can_be_updated_dynamically`() {
+        AppMonitorService.monitoredKeywords = setOf("mới 1", "mới 2")
+        val isDetected = containsAnyKeyword("đây là từ mới 1", AppMonitorService.monitoredKeywords)
+        assertTrue("Từ khóa mới phải được nhận diện sau khi update", isDetected)
+        
+        val isOldDetected = containsAnyKeyword("tự tử", AppMonitorService.monitoredKeywords)
+        assertFalse("Từ khóa cũ không được nhận diện sau khi update", isOldDetected)
+    }
+
     // ─── GROUP 1: Cooldown 5 phút ─────────────────────────────────────────────
 
     @Test

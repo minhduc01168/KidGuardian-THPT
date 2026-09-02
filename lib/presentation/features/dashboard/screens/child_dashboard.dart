@@ -68,6 +68,7 @@ class _ChildDashboardState extends State<ChildDashboard> {
             LoadChildUsage(
               childUid: authState.user.uid,
               date: dateStr,
+              familyId: authState.user.familyId,
             ),
           );
 

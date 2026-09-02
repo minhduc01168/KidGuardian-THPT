@@ -16,7 +16,8 @@ class AppUtils {
     'com.zing.zalo': 'Zalo',
     'com.google.android.youtube': 'YouTube',
     'com.instagram.barcelona': 'Threads',
-    'com.locket.android': 'Locket',
+    'com.locket.Locket': 'Locket',
+    'com.locket.locket': 'Locket',
     'com.discord': 'Discord',
     
     // Giữ lại các alias phòng trường hợp hiển thị log cũ
@@ -84,10 +85,14 @@ class AppUtils {
     'youtube',
     'com.instagram.barcelona', // Threads
     'threads',
-    'com.locket.android', // Locket
+    'com.locket.locket', // Locket
     'locket',
     'com.discord', // Discord
     'discord',
+    'com.facebook.orca', // Messenger
+    'messenger',
+    'org.telegram.messenger', // Telegram
+    'telegram',
   };
 
   static bool isSystemOrUnmonitoredApp(String packageName) {

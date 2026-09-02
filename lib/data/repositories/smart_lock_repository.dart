@@ -119,7 +119,7 @@ class SmartLockRepository {
         limits: {},
       ),
       const AppTimeLimitModel(
-        appPackageName: 'com.locket.android',
+        appPackageName: 'com.locket.Locket',
         appName: 'Locket',
         limits: {},
       ),
@@ -489,7 +489,7 @@ class SmartLockRepository {
         isMonitored: true,
       ),
       const MonitoredAppModel(
-        appPackageName: 'com.locket.android',
+        appPackageName: 'com.locket.Locket',
         appName: 'Locket',
         isMonitored: true,
       ),

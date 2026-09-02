@@ -74,7 +74,6 @@ class AppMonitorService : AccessibilityService() {
             }
         }
 
-        @Volatile
         private var _monitoredKeywords = setOf("tự tử", "đánh nhau", "cờ bạc", "ma túy")
         var monitoredKeywords: Set<String>
             get() = _monitoredKeywords
@@ -83,6 +82,17 @@ class AppMonitorService : AccessibilityService() {
                     _monitoredKeywords = value.toSet()
                 }
             }
+
+        fun loadKeywordsFromPrefs(context: Context) {
+            val prefs = context.getSharedPreferences("kidguardian_native_prefs", Context.MODE_PRIVATE)
+            val savedSet = prefs.getStringSet("monitored_keywords", null)
+            if (savedSet != null && savedSet.isNotEmpty()) {
+                synchronized(this) {
+                    _monitoredKeywords = savedSet.toSet()
+                }
+                android.util.Log.d("AppMonitorService", "Restored ${savedSet.size} keywords from SharedPreferences: $savedSet")
+            }
+        }
 
         private val keywordAlertCooldown = mutableMapOf<String, Long>()
         private val cooldownLock = Any()
@@ -474,6 +484,7 @@ class AppMonitorService : AccessibilityService() {
         loadMonitoredPackagesFromPrefs(this)
         // BUG-A FIX: Khôi phục danh sách ứng dụng bị chặn sau khi service restart
         loadBlockedAppsFromPrefs(this)
+        loadKeywordsFromPrefs(this)
         val info = AccessibilityServiceInfo()
         info.eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or
                 AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED or

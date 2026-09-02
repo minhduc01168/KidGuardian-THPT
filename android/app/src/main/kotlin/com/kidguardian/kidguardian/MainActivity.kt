@@ -56,8 +56,12 @@ class MainActivity : FlutterActivity() {
                     "updateKeywords" -> {
                         val keywords = call.argument<List<String>>("keywords")
                         if (keywords != null) {
-                            val filtered = keywords.filter { it.isNotBlank() }
-                            AppMonitorService.monitoredKeywords = filtered.toSet()
+                            val filtered = keywords.filter { it.isNotBlank() }.toSet()
+                            AppMonitorService.monitoredKeywords = filtered
+                            getSharedPreferences("kidguardian_native_prefs", Context.MODE_PRIVATE)
+                                .edit()
+                                .putStringSet("monitored_keywords", filtered)
+                                .apply()
                             result.success(true)
                         } else {
                             result.error("INVALID_ARGS", "Keywords list is null", null)

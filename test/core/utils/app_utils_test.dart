@@ -3,7 +3,7 @@ import 'package:kidguardian/core/utils/app_utils.dart';
 
 void main() {
   group('AppUtils.isSystemOrUnmonitoredApp tests', () {
-    test('Should ONLY allow 8 hardcoded social apps (monitored)', () {
+    test('Should ONLY allow 10 hardcoded social apps (monitored)', () {
       expect(AppUtils.isSystemOrUnmonitoredApp('com.facebook.katana'), isFalse);
       expect(AppUtils.isSystemOrUnmonitoredApp('com.zhiliaoapp.musically'), isFalse);
       expect(AppUtils.isSystemOrUnmonitoredApp('com.ss.android.ugc.trill'), isFalse);
@@ -11,8 +11,10 @@ void main() {
       expect(AppUtils.isSystemOrUnmonitoredApp('com.zing.zalo'), isFalse);
       expect(AppUtils.isSystemOrUnmonitoredApp('com.google.android.youtube'), isFalse);
       expect(AppUtils.isSystemOrUnmonitoredApp('com.instagram.barcelona'), isFalse);
-      expect(AppUtils.isSystemOrUnmonitoredApp('com.locket.android'), isFalse);
+      expect(AppUtils.isSystemOrUnmonitoredApp('com.locket.Locket'), isFalse);
       expect(AppUtils.isSystemOrUnmonitoredApp('com.discord'), isFalse);
+      expect(AppUtils.isSystemOrUnmonitoredApp('com.facebook.orca'), isFalse);
+      expect(AppUtils.isSystemOrUnmonitoredApp('org.telegram.messenger'), isFalse);
     });
 
     test('Should completely exclude non-8 apps (games, browsers, google apps)', () {

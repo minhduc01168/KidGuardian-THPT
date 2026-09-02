@@ -35,7 +35,13 @@ class MockUser extends Mock implements User {
   String get email => 'child@test.com';
 }
 
+class FakeLoadChildUsage extends Fake implements LoadChildUsage {}
+
 void main() {
+  setUpAll(() {
+    registerFallbackValue(FakeLoadChildUsage());
+  });
+
   late MockDashboardBloc dashboardBloc;
   late MockAppMonitorBloc appMonitorBloc;
   late MockSmartLockBloc smartLockBloc;
@@ -118,5 +124,17 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('Thời gian còn lại: 3/5 phút Zalo'), findsOneWidget);
+  });
+  testWidgets('Should dispatch LoadChildUsage with familyId', (WidgetTester tester) async {
+    when(() => dashboardBloc.state).thenReturn(DashboardInitial());
+
+    await tester.pumpWidget(createWidgetUnderTest());
+    await tester.pump();
+
+    verify(() => dashboardBloc.add(any(
+      that: isA<LoadChildUsage>()
+        .having((e) => e.familyId, 'familyId', 'fam1')
+        .having((e) => e.childUid, 'childUid', 'child1')
+    ))).called(greaterThanOrEqualTo(1));
   });
 }
