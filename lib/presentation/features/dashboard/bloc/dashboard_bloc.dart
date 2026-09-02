@@ -154,18 +154,10 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
         totalTodayRaw += results[0] as int;
         totalYesterdayRaw += results[1] as int;
 
-        // FIX DASHBOARD EMPTY: Nếu hôm nay không có data, fallback sang hôm qua
-        // Điều này xảy ra thường xuyên vào buổi sáng sớm hoặc ngày mới
         final todayMinutes = results[0] as int;
 
-        // Lấy usage by app cho ngày có data (hôm nay nếu có, ngược lại fallback hôm qua)
         final childUsageRaw = results[2] as Map<String, int>; // today's usage
         Map<String, int> childUsage = childUsageRaw;
-        // Nếu hôm nay không có data, lấy logs hôm qua thay thế
-        if (childUsage.isEmpty && todayMinutes == 0) {
-          final yesterdayUsage = await _usageRepository.getUsageByApp(childUid, yesterday);
-          childUsage = yesterdayUsage;
-        }
 
         // Populate usageByApp (sử dụng childUsage đã được fallback sang hôm qua nếu cần)
         childUsage.forEach((app, minutes) {
@@ -175,11 +167,8 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
           }
         });
 
-        // Lấy logs cho hôm nay; fallback sang hôm qua nếu rỗng
+        // Lấy logs cho hôm nay
         List<UsageLog> logs = results[3] as List<UsageLog>;
-        if (logs.isEmpty && todayMinutes == 0) {
-          logs = await _usageRepository.getUsageByChild(childUid, yesterday);
-        }
 
         // Populate allLogs (danh sách hoạt động gần đây)
         for (final log in logs) {

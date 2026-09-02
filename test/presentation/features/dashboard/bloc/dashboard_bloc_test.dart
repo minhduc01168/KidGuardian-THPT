@@ -210,6 +210,53 @@ void main() {
           ),
         ],
       );
+
+      blocTest<DashboardBloc, DashboardState>(
+        'does not fallback to yesterday when today has 0 usage',
+        build: () {
+          when(() => mockFamilyRepository.getFamily(any()))
+              .thenAnswer((_) async => makeFamily(childUids: ['child1']));
+          
+          final today = DateTime.now();
+          final todayStr = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+          final yesterday = today.subtract(const Duration(days: 1));
+          final yesterdayStr = '${yesterday.year}-${yesterday.month.toString().padLeft(2, '0')}-${yesterday.day.toString().padLeft(2, '0')}';
+
+          when(() => mockUsageRepository.getTotalUsageMinutes('child1', todayStr))
+              .thenAnswer((_) async => 0); // Today is 0
+          when(() => mockUsageRepository.getTotalUsageMinutes('child1', yesterdayStr))
+              .thenAnswer((_) async => 60); // Yesterday is 60
+
+          when(() => mockUsageRepository.getUsageByApp('child1', todayStr))
+              .thenAnswer((_) async => {}); // Today is empty
+          when(() => mockUsageRepository.getUsageByApp('child1', yesterdayStr))
+              .thenAnswer((_) async => {'TikTok': 60}); // Yesterday has data
+
+          when(() => mockUsageRepository.getUsageByChild('child1', any()))
+              .thenAnswer((_) async => <UsageLog>[]);
+          when(() => mockUsageRepository.getUsageByDateRange('child1', any(), any()))
+              .thenAnswer((_) async => <UsageLog>[]);
+
+          return bloc;
+        },
+        act: (bloc) => bloc.add(const LoadDashboard(familyId: 'fam1')),
+        expect: () => [
+          isA<DashboardLoading>(),
+          isA<DashboardLoaded>().having(
+            (s) => s.usageByApp,
+            'usageByApp is empty because today has 0 usage',
+            {},
+          ).having(
+            (s) => s.totalMinutesToday,
+            'totalMinutesToday is 0',
+            0,
+          ).having(
+            (s) => s.totalMinutesYesterday,
+            'totalMinutesYesterday is 60',
+            60,
+          ),
+        ],
+      );
     });
 
     group('LoadChildUsage', () {

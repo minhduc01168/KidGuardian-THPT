@@ -416,32 +416,17 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
           SizedBox(height: 24),
 
           // Action buttons
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => _showEmailDialog(report),
-                  icon: Icon(Icons.email_outlined),
-                  label: Text('Gửi email'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.primary,
-                    padding: EdgeInsets.symmetric(vertical: 12),
-                  ),
-                ),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: _loadReports,
+              icon: Icon(Icons.list),
+              label: Text('Xem tất cả các tuần'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                padding: EdgeInsets.symmetric(vertical: 14),
               ),
-              SizedBox(width: 16),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: _loadReports,
-                  icon: Icon(Icons.list),
-                  label: Text('Xem tất cả'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.primary,
-                    padding: EdgeInsets.symmetric(vertical: 12),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
           SizedBox(height: 24),
 

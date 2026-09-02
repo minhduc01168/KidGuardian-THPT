@@ -136,12 +136,7 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
           return _buildEmptyState();
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _generateReport,
-        icon: const Icon(Icons.add_chart),
-        label: const Text('Tạo báo cáo tháng'),
-        backgroundColor: AppColors.primary,
-      ),
+      // FAB removed because we only have 1 screen for monthly report
     );
   }
 
