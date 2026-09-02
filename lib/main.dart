@@ -225,25 +225,14 @@ class _KidGuardianAppState extends State<KidGuardianApp> {
               listenWhen: (previous, current) => current is AppBlockedState,
               listener: (context, state) {
                 if (state is AppBlockedState) {
-                  final navigator = AppNavigator.navigatorKey.currentState;
-                  if (navigator != null) {
-                    navigator.popUntil((route) {
-                      return route.settings.name != 'lock_screen';
-                    });
-                    navigator.push(
-                      MaterialPageRoute(
-                        settings: const RouteSettings(name: 'lock_screen'),
-                        builder: (_) => LockScreen(
-                          appPackageName: state.appPackageName,
-                          appName: state.appName,
-                          iconUrl: state.iconUrl,
-                          limitMinutes: state.limitMinutes,
-                          usedMinutes: state.usedMinutes,
-                          resetTime: state.resetTime,
-                          familyId: state.familyId,
-                          childUid: state.childUid,
-                          parentUid: state.parentUid,
-                        ),
+                  final scaffoldMessenger = ScaffoldMessenger.maybeOf(context);
+                  if (scaffoldMessenger != null) {
+                    scaffoldMessenger.showSnackBar(
+                      SnackBar(
+                        content: Text('Đã chặn truy cập ${state.appName} vì hết thời gian!'),
+                        backgroundColor: Colors.red.shade700,
+                        duration: const Duration(seconds: 3),
+                        behavior: SnackBarBehavior.floating,
                       ),
                     );
                   }

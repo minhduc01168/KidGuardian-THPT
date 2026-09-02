@@ -128,6 +128,16 @@ class SmartLockRepository {
         appName: 'Discord',
         limits: {},
       ),
+      const AppTimeLimitModel(
+        appPackageName: 'com.facebook.orca',
+        appName: 'Messenger',
+        limits: {},
+      ),
+      const AppTimeLimitModel(
+        appPackageName: 'org.telegram.messenger',
+        appName: 'Telegram',
+        limits: {},
+      ),
     ];
   }
 
@@ -486,6 +496,16 @@ class SmartLockRepository {
       const MonitoredAppModel(
         appPackageName: 'com.discord',
         appName: 'Discord',
+        isMonitored: true,
+      ),
+      const MonitoredAppModel(
+        appPackageName: 'com.facebook.orca',
+        appName: 'Messenger',
+        isMonitored: true,
+      ),
+      const MonitoredAppModel(
+        appPackageName: 'org.telegram.messenger',
+        appName: 'Telegram',
         isMonitored: true,
       ),
     ];

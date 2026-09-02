@@ -3,7 +3,7 @@
 Tài liệu này tổng hợp các yêu cầu cốt lõi (Jobs-to-be-Done), các kịch bản ngoại lệ (Edge Cases) và tiêu chí nghiệm thu kỹ thuật (Acceptance Criteria) cho 4 tính năng chính của hệ thống KidGuardian. Tài liệu này được sử dụng làm cơ sở để rà soát code và debug hệ thống.
 
 > **QUY TẮC CỐ ĐỊNH ỨNG DỤNG GIÁM SÁT (FIXED MONITORED APPS)**
-> Để giảm độ phức tạp và dễ dàng kiểm thử, toàn bộ hệ thống (từ tính năng khóa, xin giờ, đến báo cáo thống kê) **chỉ giám sát và áp dụng quy tắc lên một danh sách cố định gồm 8 ứng dụng Mạng Xã Hội / Giải Trí:** 
+> Để giảm độ phức tạp và dễ dàng kiểm thử, toàn bộ hệ thống (từ tính năng khóa, xin giờ, đến báo cáo thống kê) **chỉ giám sát và áp dụng quy tắc lên một danh sách cố định gồm 10 ứng dụng Mạng Xã Hội / Giải Trí:** 
 > **1. Facebook**
 > **2. TikTok**
 > **3. Instagram**
@@ -12,8 +12,10 @@ Tài liệu này tổng hợp các yêu cầu cốt lõi (Jobs-to-be-Done), các
 > **6. Threads**
 > **7. Locket**
 > **8. Discord**
+> **9. Messenger**
+> **10. Telegram**
 > 
-> Các ứng dụng hệ thống và các ứng dụng nằm ngoài danh sách 8 app này sẽ hoàn toàn bị bỏ qua.
+> Các ứng dụng hệ thống và các ứng dụng nằm ngoài danh sách 10 app này sẽ hoàn toàn bị bỏ qua.
 
 ---
 
