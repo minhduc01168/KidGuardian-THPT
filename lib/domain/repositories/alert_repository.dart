@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:kidguardian/presentation/blocs/keyword_management/keyword_management_bloc.dart';
 
 abstract class AlertRepository {
   Future<void> createKeywordAlert({
@@ -420,7 +421,7 @@ class AlertRepositoryImpl implements AlertRepository {
         .snapshots()
         .map((doc) {
       if (!doc.exists || doc.data()?['keywords'] == null) {
-        return ['tự tử', 'đánh nhau', 'cờ bạc', 'ma túy'];
+        return List<String>.from(KeywordManagementBloc.defaultKeywords);
       }
       return List<String>.from(doc.data()!['keywords']);
     });

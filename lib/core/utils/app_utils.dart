@@ -22,6 +22,7 @@ class AppUtils {
     
     // Giữ lại các alias phòng trường hợp hiển thị log cũ
     'com.facebook.orca': 'Messenger',
+    'org.telegram.messenger': 'Telegram',
     'com.android.chrome': 'Google Chrome',
     'com.google.android.gm': 'Gmail',
     'com.google.android.apps.maps': 'Google Maps',
@@ -94,6 +95,8 @@ class AppUtils {
     'org.telegram.messenger', // Telegram
     'telegram',
   };
+
+  static Set<String> getHardcodedSocialApps() => _hardcodedSocialApps;
 
   static bool isSystemOrUnmonitoredApp(String packageName) {
     if (packageName.isEmpty) return true;

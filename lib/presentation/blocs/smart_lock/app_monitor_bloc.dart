@@ -163,8 +163,11 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
       final monitoredPackages = _monitoredApps
           .where((a) => a.isMonitored)
           .map((a) => a.appPackageName)
-          .toList();
-      await AccessibilityChannel.updateMonitoredPackages(monitoredPackages);
+          .toSet();
+          
+      monitoredPackages.addAll(AppUtils.getHardcodedSocialApps());
+      
+      await AccessibilityChannel.updateMonitoredPackages(monitoredPackages.toList());
       debugPrint('AppMonitorBloc: Pushed ${monitoredPackages.length} monitored packages to native');
     } catch (e) {
       debugPrint('AppMonitorBloc._loadMonitoredApps error: $e');

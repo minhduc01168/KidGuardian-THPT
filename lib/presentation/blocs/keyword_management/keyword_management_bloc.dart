@@ -65,7 +65,7 @@ class KeywordManagementError extends KeywordManagementState {
 }
 
 class KeywordManagementBloc extends Bloc<KeywordManagementEvent, KeywordManagementState> {
-  static const _defaultKeywords = [
+  static const defaultKeywords = [
     // Nguy hiểm đến tính mạng
     'tự tử', 'tự làm hại bản thân', 'nhảy lầu',
     // Bạo lực
@@ -110,7 +110,7 @@ class KeywordManagementBloc extends Bloc<KeywordManagementEvent, KeywordManageme
       if (doc.exists && doc.data()?['keywords'] != null) {
         keywords = List<String>.from(doc.data()!['keywords']);
       } else {
-        keywords = List.from(_defaultKeywords);
+        keywords = List.from(defaultKeywords);
       }
 
       await _syncToNative(keywords);
@@ -160,7 +160,7 @@ class KeywordManagementBloc extends Bloc<KeywordManagementEvent, KeywordManageme
   }
 
   Future<void> _onResetToDefaults(ResetToDefaults event, Emitter<KeywordManagementState> emit) async {
-    final keywords = List<String>.from(_defaultKeywords);
+    final keywords = List<String>.from(defaultKeywords);
     try {
       await _saveKeywords(event.familyId, keywords);
       await _syncToNative(keywords);
