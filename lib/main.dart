@@ -225,17 +225,8 @@ class _KidGuardianAppState extends State<KidGuardianApp> {
               listenWhen: (previous, current) => current is AppBlockedState,
               listener: (context, state) {
                 if (state is AppBlockedState) {
-                  final scaffoldMessenger = ScaffoldMessenger.maybeOf(context);
-                  if (scaffoldMessenger != null) {
-                    scaffoldMessenger.showSnackBar(
-                      SnackBar(
-                        content: Text('Đã chặn truy cập ${state.appName} vì hết thời gian!'),
-                        backgroundColor: Colors.red.shade700,
-                        duration: const Duration(seconds: 3),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                  }
+                  // Removed SnackBar popup to avoid duplicates.
+                  // The blocked state is now only reflected in the Child Dashboard list view.
                 }
               },
             ),

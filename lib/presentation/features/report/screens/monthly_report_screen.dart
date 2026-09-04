@@ -265,7 +265,7 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
 
             // Top 5 Apps
             const Text(
-              'Top 5 ứng dụng tốn thời gian nhất',
+              'Top 5 ứng dụng sử dụng nhiều nhất',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,

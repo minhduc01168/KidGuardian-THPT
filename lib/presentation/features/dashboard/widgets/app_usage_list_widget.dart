@@ -80,11 +80,11 @@ class AppUsageListWidget extends StatelessWidget {
             separatorBuilder: (context, index) => Divider(height: 1, indent: 72),
             itemBuilder: (context, index) {
               final entry = sortedEntries[index];
-              final percent = totalMinutes > 0
-                  ? (entry.value / totalMinutes * 100)
-                  : 0;
-              final timeStr = AppUtils.formatMinutes(entry.value);
               final limitMinutes = appTimeLimits[entry.key] ?? 0;
+              final percent = limitMinutes > 0
+                  ? (entry.value / limitMinutes * 100).clamp(0.0, 100.0)
+                  : (totalMinutes > 0 ? (entry.value / totalMinutes * 100) : 0);
+              final timeStr = AppUtils.formatMinutes(entry.value);
 
               return _AppUsageTile(
                 appName: entry.key,
@@ -231,7 +231,9 @@ class _AppUsageTile extends StatelessWidget {
                             value: percent / 100,
                             backgroundColor: AppColors.divider.withOpacity(0.3),
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              AppUtils.getAppColor(appName),
+                              (minutes >= limitMinutes && limitMinutes > 0)
+                                  ? Colors.red.shade700
+                                  : AppUtils.getAppColor(appName),
                             ),
                             minHeight: 6,
                           ),
@@ -257,7 +259,9 @@ class _AppUsageTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  timeStr,
+                  minutes >= limitMinutes && limitMinutes > 0
+                      ? '🔒 Đã khóa'
+                      : timeStr,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
@@ -269,7 +273,9 @@ class _AppUsageTile extends StatelessWidget {
                 if (limitMinutes > 0) ...[
                   SizedBox(height: 2),
                   Text(
-                    'Giới hạn: ${AppUtils.formatMinutes(limitMinutes)}',
+                    minutes >= limitMinutes && limitMinutes > 0
+                        ? '(Hết ${AppUtils.formatMinutes(limitMinutes)})'
+                        : 'Giới hạn: ${AppUtils.formatMinutes(limitMinutes)}',
                     style: TextStyle(
                       fontSize: 11,
                       color: minutes >= limitMinutes

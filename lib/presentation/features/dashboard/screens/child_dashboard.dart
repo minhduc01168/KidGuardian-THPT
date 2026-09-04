@@ -338,9 +338,10 @@ class _ChildDashboardState extends State<ChildDashboard> {
             // Đồng bộ dữ liệu thực tế đang đếm nếu có từ AppMonitorBloc
             if (monitorState is AppBlockedState) {
               final appPkg = monitorState.appPackageName;
-              if (appPkg.isNotEmpty && monitorState.usedMinutes > (usageByApp[appPkg] ?? 0)) {
-                final diff = monitorState.usedMinutes - (usageByApp[appPkg] ?? 0);
-                usageByApp[appPkg] = monitorState.usedMinutes;
+              final appName = AppUtils.getAppNameFromLog(appPkg, monitorState.appName);
+              if (appName.isNotEmpty && monitorState.usedMinutes > (usageByApp[appName] ?? 0)) {
+                final diff = monitorState.usedMinutes - (usageByApp[appName] ?? 0);
+                usageByApp[appName] = monitorState.usedMinutes;
                 totalToday += diff;
               }
             }
@@ -368,7 +369,8 @@ class _ChildDashboardState extends State<ChildDashboard> {
       if (limit > 0) {
         final usage = usageByApp[pkg] ?? 0;
         final remaining = limit - usage;
-        if (remaining < minRemainingAppTime) {
+        // Chỉ chọn app còn thời gian sử dụng (> 0) để cảnh báo sắp hết
+        if (remaining > 0 && remaining < minRemainingAppTime) {
           minRemainingAppTime = remaining;
           minRemainingAppLimit = limit;
           minRemainingAppName = AppUtils.getAppName(pkg);

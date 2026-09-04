@@ -87,6 +87,7 @@ class AppUtils {
     'com.instagram.barcelona', // Threads
     'threads',
     'com.locket.locket', // Locket
+    'com.locket.Locket', // Locket (Capitalized for exact native match)
     'locket',
     'com.discord', // Discord
     'discord',

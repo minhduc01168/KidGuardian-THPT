@@ -278,16 +278,17 @@ class _SummaryCard extends StatelessWidget {
               // Top apps
               if (summary.topApps.isNotEmpty) ...[
                 Text(
-                  'Ứng dụng nhiều nhất:',
+                  'Top 3 ứng dụng sử dụng nhiều nhất ngày:',
                   style: TextStyle(
                     fontSize: 14,
+                    fontWeight: FontWeight.bold,
                     color: AppColors.textSecondary,
                   ),
                 ),
                 SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
-                  children: summary.topApps.map((app) {
+                  children: summary.topApps.take(3).map((app) {
                     final minutes = summary.usageByApp[app] ?? 0;
                     return Chip(
                       avatar: Icon(
