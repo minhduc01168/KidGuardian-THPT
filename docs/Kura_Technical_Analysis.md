@@ -530,7 +530,7 @@ flowchart LR
 - **Mục đích:** Bảo vệ con trước các nội dung độc hại trên không gian mạng và hỗ trợ phụ huynh can thiệp kịp thời. 
 - **Luồng sự kiện chính:**
  1. Khi con gõ chữ vào ô tìm kiếm trên YouTube, Google Search hoặc trình duyệt Chrome, hệ điều hành phát sinh sự kiện `AccessibilityEvent`.
- 2. `AppMonitorService` thực hiện duyệt đệ quy cây giao diện (`AccessibilityNodeInfo`) với độ sâu tối đa 20 tầng để trích xuất văn bản hiển thị.
+ 2. `AppMonitorService` thực hiện duyệt đệ quy cây giao diện (`AccessibilityNodeInfo`) với độ sâu tối đa 3 tầng (`maxDepth = 3` nhằm tối ưu tốc độ duyệt và tránh ANR) kết hợp hàm `extractBrowserSearchQuery` để trích xuất văn bản hiển thị.
  3. Hệ thống so khớp văn bản với bộ từ khóa nguy hiểm (`monitoredKeywords`, gồm bạo lực, tự tử, chất gây nghiện, 18+).
  4. Nếu phát hiện trùng khớp:
  a. Kiểm tra cơ chế giới hạn tần suất (**Cooldown Lock**): Nếu từ khóa này đã cảnh báo trong vòng 5 phút vừa qua thì bỏ qua để không làm nghẽn hệ thống.
@@ -629,7 +629,7 @@ flowchart TD
 ```mermaid
 flowchart TD
  StartKW([Con nhập nội dung vào ô tìm kiếm]) --> TextEvent[Sự kiện TYPE_VIEW_TEXT_CHANGED]
- TextEvent --> TraverseNode[Duyệt đệ quy cây AccessibilityNodeInfo độ sâu 20]
+ TextEvent --> TraverseNode[Duyệt đệ quy cây AccessibilityNodeInfo độ sâu 3 (maxDepth = 3)]
  TraverseNode --> ExtractText[Trích xuất chuỗi văn bản người dùng đang nhập]
  
  ExtractText --> MatchList{So khớp với bộ từ khóa nguy hiểm?}
@@ -762,19 +762,22 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
- autonumber
- participant SystemClock as Đồng hồ Hệ thống OS
- participant NativeDaemon as Kotlin AppMonitorService
- participant LocalCache as SharedPreferences
- participant Firestore as Cloud Firestore
+    autonumber
+    participant SystemTimer as Handler / Timer ngầm (Chu kỳ 30s)
+    participant NativeDaemon as Kotlin AppMonitorService
+    participant LocalCache as SharedPreferences / Memory Cache
+    participant FlutterApp as Flutter LockScreen UI
 
- SystemClock->>NativeDaemon: Thời gian chạm mốc 00:00:00 (Nửa đêm)
- NativeDaemon->>NativeDaemon: Kích hoạt hàm triggerMidnightRollover()
- NativeDaemon->>LocalCache: Reset biến đếm thời gian ngày về 0
- NativeDaemon->>LocalCache: Xóa cờ trạng thái blockedApps trong ngày cũ
- NativeDaemon->>Firestore: Đẩy dữ liệu tổng kết ngày cũ vào daily_summaries
- NativeDaemon->>LocalCache: Nạp danh mục giới hạn cho Thứ mới trong tuần
- NativeDaemon-->>SystemClock: Sẵn sàng cho chu kỳ giám sát ngày mới
+    SystemTimer->>NativeDaemon: Kích hoạt midnightRolloverRunnable (mỗi 30s)
+    NativeDaemon->>NativeDaemon: checkAndBlockIfNeeded() kiểm tra currentPackageName
+    NativeDaemon->>LocalCache: Kiểm tra pkg có nằm trong blockedApps (Khung giờ cấm ngày mới)?
+    alt Đang chạy trong khung giờ cấm hoặc hết Quota ngày mới
+        NativeDaemon->>NativeDaemon: Gọi blockApp(pkg) & performGlobalAction(GLOBAL_ACTION_HOME)
+        NativeDaemon->>FlutterApp: Phát sự kiện khóa qua EventChannel
+        FlutterApp-->>FlutterApp: Kích hoạt LockScreen Overlay chặn ứng dụng
+    else Ứng dụng hợp lệ
+        NativeDaemon-->>SystemTimer: Tiếp tục duy trì phiên sử dụng bình thường
+    end
 ```
 *Hình 2.13: Biểu đồ tuần tự Xử lý Midnight Rollover và Reset giới hạn*
 
@@ -965,8 +968,10 @@ classDiagram
         +loadBlockedAppsFromPrefs(Context context) void
         +loadMonitoredPackagesFromPrefs(Context context) void
         +loadKeywordsFromPrefs(Context context) void
-        +traverseNode(AccessibilityNodeInfo node, Int depth) void
-        +triggerMidnightRollover() void
+        +extractTextFromNode(AccessibilityNodeInfo node, Int maxDepth) String
+        +extractBrowserSearchQuery(AccessibilityNodeInfo rootNode) String
+        +checkAndBlockIfNeeded() Boolean
+        +blockApp(String packageName) void
         +forceGoHome() void
     }
 
@@ -988,6 +993,8 @@ classDiagram
     class AppMonitorBloc {
         -AccessibilityChannel accessibilityChannel
         -CheckAppAccessUseCase checkAppAccessUseCase
+        -BlockAppUseCase blockAppUseCase
+        -ScheduleChecker scheduleChecker
         -UsageRepository usageRepository
         -AlertRepository alertRepository
         +onStartMonitoring(StartMonitoring event) void
@@ -1002,9 +1009,26 @@ classDiagram
         +execute(String familyId, String childUid, String appPackageName) Future~bool~
     }
 
+    class BlockAppUseCase {
+        -Set~String~ _blockedApps
+        +execute(String appPackageName) Future~void~
+        +unblockApp(String appPackageName) Future~void~
+        +forceGoHome() Future~void~
+        +startMonitoring() Future~void~
+        +stopMonitoring() Future~void~
+    }
+
+    class ScheduleChecker {
+        +isInBlockedPeriod(List~ScheduleModel~ schedules, DateTime now) bool
+        +getActiveSchedule(List~ScheduleModel~ schedules, DateTime now) ScheduleModel
+    }
+
     AppMonitorService <.. AccessibilityChannel : MethodChannel Bridge
     AccessibilityChannel <-- AppMonitorBloc : Điều khiển Native
-    AppMonitorBloc --> CheckAppAccessUseCase : Kiểm tra quyền truy cập
+    AppMonitorBloc --> CheckAppAccessUseCase : Kiểm tra giới hạn
+    AppMonitorBloc --> BlockAppUseCase : Thực thi khóa app
+    AppMonitorBloc --> ScheduleChecker : Kiểm tra lịch cấm
+    BlockAppUseCase ..> AccessibilityChannel : Gửi lệnh Native
 ```
 *Hình 3.2: Sơ đồ lớp Phân hệ Giám sát Native và Platform Channel*
 
