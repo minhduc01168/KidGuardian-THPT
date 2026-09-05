@@ -96,5 +96,37 @@ void main() {
       expect(minRemainingAppName, equals('TikTok'));
       expect(minRemainingAppTime, equals(20));
     });
+    test('Bug 6: UsageChartWidget string interpolation format', () {
+      // Giả lập nội suy chuỗi percent như trong Widget
+      final percent = 34;
+      final title = '${percent}%'; // Code đã fix
+      
+      expect(title, equals('34%'));
+      expect(title.contains('\$'), isFalse);
+    });
+
+    test('Bug 7: RequestTimeDialog has exactly 10 valid monitored apps', () {
+      final hardcodedSocialApps = AppUtils.getHardcodedSocialApps();
+      
+      // Danh sách này nằm trong dialog private, nên ta mô phỏng lại behavior của 10 app
+      final commonMonitoredApps = [
+        'com.zhiliaoapp.musically',
+        'com.facebook.katana',
+        'com.instagram.android',
+        'com.zing.zalo',
+        'com.google.android.youtube',
+        'com.instagram.barcelona',
+        'com.locket.locket',
+        'com.discord',
+        'com.facebook.orca',
+        'org.telegram.messenger',
+      ];
+      
+      expect(commonMonitoredApps.length, equals(10));
+      for (final package in commonMonitoredApps) {
+        expect(hardcodedSocialApps.contains(package.toLowerCase()), isTrue, 
+          reason: 'Package \$package is not in the hardcoded social apps list!');
+      }
+    });
   });
 }

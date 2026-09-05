@@ -118,7 +118,7 @@ void main() {
       ));
       expect(find.text('Chọn ứng dụng muốn chơi thêm:'), findsOneWidget);
       expect(find.byType(DropdownButtonFormField<String>), findsOneWidget);
-      expect(find.text('YouTube'), findsOneWidget); // YouTube is default first item
+      expect(find.text('TikTok'), findsOneWidget); // TikTok is default first item
     });
   });
 }

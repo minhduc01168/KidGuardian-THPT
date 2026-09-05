@@ -39,15 +39,16 @@ class _RequestTimeDialogState extends State<RequestTimeDialog> {
   static const _minuteOptions = [15, 30, 60];
 
   static const List<AppOption> _commonMonitoredApps = [
-    AppOption('com.google.android.youtube', 'YouTube'),
     AppOption('com.zhiliaoapp.musically', 'TikTok'),
     AppOption('com.facebook.katana', 'Facebook'),
-    AppOption('com.zing.zalo', 'Zalo'),
-    AppOption('com.dts.freefireth', 'Free Fire'),
-    AppOption('com.roblox.client', 'Roblox'),
-    AppOption('com.garena.game.kgvn', 'Liên Quân Mobile'),
     AppOption('com.instagram.android', 'Instagram'),
-    AppOption('com.tencent.ig', 'PUBG Mobile'),
+    AppOption('com.zing.zalo', 'Zalo'),
+    AppOption('com.google.android.youtube', 'YouTube'),
+    AppOption('com.instagram.barcelona', 'Threads'),
+    AppOption('com.locket.locket', 'Locket'),
+    AppOption('com.discord', 'Discord'),
+    AppOption('com.facebook.orca', 'Messenger'),
+    AppOption('org.telegram.messenger', 'Telegram'),
   ];
 
   @override
