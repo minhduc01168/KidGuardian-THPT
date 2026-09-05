@@ -120,6 +120,27 @@ class _UsageChartWidgetState extends State<UsageChartWidget> {
       );
     }
 
+    final roundedPercents = <String, int>{};
+    int sumRounded = 0;
+    String maxAppKey = '';
+    int maxAppVal = -1;
+
+    for (final entry in widget.appTotals.entries) {
+      final val = entry.value;
+      if (val > maxAppVal) {
+        maxAppVal = val;
+        maxAppKey = entry.key;
+      }
+      final rounded = total > 0 ? (val / total * 100).round() : 0;
+      roundedPercents[entry.key] = rounded;
+      sumRounded += rounded;
+    }
+
+    if (sumRounded > 0 && maxAppKey.isNotEmpty && sumRounded != 100) {
+      final diff = 100 - sumRounded;
+      roundedPercents[maxAppKey] = (roundedPercents[maxAppKey]! + diff).clamp(0, 100);
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -130,11 +151,11 @@ class _UsageChartWidgetState extends State<UsageChartWidget> {
             child: PieChart(
               PieChartData(
                 sections: widget.appTotals.entries.map((appEntry) {
-                  final percent = total > 0 ? (appEntry.value / total * 100) : 0;
+                  final percent = roundedPercents[appEntry.key] ?? 0;
                   final color = AppUtils.getAppColor(appEntry.key);
                   return PieChartSectionData(
                     value: appEntry.value.toDouble() > 0 ? appEntry.value.toDouble() : 0.1,
-                    title: '${percent.toStringAsFixed(0)}%',
+                    title: '\$percent%',
                     color: color,
                     radius: 45,
                     titleStyle: const TextStyle(

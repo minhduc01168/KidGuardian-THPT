@@ -367,7 +367,7 @@ class _ChildDashboardState extends State<ChildDashboard> {
 
     appTimeLimits.forEach((pkg, limit) {
       if (limit > 0) {
-        final usage = usageByApp[pkg] ?? 0;
+        final usage = usageByApp[AppUtils.getAppName(pkg)] ?? 0;
         final remaining = limit - usage;
         // Chỉ chọn app còn thời gian sử dụng (> 0) để cảnh báo sắp hết
         if (remaining > 0 && remaining < minRemainingAppTime) {
@@ -618,7 +618,7 @@ class _ChildDashboardState extends State<ChildDashboard> {
                                         SizedBox(height: 2),
                                         Text(
                                           isOverAppLimit
-                                              ? 'Đã hết giờ ($usedMinutes / $limitMinutes phút)'
+                                              ? 'Đã hết giờ ($limitMinutes phút)'
                                               : 'Đã dùng: ${usedMinutes}p | Còn lại: ${remainingMinutes}p (Giới hạn: ${limitMinutes}p)',
                                           style: TextStyle(
                                             fontSize: 12,

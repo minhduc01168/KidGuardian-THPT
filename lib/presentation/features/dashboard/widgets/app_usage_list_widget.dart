@@ -274,7 +274,7 @@ class _AppUsageTile extends StatelessWidget {
                   SizedBox(height: 2),
                   Text(
                     minutes >= limitMinutes && limitMinutes > 0
-                        ? '(Hết ${AppUtils.formatMinutes(limitMinutes)})'
+                        ? 'Đã hết giờ (${limitMinutes} phút)'
                         : 'Giới hạn: ${AppUtils.formatMinutes(limitMinutes)}',
                     style: TextStyle(
                       fontSize: 11,

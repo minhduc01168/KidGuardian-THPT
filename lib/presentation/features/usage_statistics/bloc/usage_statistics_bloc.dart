@@ -31,23 +31,27 @@ class UsageStatisticsBloc
 
   static final Set<String> _defaultPopularPackages = {
     'com.zhiliaoapp.musically',
+    'com.ss.android.ugc.trill',
     'TikTok',
     'com.facebook.katana',
     'Facebook',
+    'com.facebook.orca',
+    'Messenger',
     'com.google.android.youtube',
     'YouTube',
     'com.instagram.android',
     'Instagram',
     'com.instagram.barcelona',
     'Threads',
-    'com.android.chrome',
-    'Google Chrome',
     'com.zing.zalo',
     'Zalo',
-    'com.roblox.client',
-    'Roblox',
-    'com.dts.freefireth',
-    'Free Fire',
+    'com.locket.Locket',
+    'com.locket.locket',
+    'Locket',
+    'com.discord',
+    'Discord',
+    'org.telegram.messenger',
+    'Telegram',
   };
 
   Set<String> _buildPackageSet(List<dynamic> apps) {

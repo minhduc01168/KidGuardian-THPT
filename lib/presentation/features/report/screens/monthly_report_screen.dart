@@ -42,12 +42,7 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
   }
 
   void _loadReports() {
-    final authState = context.read<AuthBloc>().state;
-    if (authState is AuthAuthenticated && authState.user.familyId != null) {
-      context.read<ReportBloc>().add(
-            LoadMonthlyReportHistory(familyId: authState.user.familyId!),
-          );
-    }
+    _generateReport();
   }
 
   void _autoGenerateIfEmpty(ReportState state) {
@@ -264,49 +259,52 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
             const SizedBox(height: 24),
 
             // Top 5 Apps
-            const Text(
-              'Top 5 ứng dụng sử dụng nhiều nhất',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Column(
-                  children: report.topApps.take(5).map((app) {
-                    final minutes = report.usageByApp[app] ?? 0;
-                    return ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: AppUtils.getAppColor(app).withOpacity(0.1),
-                        child: Icon(
-                          Icons.apps,
-                          color: AppUtils.getAppColor(app),
-                        ),
-                      ),
-                      title: Text(
-                        app,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      trailing: Text(
-                        AppUtils.formatMinutes(minutes),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                        ),
-                      ),
-                    );
-                  }).toList(),
+            if (report.topApps.isNotEmpty) ...[
+              const Text(
+                'Top 5 ứng dụng sử dụng nhiều nhất',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            ),
-            const SizedBox(height: 24),
+              const SizedBox(height: 16),
+              Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Column(
+                    children: report.topApps.take(5).map((app) {
+                      final minutes = report.usageByApp[app] ?? 0;
+                      final displayName = AppUtils.getAppName(app);
+                      return ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: AppUtils.getAppColor(app).withOpacity(0.1),
+                          child: Icon(
+                            Icons.apps,
+                            color: AppUtils.getAppColor(app),
+                          ),
+                        ),
+                        title: Text(
+                          displayName,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        trailing: Text(
+                          AppUtils.formatMinutes(minutes),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+            ],
 
             // Insights
             if (report.improvements.isNotEmpty) ...[

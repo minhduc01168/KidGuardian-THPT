@@ -425,7 +425,7 @@ void main() {
 
     group('Bug #3 Dashboard Chart Filter', () {
       blocTest<DashboardBloc, DashboardState>(
-        'allows non-system apps like Chrome and Free Fire when monitoredApps is empty',
+        'allows non-system apps like TikTok and Discord when monitoredApps is empty',
         build: () {
           final mockSmartLock = MockSmartLockRepository();
           when(() => mockFamilyRepository.getFamily(any()))
@@ -435,8 +435,8 @@ void main() {
           when(() => mockUsageRepository.getUsageByApp('child1', any()))
               .thenAnswer((_) async => {
                 'com.android.settings': 20, // System app -> Excluded
-                'com.android.chrome': 40,   // Non-system -> Included
-                'com.dts.freefireth': 60,   // Non-system -> Included
+                'com.zhiliaoapp.musically': 40,   // Non-system -> Included
+                'com.discord': 60,   // Non-system -> Included
               });
           when(() => mockUsageRepository.getUsageByChild(any(), any()))
               .thenAnswer((_) async => <UsageLog>[]);
@@ -458,14 +458,14 @@ void main() {
           isA<DashboardLoading>(),
           isA<DashboardLoaded>().having(
             (s) => s.usageByApp,
-            'usageByApp includes Chrome and FreeFire, excludes Settings',
+            'usageByApp includes TikTok and Discord, excludes Settings',
             {
-              'Google Chrome': 40,
-              'Freefireth': 60,
+              'TikTok': 40,
+              'Discord': 60,
             },
           ).having(
             (s) => s.totalMinutesToday,
-            'totalMinutesToday counts Chrome and FreeFire',
+            'totalMinutesToday counts TikTok and Discord',
             100,
           ),
         ],

@@ -290,13 +290,14 @@ class _SummaryCard extends StatelessWidget {
                   spacing: 8,
                   children: summary.topApps.take(3).map((app) {
                     final minutes = summary.usageByApp[app] ?? 0;
+                    final displayName = AppUtils.getAppName(app);
                     return Chip(
                       avatar: Icon(
                         AppUtils.getAppIcon(app),
                         size: 18,
                         color: AppUtils.getAppColor(app),
                       ),
-                      label: Text('$app ($minutes phút)'),
+                      label: Text('$displayName ($minutes phút)'),
                       backgroundColor:
                           AppUtils.getAppColor(app).withOpacity(0.1),
                     );
