@@ -53,9 +53,13 @@ Với Firestore (NoSQL), bạn **không cần phải tự tay tạo các bảng*
   - Chứa mã liên kết (linkingCode) và UID của phụ huynh.
   - **Sub-collections (Bảng con) bên trong gia đình:**
     - `app_limits`: Chứa giới hạn thời gian (phút) của từng ứng dụng MXH.
-    - `app_logs`: Chứa log thời gian sử dụng thực tế của trẻ.
+    - `app_logs` / `usage_logs`: Chứa log thời gian sử dụng thực tế của trẻ.
     - `time_requests`: Chứa các yêu cầu xin thêm giờ.
     - `alerts`: Chứa các cảnh báo khẩn cấp (xóa app, tắt quyền...).
+    - `daily_summaries`: Thống kê tổng hợp theo ngày.
+    - `weekly_reports`: Báo cáo sử dụng theo tuần.
+    - `monthly_reports`: Báo cáo sử dụng theo tháng.
+    - `notifications`: Thông báo đẩy.
 
 *Lưu ý: Mọi thứ hoàn toàn tự động, bạn không cần phải bấm nút Add Collection bằng tay.*
 
@@ -85,26 +89,24 @@ service cloud.firestore {
 
 ## Bước 6: Cấu hình Chỉ mục (Indexes) cho Kura
 
-Kura có tính năng lấy danh sách Yêu cầu thêm giờ (`timeRequests`) và Cảnh báo (`alerts`) từ nhiều thiết bị con cùng một lúc bằng tính năng **Collection Group Query**. Bạn cần cấp phép bằng cách tạo Index:
+Kura có hệ thống truy vấn dữ liệu phức tạp (Collection Group Query) cho các tính năng quét đa thiết bị (alerts, timeRequests, báo cáo thống kê). 
 
-1. Chuyển sang tab **Indexes** bên cạnh tab Rules.
-2. Kéo xuống phần **Exemptions**, nhấn **Add Exemption**.
-3. **Index thứ nhất (Cho Cảnh báo):**
-   - Collection ID: `alerts`
-   - Field path: `type`
-   - Query scope: **Collection group**
-   - Nhấn **Save**.
-4. **Index thứ hai (Cho Xin thêm giờ):**
-   - Collection ID: `timeRequests`
-   - Field path: `familyId`
-   - Query scope: **Collection group**
-   - Nhấn **Save**.
+Thay vì phải tạo thủ công từng cái trên giao diện web, Kura đã đóng gói sẵn toàn bộ hơn 14 Indexes vào file `firestore.indexes.json` trong source code.
 
-Đợi khoảng 2 phút để Firebase hoàn tất việc Build các chỉ mục này sang trạng thái *Enabled*.
+**Cách triển khai tự động cực nhanh:**
+1. Mở Terminal tại thư mục gốc của dự án KidGuardian.
+2. Đăng nhập Firebase CLI (nếu chưa): `firebase login`
+3. Chạy lệnh deploy:
+```bash
+firebase deploy --only firestore:indexes
+```
+4. Đợi khoảng 2-5 phút để Firebase đẩy toàn bộ cấu hình chỉ mục lên Server và Build xong (Trạng thái *Enabled*).
+
+*(Nếu không có Firebase CLI, bạn vẫn có thể tạo thủ công bằng cách bấm vào các đường link xanh đỏ hiện ra trong cửa sổ Debug Logcat mỗi khi app bị lỗi tải dữ liệu).*
 
 ---
 
 ## 🎉 Hoàn thành!
 
 Bạn đã thiết lập thành công 100% hệ thống Database cho ứng dụng Kura. 
-Bước cuối cùng là tải file `google-services.json` (Android) hoặc `GoogleService-Info.plist` (iOS) từ mục **Project settings** của Firebase và chèn vào Source Code của ứng dụng để ứng dụng Kura có thể bắt đầu ghi dữ liệu vào Firebase của bạn.
+Bước cuối cùng là đảm bảo file `google-services.json` (Android) đã được cập nhật từ **Project settings** vào thư mục `android/app/` để ứng dụng bắt đầu giao tiếp với Server.
