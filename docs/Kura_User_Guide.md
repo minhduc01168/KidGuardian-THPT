@@ -25,6 +25,10 @@ Chào mừng bạn đến với **Kura** – Ứng dụng quản lý thời gian
    - 1.1. Yêu cầu thiết bị và hệ điều hành
    - 1.2. Hướng dẫn tải và cài đặt tệp APK
    - 1.3. Cấp quyền Dịch vụ Hỗ trợ tiếp cận (Accessibility Service) trên máy Con
+     - 1.3.1. Quy trình kích hoạt tự động từ ứng dụng Kura
+     - 1.3.2. Gỡ bỏ lỗi "Cài đặt bị hạn chế" trên Android 13 & 14
+     - 1.3.3. Thiết lập chi tiết cho từng dòng máy (Samsung, Xiaomi, Oppo, Vivo, Pixel)
+     - 1.3.4. Kiểm tra trạng thái hoàn tất
 2. [CHƯƠNG 2. ĐĂNG KÝ, ĐĂNG NHẬP & GHÉP ĐÔI GIA ĐÌNH](#chương-2-đăng-ký-đăng-nhập--ghép-đôi-gia-đình)
    - 2.1. Đăng ký tài khoản mới và Đăng nhập
    - 2.2. Lựa chọn vai trò (Phụ huynh hoặc Con)
@@ -74,19 +78,96 @@ Chào mừng bạn đến với **Kura** – Ứng dụng quản lý thời gian
 ---
 
 ### 1.3. Cấp quyền Dịch vụ Hỗ trợ tiếp cận (Accessibility Service) trên máy Con
+
 > [!IMPORTANT]
-> Đây là quyền hạn quan trọng nhất giúp Kura giám sát thời gian thực và đẩy văng ứng dụng bị khóa ra màn hình Home. Nếu không cấp quyền này, tính năng Smart Lock và Cảnh báo từ khóa trên máy con sẽ không thể hoạt động.
+> **Đây là quyền hạn quan trọng nhất của Kura trên máy con:**
+> Dịch vụ Hỗ trợ tiếp cận (`Kura App Monitor Service`) là "trái tim" giúp Kura nhận diện ứng dụng đang mở trên màn hình, tính toán thời gian sử dụng, phát hiện từ khóa nguy hiểm và kích hoạt màn hình khóa Native ngay khi hết giờ. Nếu không kích hoạt quyền này, các tính năng giám sát và bảo vệ sẽ không thể hoạt động.
 
-#### Các bước cấp quyền chi tiết:
-1. Khi máy con vào ứng dụng lần đầu sau khi ghép đôi, Kura sẽ hiển thị hộp thoại thông báo yêu cầu kích hoạt dịch vụ hỗ trợ tiếp cận.
-2. Nhấn vào nút **"Kích hoạt quyền Giám sát"** (nút màu cam nổi bật). Ứng dụng sẽ tự động chuyển hướng người dùng đến mục cài đặt hệ thống của Android.
-3. Tìm và chọn mục **"Ứng dụng đã cài đặt" (Installed apps)** hoặc **"Dịch vụ đã tải xuống" (Downloaded services)**.
-4. Tìm tên dịch vụ **Kura App Monitor Service** (đang ở trạng thái *Tắt / Off*).
-5. Gạt công tắc sang **Bật / On**. Khi Android hiển thị hộp thoại xác nhận quyền riêng tư, nhấn **Cho phép / OK**.
-6. Quay trở lại ứng dụng Kura, màn hình sẽ hiển thị biểu tượng tích xanh xác nhận: *"Dịch vụ đã sẵn sàng bảo vệ thiết bị!"*.
+#### 1.3.1. Quy trình kích hoạt tự động từ ứng dụng Kura
+1. Sau khi con nhập mã Link Code và ghép đôi thành công, ứng dụng Kura sẽ hiển thị thông báo: *"Yêu cầu cấp quyền Giám sát an toàn"*.
+2. Nhấn vào nút **"Kích hoạt quyền Giám sát"** (màu cam nổi bật). Kura sẽ thông qua Platform Channel tự động mở trang cài đặt Trợ năng tương ứng của hệ điều hành Android.
+3. Tìm đến mục **Kura App Monitor Service** và gạt công tắc sang **Bật (ON)**.
 
-> 📸 **[CHÈN ẢNH GIAO DIỆN HÌNH 1.2: CÁC BƯỚC CẤP QUYỀN ACCESSIBILITY TRÊN ANDROID TẠI ĐÂY]**  
-*Hình 1.2: Giao diện Hướng dẫn và Kích hoạt quyền Accessibility Service trên thiết bị của Con*
+---
+
+#### 1.3.2. Hướng dẫn gỡ bỏ lỗi "Cài đặt bị hạn chế" (Restricted Settings) trên Android 13 & Android 14
+> [!WARNING]
+> Từ phiên bản Android 13 trở lên, Google bổ sung cơ chế bảo mật tự động hạn chế cấp quyền Accessibility đối với các tệp APK cài đặt thủ công ngoài Google Play. Nếu khi vào mục cài đặt bạn thấy dịch vụ Kura bị mờ màu xám kèm thông báo *"Để bảo mật cho bạn, cài đặt này hiện không khả dụng" (Restricted setting)*, phụ huynh hãy thực hiện các bước sau để mở khóa:
+>
+> 1. Quay lại màn hình chính của điện thoại con $\rightarrow$ Nhấn giữ vào biểu tượng ứng dụng **Kura** $\rightarrow$ Chọn **Thông tin ứng dụng (App Info)** (biểu tượng chữ `i` trong hình tròn).
+> 2. Tại góc trên cùng bên phải màn hình Thông tin ứng dụng, chạm vào biểu tượng **Dấu 3 chấm dọc (⋮)**.
+> 3. Chọn dòng **"Cho phép cài đặt bị hạn chế" (Allow restricted settings)** $\rightarrow$ Xác nhận mở khóa bằng vân tay hoặc mã PIN của điện thoại.
+> 4. Mở lại ứng dụng Kura $\rightarrow$ Bấm nút kích hoạt quyền, lúc này công tắc dịch vụ đã sáng rõ và phụ huynh có thể gạt Bật bình thường.
+
+---
+
+#### 1.3.3. Hướng dẫn thiết lập chi tiết theo từng dòng máy điện thoại phổ biến
+
+Do mỗi nhà sản xuất tùy biến giao diện Android khác nhau, dưới đây là lộ trình thao tác cụ thể cho từng thương hiệu phổ biến tại Việt Nam:
+
+##### a) Dòng máy SAMSUNG (Giao diện One UI 4 / 5 / 6)
+1. Mở **Cài đặt (Settings)** trên điện thoại con $\rightarrow$ Cuộn xuống chọn **Hỗ trợ tiếp cận (Accessibility)**.
+2. Nhấn vào mục **Ứng dụng đã cài đặt (Installed apps)**.
+3. Tìm và chọn dịch vụ **Kura App Monitor Service** (hiện đang ở trạng thái *Tắt*).
+4. Gạt công tắc sang **Bật (ON)**.
+5. Hộp thoại hệ thống hỏi *"Cho phép Kura kiểm soát toàn bộ điện thoại?"* $\rightarrow$ Nhấn **Cho phép (Allow)**.
+
+> 📸 **[CHÈN ẢNH GIAO DIỆN HÌNH 1.2a: CẤP QUYỀN ACCESSIBILITY TRÊN SAMSUNG ONE UI TẠI ĐÂY]**  
+*Hình 1.2a: Các bước kích hoạt Kura App Monitor Service trên điện thoại Samsung*
+
+---
+
+##### b) Dòng máy XIAOMI / REDMI / POCO (Giao diện MIUI 13 / 14 & Xiaomi HyperOS)
+1. *Mở khóa hạn chế (với Android 13/14):* Vào *Cài đặt* $\rightarrow$ *Ứng dụng* $\rightarrow$ *Quản lý ứng dụng* $\rightarrow$ Chọn *Kura* $\rightarrow$ Dấu 3 chấm góc trên $\rightarrow$ Chọn *Cho phép cài đặt bị hạn chế*.
+2. Mở **Cài đặt (Settings)** $\rightarrow$ Chọn **Cài đặt bổ sung (Additional settings)**.
+3. Chọn mục **Hỗ trợ tiếp cận (Accessibility)** $\rightarrow$ Chuyển sang tab **Đã tải xuống (Downloaded)**.
+4. Nhấn chọn **Kura App Monitor Service** $\rightarrow$ Gạt công tắc sang **Bật (ON)**.
+5. Màn hình cảnh báo bảo mật của Xiaomi sẽ hiển thị đếm ngược 10 giây: Tích vào ô tròn *"Tôi nhận thức được các rủi ro có thể xảy ra..."* $\rightarrow$ Chờ hết 10 giây và nhấn nút **OK**.
+
+> 📸 **[CHÈN ẢNH GIAO DIỆN HÌNH 1.2b: CẤP QUYỀN VÀ VƯỢT QUA CẢNH BÁO TRÊN XIAOMI / REDMI TẠI ĐÂY]**  
+*Hình 1.2b: Các bước cấp quyền và vượt qua xác thực cảnh báo trên Xiaomi MIUI/HyperOS*
+
+---
+
+##### c) Dòng máy OPPO / REALME / ONEPLUS (Giao diện ColorOS & Realme UI)
+1. *Mở khóa hạn chế (với Android 13/14):* Vào *Cài đặt* $\rightarrow$ *Ứng dụng* $\rightarrow$ *Quản lý ứng dụng* $\rightarrow$ *Kura* $\rightarrow$ Bấm dấu 3 chấm góc phải $\rightarrow$ *Cho phép cài đặt bị hạn chế*.
+2. Vào **Cài đặt (Settings)** $\rightarrow$ Chọn **Cài đặt hệ thống (System settings)** (hoặc *Cài đặt bổ sung* tùy đời máy).
+3. Chọn **Trợ năng (Accessibility)** $\rightarrow$ Chọn mục **Ứng dụng đã tải xuống (Downloaded apps)**.
+4. Chọn **Kura App Monitor Service** $\rightarrow$ Gạt công tắc sang **Bật (ON)**.
+5. Nhập mã CAPTCHA xác nhận an toàn (gồm 4 chữ cái nếu hệ thống yêu cầu) $\rightarrow$ Nhấn **Bật (Turn on)** $\rightarrow$ Chọn **Cho phép**.
+
+> 📸 **[CHÈN ẢNH GIAO DIỆN HÌNH 1.2c: CẤP QUYỀN ACCESSIBILITY TRÊN OPPO VÀ REALME TẠI ĐÂY]**  
+*Hình 1.2c: Thao tác kích hoạt dịch vụ trợ năng trên điện thoại Oppo và Realme*
+
+---
+
+##### d) Dòng máy VIVO / IQOO (Giao diện Funtouch OS & OriginOS)
+1. Mở **Cài đặt (Settings)** trên điện thoại $\rightarrow$ Chọn **Lối tắt và trợ năng (Shortcuts & accessibility)**.
+2. Cuộn xuống dưới cùng chọn mục **Khả năng tiếp cận (Accessibility)**.
+3. Tại nhóm *Dịch vụ đã tải xuống (Downloaded services)*, chạm vào **Kura App Monitor Service**.
+4. Gạt công tắc sang **Bật (ON)** $\rightarrow$ Bấm **Cho phép (Allow)** tại hộp thoại xác nhận.
+
+> 📸 **[CHÈN ẢNH GIAO DIỆN HÌNH 1.2d: CẤP QUYỀN ACCESSIBILITY TRÊN VIVO FUNTOUCH OS TẠI ĐÂY]**  
+*Hình 1.2d: Giao diện kích hoạt quyền giám sát an toàn trên điện thoại Vivo*
+
+---
+
+##### e) Dòng máy GOOGLE PIXEL / VSMART / ANDROID THUẦN (Stock Android 9 đến 14)
+1. Mở **Cài đặt (Settings)** $\rightarrow$ Chọn mục **Hỗ trợ tiếp cận (Accessibility)**.
+2. Tìm đến nhóm **Ứng dụng đã tải xuống (Downloaded apps)** $\rightarrow$ Chọn **Kura App Monitor Service**.
+3. Bật tùy chọn **Sử dụng Kura App Monitor Service (Use Kura App Monitor Service)**.
+4. Nhấn nút **Cho phép (Allow)** khi hệ điều hành hiển thị thông báo xác nhận.
+
+> 📸 **[CHÈN ẢNH GIAO DIỆN HÌNH 1.2e: CẤP QUYỀN TRÊN ANDROID THUẦN / GOOGLE PIXEL TẠI ĐÂY]**  
+*Hình 1.2e: Các bước kích hoạt dịch vụ Accessibility trên thiết bị chạy Android gốc*
+
+---
+
+#### 1.3.4. Kiểm tra trạng thái hoàn tất
+Khi hoàn tất cấp quyền và quay lại ứng dụng Kura trên máy con:
+- Biểu tượng khiên bảo vệ chuyển sang **Màu xanh lục**.
+- Trạng thái thông báo: *"Đã kích hoạt dịch vụ giám sát - Thiết bị đang được Kura đồng hành bảo vệ"*.
+- Giao diện chuyển thẳng sang màn hình chính của con, sẵn sàng cho trải nghiệm an toàn.
 
 ---
 
@@ -402,7 +483,11 @@ Bảng tổng hợp vị trí các hình ảnh giao diện cần chụp màn hì
 | Số thứ tự hình | Tên màn hình giao diện | Vị trí chèn trong tài liệu | Trạng thái chèn ảnh |
 | :---: | :--- | :--- | :---: |
 | **Hình 1.1** | Màn hình Cài đặt APK & Chào mừng Splash Screen | Mục 1.2, Chương 1 | `[Chờ chèn ảnh]` |
-| **Hình 1.2** | Hướng dẫn Kích hoạt quyền Accessibility Service | Mục 1.3, Chương 1 | `[Chờ chèn ảnh]` |
+| **Hình 1.2a** | Cấp quyền Accessibility trên Samsung (One UI) | Mục 1.3, Chương 1 | `[Chờ chèn ảnh]` |
+| **Hình 1.2b** | Cấp quyền & Mở khóa bảo mật trên Xiaomi (MIUI/HyperOS) | Mục 1.3, Chương 1 | `[Chờ chèn ảnh]` |
+| **Hình 1.2c** | Cấp quyền Accessibility trên Oppo & Realme (ColorOS) | Mục 1.3, Chương 1 | `[Chờ chèn ảnh]` |
+| **Hình 1.2d** | Cấp quyền Accessibility trên Vivo & iQOO (Funtouch OS) | Mục 1.3, Chương 1 | `[Chờ chèn ảnh]` |
+| **Hình 1.2e** | Cấp quyền trên Google Pixel & Android thuần | Mục 1.3, Chương 1 | `[Chờ chèn ảnh]` |
 | **Hình 2.1** | Giao diện Đăng nhập và Đăng ký tài khoản | Mục 2.1, Chương 2 | `[Chờ chèn ảnh]` |
 | **Hình 2.2** | Giao diện Lựa chọn vai trò Phụ huynh & Con | Mục 2.2, Chương 2 | `[Chờ chèn ảnh]` |
 | **Hình 2.3** | Màn hình Ghép đôi thiết bị bằng Link Code 6 số | Mục 2.3, Chương 2 | `[Chờ chèn ảnh]` |
