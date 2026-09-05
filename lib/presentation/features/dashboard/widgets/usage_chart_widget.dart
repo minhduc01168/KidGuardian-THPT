@@ -155,14 +155,14 @@ class _UsageChartWidgetState extends State<UsageChartWidget> {
                   final color = AppUtils.getAppColor(appEntry.key);
                   return PieChartSectionData(
                     value: appEntry.value.toDouble() > 0 ? appEntry.value.toDouble() : 0.1,
+                    showTitle: percent >= 5,
                     title: '${percent}%',
                     color: color,
                     radius: 45,
-                    titlePositionPercentageOffset: percent < 10 ? 1.5 : 0.5,
-                    titleStyle: TextStyle(
+                    titleStyle: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
-                      color: percent < 10 ? color : Colors.white,
+                      color: Colors.white,
                     ),
                   );
                 }).toList(),

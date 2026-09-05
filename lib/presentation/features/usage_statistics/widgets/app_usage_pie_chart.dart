@@ -45,13 +45,13 @@ class AppUsagePieChart extends StatelessWidget {
                   return PieChartSectionData(
                     color: _colors[index % _colors.length],
                     value: entry.value.toDouble(),
+                    showTitle: percentage >= 5,
                     title: '${percentage.toStringAsFixed(0)}%',
                     radius: 60,
-                    titlePositionPercentageOffset: percentage < 10 ? 1.4 : 0.5,
-                    titleStyle: TextStyle(
+                    titleStyle: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      color: percentage < 10 ? _colors[index % _colors.length] : Colors.white,
+                      color: Colors.white,
                     ),
                   );
                 }),
