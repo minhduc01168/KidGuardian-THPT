@@ -784,10 +784,11 @@ class _ChildDashboardState extends State<ChildDashboard> {
             title: '${percent.toStringAsFixed(0)}%',
             color: AppUtils.getAppColor(appDisplayName),
             radius: 45,
+            titlePositionPercentageOffset: percent < 10 ? 1.5 : 0.5,
             titleStyle: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: percent < 10 ? AppUtils.getAppColor(appDisplayName) : Colors.white,
             ),
           );
         }).toList(),

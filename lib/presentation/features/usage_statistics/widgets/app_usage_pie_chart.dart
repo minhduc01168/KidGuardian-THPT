@@ -47,10 +47,11 @@ class AppUsagePieChart extends StatelessWidget {
                     value: entry.value.toDouble(),
                     title: '${percentage.toStringAsFixed(0)}%',
                     radius: 60,
-                    titleStyle: const TextStyle(
+                    titlePositionPercentageOffset: percentage < 10 ? 1.4 : 0.5,
+                    titleStyle: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: percentage < 10 ? _colors[index % _colors.length] : Colors.white,
                     ),
                   );
                 }),

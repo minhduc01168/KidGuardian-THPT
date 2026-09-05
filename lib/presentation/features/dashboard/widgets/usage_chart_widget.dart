@@ -158,10 +158,11 @@ class _UsageChartWidgetState extends State<UsageChartWidget> {
                     title: '${percent}%',
                     color: color,
                     radius: 45,
-                    titleStyle: const TextStyle(
+                    titlePositionPercentageOffset: percent < 10 ? 1.5 : 0.5,
+                    titleStyle: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: percent < 10 ? color : Colors.white,
                     ),
                   );
                 }).toList(),
