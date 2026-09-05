@@ -1,0 +1,1032 @@
+00:00 +0: loading /home/minhduc168/KidGuardian-THPT/test/core/utils/app_utils_test.dart
+00:00 +0: /home/minhduc168/KidGuardian-THPT/test/core/utils/app_utils_test.dart: AppUtils.isSystemOrUnmonitoredApp tests Should ONLY allow 10 hardcoded social apps (monitored)
+00:00 +1: /home/minhduc168/KidGuardian-THPT/test/core/utils/app_utils_test.dart: AppUtils.isSystemOrUnmonitoredApp tests Should completely exclude non-8 apps (games, browsers, google apps)
+00:00 +2: /home/minhduc168/KidGuardian-THPT/test/core/utils/app_utils_test.dart: AppUtils.isSystemOrUnmonitoredApp tests Should exclude self and third-party monitoring tools (KidGuardian & Xm)
+00:00 +3: /home/minhduc168/KidGuardian-THPT/test/core/utils/app_utils_test.dart: AppUtils.isSystemOrUnmonitoredApp tests Should block Android and Google system daemons
+00:00 +4: /home/minhduc168/KidGuardian-THPT/test/core/utils/app_utils_test.dart: AppUtils.isSystemOrUnmonitoredApp tests Should block manufacturer vendor background services
+00:00 +5: /home/minhduc168/KidGuardian-THPT/test/core/utils/app_utils_bug5_test.dart: BUG-5: AppUtils.getAppName null/empty fallback getAppName returns packageName when empty string passed
+00:00 +6: /home/minhduc168/KidGuardian-THPT/test/core/utils/app_utils_bug5_test.dart: BUG-5: AppUtils.getAppName null/empty fallback getAppName returns known app name from map
+00:00 +7: /home/minhduc168/KidGuardian-THPT/test/core/utils/app_utils_bug5_test.dart: BUG-5: AppUtils.getAppName null/empty fallback getAppName derives human-readable name from unknown package
+00:00 +8: /home/minhduc168/KidGuardian-THPT/test/core/utils/app_utils_bug5_test.dart: BUG-5: AppUtils.getAppName null/empty fallback getAppNameFromLog: null/empty appName falls back to package-derived name
+00:00 +9: /home/minhduc168/KidGuardian-THPT/test/core/utils/app_utils_bug5_test.dart: BUG-5: AppUtils.getAppName null/empty fallback getAppNameFromLog: uses given appName when valid
+00:00 +10: /home/minhduc168/KidGuardian-THPT/test/core/utils/app_utils_bug5_test.dart: BUG-5: AppUtils.isSystemOrUnmonitoredApp — Google Search should NOT be blocked com.google.android.googlequicksearchbox is NOT blocked in AppUtils
+00:00 +11: /home/minhduc168/KidGuardian-THPT/test/core/utils/app_utils_bug5_test.dart: BUG-5: AppUtils.isSystemOrUnmonitoredApp — Google Search should NOT be blocked Chrome is explicitly allowed for monitoring
+00:00 +12: /home/minhduc168/KidGuardian-THPT/test/core/utils/app_utils_bug5_test.dart: BUG-5: AppUtils.isSystemOrUnmonitoredApp — Google Search should NOT be blocked YouTube is allowed for monitoring
+00:00 +13: /home/minhduc168/KidGuardian-THPT/test/core/utils/app_utils_bug5_test.dart: BUG-5: AppUtils.isSystemOrUnmonitoredApp — Google Search should NOT be blocked System UI is blocked
+00:00 +14: /home/minhduc168/KidGuardian-THPT/test/core/utils/app_utils_bug5_test.dart: BUG-5: AppUtils.isSystemOrUnmonitoredApp — Google Search should NOT be blocked KidGuardian itself is excluded
+00:00 +15: /home/minhduc168/KidGuardian-THPT/test/core/utils/app_utils_bug5_test.dart: BUG-5: AppUtils.isSystemOrUnmonitoredApp — Google Search should NOT be blocked Unknown user app is allowed (not system)
+00:02 +16: /home/minhduc168/KidGuardian-THPT/test/debug_bug2_bug3_test.dart: Bug 2 Debug: Telegram, Messenger, Locket Name Parsing Should parse org.telegram.messenger as Telegram
+00:02 +17: /home/minhduc168/KidGuardian-THPT/test/debug_bug2_bug3_test.dart: Bug 2 Debug: Telegram, Messenger, Locket Name Parsing Should parse com.facebook.orca as Messenger
+00:02 +18: /home/minhduc168/KidGuardian-THPT/test/debug_bug2_bug3_test.dart: Bug 2 Debug: Telegram, Messenger, Locket Name Parsing Should parse com.locket.locket as Locket
+00:02 +19: /home/minhduc168/KidGuardian-THPT/test/debug_bug2_bug3_test.dart: Bug 3 Debug: Keyword Fallback Should return 19 default keywords when Firestore is empty
+Keywords from empty DB: [tự tử, tự làm hại bản thân, nhảy lầu, đánh nhau, bạo lực, đánh hội đồng, dao, chém, ma túy, cần sa, thuốc lắc, cờ bạc, cá độ, cá cược, sex, khiêu dâm, phim người lớn, 18+, lừa đảo, hack, dâm ô]
+00:02 +20: /home/minhduc168/KidGuardian-THPT/test/debug_bug2_bug3_test.dart: Bug 3 Debug: Keyword Fallback Should allow parents to add, delete, edit keywords successfully
+Keywords from custom DB: [học tập, an toàn]
+00:02 +21: /home/minhduc168/KidGuardian-THPT/test/debug_bug2_bug3_test.dart: Bug 1 Debug: Locket Case-Sensitivity com.locket.Locket should not be considered unmonitored
+00:02 +22: /home/minhduc168/KidGuardian-THPT/test/debug_bug2_bug3_test.dart: Bug 5 Debug: Realtime Map Sync Key Should resolve package name to app name to prevent duplicate keys in Dashboard
+00:02 +23: /home/minhduc168/KidGuardian-THPT/test/debug_bug2_bug3_test.dart: Bug 6 Debug: Shortest Remaining Time Filter Should ignore expired apps when finding the app with minimum remaining time
+00:02 +24: /home/minhduc168/KidGuardian-THPT/test/debug_bug2_bug3_test.dart: Bug 2 Debug: Daily Summary Limit Should limit to exactly top 3 apps even if summary has more
+00:02 +25: /home/minhduc168/KidGuardian-THPT/test/debug_bug2_bug3_test.dart: Bug 3 Debug: Monthly Report Apps Limit Should limit to exactly 5 apps for monthly report
+00:02 +26: /home/minhduc168/KidGuardian-THPT/test/debug_bug2_bug3_test.dart: Bug 4 Debug: Progress Bar and Locked Text Logic Should calculate percent based on limit and show locked text when expired
+00:02 +27: /home/minhduc168/KidGuardian-THPT/test/debug_bug2_bug3_test.dart: Bug 4 Debug: Progress Bar and Locked Text Logic Should calculate percent based on total if no limit set
+00:03 +28: /home/minhduc168/KidGuardian-THPT/test/presentation/features/settings/bloc/settings_bloc_test.dart: (setUpAll)
+00:03 +28: /home/minhduc168/KidGuardian-THPT/test/presentation/features/settings/bloc/settings_bloc_test.dart: SettingsBloc initial state has default values
+00:03 +29: /home/minhduc168/KidGuardian-THPT/test/presentation/features/settings/bloc/settings_bloc_test.dart: SettingsBloc LoadSettings emits state with loaded settings from repository
+00:03 +30: /home/minhduc168/KidGuardian-THPT/test/presentation/features/settings/bloc/settings_bloc_test.dart: SettingsBloc LoadSettings loads partial settings correctly
+00:03 +31: /home/minhduc168/KidGuardian-THPT/test/presentation/features/settings/bloc/settings_bloc_test.dart: SettingsBloc ThemeModeChanged updates theme mode and persists to repository
+00:03 +32: /home/minhduc168/KidGuardian-THPT/test/presentation/features/settings/bloc/settings_bloc_test.dart: SettingsBloc ThemeModeChanged changes from dark to light
+00:03 +33: /home/minhduc168/KidGuardian-THPT/test/presentation/features/settings/bloc/settings_bloc_test.dart: SettingsBloc LocaleChanged updates locale and persists to repository
+00:03 +34: /home/minhduc168/KidGuardian-THPT/test/presentation/features/settings/bloc/settings_bloc_test.dart: SettingsBloc NotificationsToggled enables notifications
+00:03 +35: /home/minhduc168/KidGuardian-THPT/test/presentation/features/settings/bloc/settings_bloc_test.dart: SettingsBloc NotificationsToggled disables notifications
+00:03 +36: /home/minhduc168/KidGuardian-THPT/test/presentation/features/settings/bloc/settings_bloc_test.dart: SettingsBloc AlertSoundsToggled enables alert sounds
+00:03 +37: /home/minhduc168/KidGuardian-THPT/test/presentation/features/settings/bloc/settings_bloc_test.dart: SettingsBloc AlertSoundsToggled disables alert sounds
+00:03 +38: /home/minhduc168/KidGuardian-THPT/test/presentation/features/settings/bloc/settings_bloc_test.dart: (tearDownAll)
+00:04 +38: /home/minhduc168/KidGuardian-THPT/test/presentation/features/report/bloc/report_bloc_test.dart: (setUpAll)
+00:04 +38: /home/minhduc168/KidGuardian-THPT/test/presentation/features/report/bloc/report_bloc_test.dart: ReportBloc initial state is ReportInitial
+00:04 +39: /home/minhduc168/KidGuardian-THPT/test/presentation/features/report/bloc/report_bloc_test.dart: ReportBloc GenerateWeeklyReport emits [ReportLoading, ReportGenerated] on success
+00:04 +40: /home/minhduc168/KidGuardian-THPT/test/presentation/features/report/bloc/report_bloc_test.dart: ReportBloc GenerateWeeklyReport emits [ReportLoading, ReportError] on failure
+00:04 +41: /home/minhduc168/KidGuardian-THPT/test/presentation/features/report/bloc/report_bloc_test.dart: ReportBloc LoadReportHistory emits [ReportLoading, ReportHistoryLoaded] on success
+00:04 +42: /home/minhduc168/KidGuardian-THPT/test/presentation/features/report/bloc/report_bloc_test.dart: ReportBloc LoadReportHistory emits [ReportLoading, ReportHistoryLoaded] with empty list when no reports
+00:04 +43: /home/minhduc168/KidGuardian-THPT/test/presentation/features/report/bloc/report_bloc_test.dart: ReportBloc LoadReportHistory emits [ReportLoading, ReportError] on failure
+00:04 +44: /home/minhduc168/KidGuardian-THPT/test/presentation/features/report/bloc/report_bloc_test.dart: ReportBloc LoadLatestReport emits [ReportLoading, ReportLoaded] when report exists
+00:04 +45: /home/minhduc168/KidGuardian-THPT/test/presentation/features/report/bloc/report_bloc_test.dart: ReportBloc LoadLatestReport emits [ReportLoading, ReportError] when no report found
+00:04 +46: /home/minhduc168/KidGuardian-THPT/test/presentation/features/report/bloc/report_bloc_test.dart: ReportBloc LoadLatestReport emits [ReportLoading, ReportError] on failure
+00:04 +47: /home/minhduc168/KidGuardian-THPT/test/presentation/features/report/bloc/report_bloc_test.dart: ReportBloc SendReportByEmail emits ReportEmailSent when email sent successfully
+00:04 +48: /home/minhduc168/KidGuardian-THPT/test/presentation/features/report/bloc/report_bloc_test.dart: ReportBloc SendReportByEmail emits ReportError when email sending returns false
+00:04 +49: /home/minhduc168/KidGuardian-THPT/test/presentation/features/report/bloc/report_bloc_test.dart: ReportBloc SendReportByEmail emits ReportError on exception
+00:04 +50: /home/minhduc168/KidGuardian-THPT/test/presentation/features/report/bloc/report_bloc_test.dart: ReportBloc UpdateEmailPreference emits EmailPreferenceUpdated on success
+00:04 +51: /home/minhduc168/KidGuardian-THPT/test/presentation/features/report/bloc/report_bloc_test.dart: ReportBloc UpdateEmailPreference emits EmailPreferenceUpdated with false when disabled
+00:04 +52: /home/minhduc168/KidGuardian-THPT/test/presentation/features/report/bloc/report_bloc_test.dart: ReportBloc UpdateEmailPreference emits ReportError when update returns false
+00:04 +53: /home/minhduc168/KidGuardian-THPT/test/presentation/features/report/bloc/report_bloc_test.dart: ReportBloc UpdateEmailPreference emits ReportError on exception
+00:04 +54: /home/minhduc168/KidGuardian-THPT/test/presentation/features/report/bloc/report_bloc_test.dart: ReportBloc LoadEmailPreference emits EmailPreferenceLoaded with true when preference is enabled
+00:04 +55: /home/minhduc168/KidGuardian-THPT/test/presentation/features/report/bloc/report_bloc_test.dart: ReportBloc LoadEmailPreference emits EmailPreferenceLoaded with false when preference is disabled
+00:04 +56: /home/minhduc168/KidGuardian-THPT/test/presentation/features/report/bloc/report_bloc_test.dart: ReportBloc LoadEmailPreference emits EmailPreferenceLoaded with false on exception
+00:04 +57: /home/minhduc168/KidGuardian-THPT/test/presentation/features/report/bloc/report_bloc_test.dart: (tearDownAll)
+00:05 +57: /home/minhduc168/KidGuardian-THPT/test/presentation/features/usage_statistics/bloc/usage_statistics_bloc_test.dart: UsageStatisticsBloc emits [Loading, Loaded] when LoadUsageStats succeeds
+00:05 +58: /home/minhduc168/KidGuardian-THPT/test/presentation/features/usage_statistics/bloc/usage_statistics_bloc_test.dart: UsageStatisticsBloc emits [Loading, Error] when LoadUsageStats fails
+00:05 +59: /home/minhduc168/KidGuardian-THPT/test/presentation/features/usage_statistics/bloc/usage_statistics_bloc_test.dart: UsageStatisticsBloc emits Loaded with updated period when ChangeTimePeriod
+00:05 +60: /home/minhduc168/KidGuardian-THPT/test/presentation/features/usage_statistics/bloc/usage_statistics_bloc_test.dart: UsageStatisticsBloc emits Loaded with logs strictly filtered by monitoredApps (isMonitored == true)
+00:06 +61: /home/minhduc168/KidGuardian-THPT/test/presentation/features/usage_statistics/utils/usage_statistics_helper_test.dart: UsageStatisticsHelper groupByHour groups logs by hour
+00:06 +62: /home/minhduc168/KidGuardian-THPT/test/presentation/features/usage_statistics/utils/usage_statistics_helper_test.dart: UsageStatisticsHelper groupByDay groups logs by date
+00:06 +63: /home/minhduc168/KidGuardian-THPT/test/presentation/features/usage_statistics/utils/usage_statistics_helper_test.dart: UsageStatisticsHelper groupByWeek groups logs by day of week
+00:06 +64: /home/minhduc168/KidGuardian-THPT/test/presentation/features/usage_statistics/utils/usage_statistics_helper_test.dart: UsageStatisticsHelper groupByApp groups logs by app name
+00:06 +65: /home/minhduc168/KidGuardian-THPT/test/presentation/features/usage_statistics/utils/usage_statistics_helper_test.dart: UsageStatisticsHelper findPeakHours returns top 3 hours
+00:06 +66: /home/minhduc168/KidGuardian-THPT/test/presentation/features/usage_statistics/utils/usage_statistics_helper_test.dart: UsageStatisticsHelper findPeakHours returns empty for empty input
+00:06 +67: /home/minhduc168/KidGuardian-THPT/test/presentation/features/usage_statistics/utils/usage_statistics_helper_test.dart: UsageStatisticsHelper findPeakDay returns day with highest usage
+00:06 +68: /home/minhduc168/KidGuardian-THPT/test/presentation/features/usage_statistics/utils/usage_statistics_helper_test.dart: UsageStatisticsHelper findPeakDay returns empty for empty input
+00:06 +69: /home/minhduc168/KidGuardian-THPT/test/presentation/features/usage_statistics/utils/usage_statistics_helper_test.dart: UsageStatisticsHelper formatDuration formats minutes correctly
+00:06 +70: /home/minhduc168/KidGuardian-THPT/test/presentation/features/usage_statistics/utils/usage_statistics_helper_test.dart: UsageStatisticsHelper buildMostUsedApps creates sorted list
+00:06 +71: /home/minhduc168/KidGuardian-THPT/test/presentation/features/usage_statistics/utils/usage_statistics_helper_test.dart: UsageStatisticsHelper buildMostUsedApps calculates percentage correctly
+00:06 +72: /home/minhduc168/KidGuardian-THPT/test/presentation/features/usage_statistics/utils/usage_statistics_helper_test.dart: UsageStatisticsHelper buildMostUsedApps handles empty input
+00:06 +73: /home/minhduc168/KidGuardian-THPT/test/presentation/features/usage_statistics/utils/usage_statistics_helper_test.dart: UsageStatisticsHelper formatDateRange formats dates correctly
+00:07 +74: /home/minhduc168/KidGuardian-THPT/test/presentation/features/help/bloc/help_bloc_test.dart: HelpBloc initial state is HelpInitial
+00:07 +75: /home/minhduc168/KidGuardian-THPT/test/presentation/features/help/bloc/help_bloc_test.dart: HelpBloc LoadFaq emits [HelpLoading, FaqLoaded] on success
+00:07 +76: /home/minhduc168/KidGuardian-THPT/test/presentation/features/help/bloc/help_bloc_test.dart: HelpBloc LoadFaq emits [HelpLoading, HelpError] on exception
+00:07 +77: /home/minhduc168/KidGuardian-THPT/test/presentation/features/help/bloc/help_bloc_test.dart: HelpBloc LoadFaq extracts unique categories from FAQ items
+00:07 +78: /home/minhduc168/KidGuardian-THPT/test/presentation/features/help/bloc/help_bloc_test.dart: HelpBloc SendSupportMessage emits [HelpLoading, SupportMessageSent] on success
+00:07 +79: /home/minhduc168/KidGuardian-THPT/test/presentation/features/help/bloc/help_bloc_test.dart: HelpBloc SendSupportMessage emits [HelpLoading, HelpError] when sending fails
+00:07 +80: /home/minhduc168/KidGuardian-THPT/test/presentation/features/help/bloc/help_bloc_test.dart: HelpBloc LoadAppInfo emits [HelpLoading, HelpError] when PackageInfo fails in test env
+00:07 +81: /home/minhduc168/KidGuardian-THPT/test/presentation/features/help/bloc/help_bloc_test.dart: HelpBloc ToggleFaqItem expands FAQ item when currently collapsed
+00:07 +82: /home/minhduc168/KidGuardian-THPT/test/presentation/features/help/bloc/help_bloc_test.dart: HelpBloc ToggleFaqItem collapses FAQ item when currently expanded
+00:07 +83: /home/minhduc168/KidGuardian-THPT/test/presentation/features/help/bloc/help_bloc_test.dart: HelpBloc ToggleFaqItem does nothing when state is not FaqLoaded
+00:08 +84: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/auth_bloc_test.dart: (setUpAll)
+00:08 +84: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/auth_bloc_test.dart: AuthBloc initial state is AuthInitial
+00:08 +85: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/auth_bloc_test.dart: AuthBloc LoginRequested emits [AuthLoading, AuthAuthenticated] when login succeeds and auto-creates family if parent and familyId is null
+Attempting login for: test@example.com
+Login successful for user: uid123
+Parent has no familyId in user doc, checking existing families...
+No family found, auto-creating...
+Family created: family1, linking code: ABC123
+00:08 +86: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/auth_bloc_test.dart: AuthBloc LoginRequested emits [AuthLoading, AuthAuthenticated] when login succeeds for child (no auto-create family)
+Attempting login for: test@example.com
+Login successful for user: child123
+00:08 +87: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/auth_bloc_test.dart: AuthBloc LoginRequested emits [AuthLoading, AuthError] when login fails
+Attempting login for: test@example.com
+Login error: Invalid credentials
+00:08 +88: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/auth_bloc_test.dart: AuthBloc LoginRequested emits [AuthLoading, AuthError] on network error
+Attempting login for: test@example.com
+Login error: Network error
+00:08 +89: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/auth_bloc_test.dart: AuthBloc LoginRequested calls registerToken on successful login
+Attempting login for: test@example.com
+Login successful for user: uid123
+00:08 +90: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/auth_bloc_test.dart: AuthBloc RegisterRequested emits [AuthLoading, AuthAuthenticated] when parent registration succeeds with family created
+Attempting registration for: new@example.com
+Registration successful for user: new-uid
+Parent registered, checking existing families...
+No family found, auto-creating...
+Family created successfully for user: new-uid
+00:08 +91: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/auth_bloc_test.dart: AuthBloc RegisterRequested does NOT create family when registering as child role
+Attempting registration for: child@example.com
+Registration successful for user: child123
+00:08 +92: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/auth_bloc_test.dart: AuthBloc RegisterRequested blocks authStateChanges stream during registration (race condition fix)
+Attempting registration for: new@example.com
+Registration successful for user: new-uid
+Parent registered, checking existing families...
+AuthStateChanged blocked: registration in progress
+No family found, auto-creating...
+Family created successfully for user: new-uid
+00:08 +93: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/auth_bloc_test.dart: AuthBloc RegisterRequested emits [AuthLoading, AuthError] when registration fails
+Attempting registration for: existing@example.com
+Registration error: Email already in use
+00:08 +94: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/auth_bloc_test.dart: AuthBloc LogoutRequested emits [AuthUnauthenticated] when logout succeeds
+00:08 +95: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/auth_bloc_test.dart: AuthBloc ResetPasswordRequested emits [AuthLoading, AuthPasswordResetSent] when reset succeeds
+00:08 +96: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/auth_bloc_test.dart: AuthBloc ResetPasswordRequested emits [AuthLoading, AuthError] when reset fails
+00:08 +97: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/auth_bloc_test.dart: AuthBloc AuthStateChanged emits [AuthAuthenticated] when user is not null
+00:08 +98: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/auth_bloc_test.dart: AuthBloc AuthStateChanged emits [AuthUnauthenticated] when user is null
+00:08 +99: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/auth_bloc_test.dart: AuthBloc AuthStateChanged registers notification token when user is not null
+00:08 +100: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/auth_bloc_test.dart: AuthBloc LinkChildToFamily emits [AuthLoading, AuthAuthenticated] when linking succeeds
+00:08 +101: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/auth_bloc_test.dart: AuthBloc LinkChildToFamily emits [AuthLoading, AuthError] when linking code is invalid
+00:08 +102: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/auth_bloc_test.dart: AuthBloc LinkChildToFamily emits [AuthLoading, AuthError] when getCurrentUser returns null after linking
+00:08 +103: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/auth_bloc_test.dart: AuthBloc LinkChildToFamily emits [AuthLoading, AuthError] when repository throws
+00:08 +104: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/auth_bloc_test.dart: AuthBloc UpdateProfileRequested emits [AuthLoading, AuthAuthenticated] when update succeeds
+00:08 +105: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/auth_bloc_test.dart: AuthBloc UpdateProfileRequested emits [AuthLoading, AuthError] when getCurrentUser returns null
+00:08 +106: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/auth_bloc_test.dart: AuthBloc UpdateProfileRequested emits [AuthLoading, AuthError] when update throws
+00:08 +107: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/auth_bloc_test.dart: AuthBloc UpdateProfileRequested works with null displayName
+00:08 +108: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/auth_bloc_test.dart: AuthBloc authStateChanges stream integration emits AuthAuthenticated when stream emits a user
+00:09 +109: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/auth_bloc_test.dart: AuthBloc authStateChanges stream integration emits AuthUnauthenticated when stream emits null
+00:09 +110: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/auth_bloc_test.dart: (tearDownAll)
+00:09 +110: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/family_bloc_test.dart: (setUpAll)
+00:09 +110: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/family_bloc_test.dart: FamilyBloc initial state is FamilyInitial
+00:09 +111: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/family_bloc_test.dart: FamilyBloc CreateFamilyRequested emits [FamilyLoading, FamilyCreated] when create succeeds
+00:09 +112: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/family_bloc_test.dart: FamilyBloc CreateFamilyRequested emits [FamilyLoading, FamilyError] when create fails
+00:09 +113: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/family_bloc_test.dart: FamilyBloc LoadFamilyRequested emits [FamilyLoading, FamilyLoaded] when family exists
+00:09 +114: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/family_bloc_test.dart: FamilyBloc LoadFamilyRequested emits [FamilyLoading, FamilyError] when family does not exist
+00:09 +115: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/family_bloc_test.dart: FamilyBloc LoadFamilyRequested emits [FamilyLoading, FamilyError] when repository throws
+00:09 +116: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/family_bloc_test.dart: FamilyBloc GenerateLinkingCodeRequested emits [FamilyLoading, LinkingCodeGenerated] when generation succeeds
+00:09 +117: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/family_bloc_test.dart: FamilyBloc GenerateLinkingCodeRequested emits [FamilyLoading, FamilyError] when generation fails
+00:09 +118: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/family_bloc_test.dart: FamilyBloc LinkChildToFamilyRequested emits [FamilyLoading, ChildLinkedToFamily] when linking succeeds
+00:09 +119: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/family_bloc_test.dart: FamilyBloc LinkChildToFamilyRequested emits [FamilyLoading, FamilyError] when child already has family
+00:09 +120: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/family_bloc_test.dart: FamilyBloc LinkChildToFamilyRequested emits [FamilyLoading, FamilyError] when linking code is invalid
+00:09 +121: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/family_bloc_test.dart: FamilyBloc LinkChildToFamilyRequested emits [FamilyLoading, FamilyError] when getFamily returns null after linking
+00:09 +122: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/family_bloc_test.dart: FamilyBloc LinkChildToFamilyRequested emits [FamilyLoading, FamilyError] when getCurrentUser returns null
+00:09 +123: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/family_bloc_test.dart: FamilyBloc LinkChildToFamilyRequested emits [FamilyLoading, FamilyError] when repository throws
+00:09 +124: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/family_bloc_test.dart: FamilyBloc RemoveChildFromFamilyRequested emits [FamilyLoading, ChildRemovedFromFamily] when removal succeeds
+00:09 +125: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/family_bloc_test.dart: FamilyBloc RemoveChildFromFamilyRequested emits [FamilyLoading, FamilyError] when getFamily returns null after removal
+00:09 +126: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/family_bloc_test.dart: FamilyBloc RemoveChildFromFamilyRequested emits [FamilyLoading, FamilyError] when removal fails
+00:09 +127: /home/minhduc168/KidGuardian-THPT/test/presentation/features/auth/bloc/family_bloc_test.dart: (tearDownAll)
+00:12 +127: /home/minhduc168/KidGuardian-THPT/test/presentation/features/dashboard/screens/parent_dashboard_test.dart: ParentDashboard renders loading state correctly
+00:14 +128: /home/minhduc168/KidGuardian-THPT/test/presentation/features/dashboard/screens/child_dashboard_banner_test.dart: Should display app with minimum remaining time dynamically
+00:15 +129: /home/minhduc168/KidGuardian-THPT/test/presentation/features/dashboard/screens/child_dashboard_banner_test.dart: Should display app with minimum remaining time dynamically
+00:15 +130: /home/minhduc168/KidGuardian-THPT/test/presentation/features/dashboard/screens/child_dashboard_banner_test.dart: Should display Zalo if Zalo has less remaining time
+00:16 +131: /home/minhduc168/KidGuardian-THPT/test/presentation/features/dashboard/screens/child_dashboard_banner_test.dart: Should dispatch LoadChildUsage with familyId
+00:16 +132: /home/minhduc168/KidGuardian-THPT/test/presentation/features/dashboard/screens/child_dashboard_banner_test.dart: (tearDownAll)
+00:17 +132: /home/minhduc168/KidGuardian-THPT/test/presentation/features/dashboard/bloc/dashboard_bloc_test.dart: DashboardBloc initial state is DashboardInitial
+00:17 +133: /home/minhduc168/KidGuardian-THPT/test/presentation/features/dashboard/bloc/dashboard_bloc_test.dart: DashboardBloc LoadDashboard emits [DashboardLoading, DashboardError] when family not found
+00:17 +134: /home/minhduc168/KidGuardian-THPT/test/presentation/features/dashboard/bloc/dashboard_bloc_test.dart: DashboardBloc LoadDashboard emits [DashboardLoading, DashboardLoaded] on success
+00:17 +135: /home/minhduc168/KidGuardian-THPT/test/presentation/features/dashboard/bloc/dashboard_bloc_test.dart: DashboardBloc LoadDashboard emits DashboardLoaded with usageByApp aggregated across children
+00:17 +136: /home/minhduc168/KidGuardian-THPT/test/presentation/features/dashboard/bloc/dashboard_bloc_test.dart: DashboardBloc LoadDashboard emits DashboardError on exception
+00:17 +137: /home/minhduc168/KidGuardian-THPT/test/presentation/features/dashboard/bloc/dashboard_bloc_test.dart: DashboardBloc LoadDashboard emits DashboardLoaded with usageByApp strictly filtered by monitoredApps (isMonitored == true)
+00:17 +138: /home/minhduc168/KidGuardian-THPT/test/presentation/features/dashboard/bloc/dashboard_bloc_test.dart: DashboardBloc LoadDashboard does not fallback to yesterday when today has 0 usage
+00:17 +139: /home/minhduc168/KidGuardian-THPT/test/presentation/features/dashboard/bloc/dashboard_bloc_test.dart: DashboardBloc LoadChildUsage emits [DashboardLoading, DashboardLoaded] for child usage
+00:17 +140: /home/minhduc168/KidGuardian-THPT/test/presentation/features/dashboard/bloc/dashboard_bloc_test.dart: DashboardBloc LoadChildUsage emits DashboardError on exception
+00:17 +141: /home/minhduc168/KidGuardian-THPT/test/presentation/features/dashboard/bloc/dashboard_bloc_test.dart: DashboardBloc LoadUsageChart emits [DashboardLoading, UsageChartData] on success
+00:17 +142: /home/minhduc168/KidGuardian-THPT/test/presentation/features/dashboard/bloc/dashboard_bloc_test.dart: DashboardBloc LoadUsageChart emits DashboardError on exception
+00:17 +143: /home/minhduc168/KidGuardian-THPT/test/presentation/features/dashboard/bloc/dashboard_bloc_test.dart: DashboardBloc Monitored Apps Filtering (Gmail, LinkedIn, etc.) excludes unmonitored apps like Gmail and LinkedIn from Dashboard when not in monitored list
+00:17 +144: /home/minhduc168/KidGuardian-THPT/test/presentation/features/dashboard/bloc/dashboard_bloc_test.dart: DashboardBloc Bug #3 Dashboard Chart Filter allows non-system apps like Chrome and Free Fire when monitoredApps is empty
+00:17 +144 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/features/dashboard/bloc/dashboard_bloc_test.dart: DashboardBloc Bug #3 Dashboard Chart Filter allows non-system apps like Chrome and Free Fire when monitoredApps is empty [E]
+  Expected: [
+              <<Instance of 'DashboardLoading'>>,
+              <<Instance of 'DashboardLoaded'> with `usageByApp includes Chrome and FreeFire, excludes Settings`: {'Google Chrome': 40, 'Freefireth': 60} and `totalMinutesToday counts Chrome and FreeFire`: <100>>
+            ]
+    Actual: [
+              DashboardLoading:DashboardLoading(),
+              DashboardLoaded:DashboardLoaded(100, 100, {}, [], [child1], {}, {})
+            ]
+     Which: at location [1] is DashboardLoaded:<DashboardLoaded(100, 100, {}, [], [child1], {}, {})> which has `usageByApp includes Chrome and FreeFire, excludes Settings` with value {} which has different length and is missing map key 'Google Chrome'
+  
+  package:matcher                              expect
+  package:bloc_test/src/bloc_test.dart 218:16  testBloc.<fn>
+  ===== asynchronous gap ===========================
+  dart:async                                   _Completer.completeError
+  package:bloc_test/src/bloc_test.dart 255:43  _runZonedGuarded.<fn>
+  ===== asynchronous gap ===========================
+  dart:async                                   _CustomZone.registerBinaryCallback
+  package:bloc_test/src/bloc_test.dart 252:5   _runZonedGuarded.<fn>
+  dart:async                                   runZonedGuarded
+  package:bloc_test/src/bloc_test.dart 251:3   _runZonedGuarded
+  package:bloc_test/src/bloc_test.dart 198:11  testBloc
+  package:bloc_test/src/bloc_test.dart 156:13  blocTest.<fn>
+  
+00:17 +144 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/features/dashboard/bloc/dashboard_bloc_test.dart: DashboardBloc RefreshDashboard triggers LoadDashboard with same familyId
+00:18 +145 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/features/summary/bloc/summary_bloc_test.dart: SummaryBloc initial state is SummaryInitial
+00:18 +146 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/features/summary/bloc/summary_bloc_test.dart: SummaryBloc LoadDailySummary emits [SummaryLoading, SummaryLoaded] with existing summary when available
+00:18 +147 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/features/summary/bloc/summary_bloc_test.dart: SummaryBloc LoadDailySummary generates new summary when none exists for today
+00:18 +148 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/features/summary/bloc/summary_bloc_test.dart: SummaryBloc LoadDailySummary generates summary when hasSummaryForDate returns true but list is empty
+00:18 +149 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/features/summary/bloc/summary_bloc_test.dart: SummaryBloc LoadDailySummary emits [SummaryLoading, SummaryError] on failure
+00:18 +150 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/features/summary/bloc/summary_bloc_test.dart: SummaryBloc LoadSummaryHistory emits [SummaryLoading, SummaryHistoryLoaded] on success
+00:18 +151 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/features/summary/bloc/summary_bloc_test.dart: SummaryBloc LoadSummaryHistory emits [SummaryLoading, SummaryHistoryLoaded] with empty list
+00:18 +152 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/features/summary/bloc/summary_bloc_test.dart: SummaryBloc LoadSummaryHistory emits [SummaryLoading, SummaryError] on failure
+00:18 +153 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/features/summary/bloc/summary_bloc_test.dart: SummaryBloc GenerateSummary emits [SummaryLoading, SummaryGenerated] on success
+00:18 +154 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/features/summary/bloc/summary_bloc_test.dart: SummaryBloc GenerateSummary emits [SummaryLoading, SummaryError] on failure
+00:19 +155 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/auth_bloc_test.dart: (setUpAll)
+00:19 +155 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/auth_bloc_test.dart: AuthBloc emits [AuthLoading, AuthAuthenticated] and does NOT call getCurrentUser when parent registers and family is auto-created
+Attempting registration for: test@example.com
+Registration successful for user: uid-123
+Parent registered, checking existing families...
+No family found, auto-creating...
+Family created successfully for user: uid-123
+00:19 +156 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/auth_bloc_test.dart: AuthBloc emits [AuthLoading, AuthAuthenticated] and does NOT call getCurrentUser when parent logs in and family is auto-created
+Attempting login for: test@example.com
+Login successful for user: uid-123
+Parent has no familyId in user doc, checking existing families...
+No family found, auto-creating...
+Family created: fam-123, linking code: CODE123
+00:19 +157 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/auth_bloc_test.dart: (tearDownAll)
+00:20 +157 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/lock_history_screen_test.dart: LockHistoryScreen displays loading indicator initially
+00:22 +158 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/lock_screen_schedule_test.dart: LockScreen - Schedule block reason should show schedule reason when blockReason is schedule
+00:22 +159 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/lock_screen_schedule_test.dart: LockScreen - Schedule block reason should show schedule reason when blockReason is schedule
+00:22 +160 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/lock_screen_schedule_test.dart: LockScreen - Schedule block reason should show schedule reason when blockReason is schedule
+00:22 +161 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/lock_screen_schedule_test.dart: LockScreen - Schedule block reason should show schedule reason when blockReason is schedule
+00:22 +162 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/lock_history_screen_test.dart: LockHistoryScreen displays app bar with correct title
+00:22 +163 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/lock_screen_schedule_test.dart: LockScreen - Schedule block reason should show homework schedule reason
+00:22 +164 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/lock_history_screen_test.dart: LockHistoryCard displays app name and reason
+00:23 +165 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/lock_screen_schedule_test.dart: LockScreen - Schedule block reason should show time limit reason when blockReason is time_limit
+00:23 +166 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/lock_screen_schedule_test.dart: LockScreen - Schedule block reason should show time limit reason when blockReason is time_limit
+00:23 +167 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/lock_history_screen_test.dart: LockHistoryCard displays lock time
+00:23 +168 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/lock_screen_schedule_test.dart: LockScreen - Schedule block reason should show time limit reason when blockReason is null (backward compat)
+00:23 +169 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/lock_screen_schedule_test.dart: LockScreen - Schedule block reason should show time limit reason when blockReason is null (backward compat)
+00:23 +170 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/lock_screen_schedule_test.dart: LockScreen - Schedule block reason should not show request time button for schedule blocks
+00:24 +171 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/schedule_screen_test.dart: ScheduleScreen should show empty state when no schedules
+00:26 +172 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/blocked_apps_screen_test.dart: BlockedAppsScreen displays loading indicator initially
+00:26 +173 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/blocked_apps_screen_test.dart: BlockedAppsScreen displays loading indicator initially
+00:27 +174 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/schedule_screen_test.dart: ScheduleScreen should show schedule list when schedules exist
+00:27 +175 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/blocked_apps_screen_test.dart: BlockedAppsScreen displays list of apps after loading
+00:27 +176 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/blocked_apps_screen_test.dart: BlockedAppsScreen displays list of apps after loading
+00:27 +177 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/blocked_apps_screen_test.dart: BlockedAppsScreen displays correct toggle states
+00:27 +178 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/blocked_apps_screen_test.dart: BlockedAppsScreen DOES NOT show add custom app button
+00:27 +179 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/blocked_apps_screen_test.dart: BlockedAppsScreen shows empty state when no apps
+00:28 +180 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/blocked_apps_screen_test.dart: BlockedAppsScreen shows Vietnamese status labels
+00:28 +181 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/blocked_apps_screen_test.dart: (tearDownAll)
+00:29 +181 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/schedule_form_screen_test.dart: ScheduleFormScreen should show form fields
+00:31 +182 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/time_limit_screen_test.dart: TimeLimitScreen displays empty list when no apps
+00:31 +183 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/time_limit_screen_test.dart: TimeLimitScreen displays empty list when no apps
+00:31 +184 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/schedule_form_screen_test.dart: ScheduleFormScreen should show template buttons
+00:31 +185 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/schedule_form_screen_test.dart: ScheduleFormScreen should populate form when editing existing schedule
+00:33 +186 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/lock_screen_test.dart: LockScreen displays app name instead of package name
+00:34 +187 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/smart_lock_settings_screen_test.dart: SmartLockSettingsScreen displays app bar title
+00:34 +188 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/smart_lock_settings_screen_test.dart: SmartLockSettingsScreen displays app bar title
+00:34 +189 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/smart_lock_settings_screen_test.dart: SmartLockSettingsScreen displays app bar title
+00:35 +190 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/smart_lock_settings_screen_test.dart: SmartLockSettingsScreen displays app bar title
+00:35 +191 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/smart_lock_settings_screen_test.dart: SmartLockSettingsScreen displays app bar title
+00:35 +192 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/smart_lock_settings_screen_test.dart: SmartLockSettingsScreen displays app bar title
+00:35 +193 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/smart_lock_settings_screen_test.dart: SmartLockSettingsScreen displays app bar title
+00:35 +194 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/smart_lock_settings_screen_test.dart: SmartLockSettingsScreen displays app bar title
+00:35 +195 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/smart_lock_settings_screen_test.dart: SmartLockSettingsScreen displays app bar title
+00:35 +196 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/smart_lock_settings_screen_test.dart: SmartLockSettingsScreen displays all settings sections
+00:35 +197 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/smart_lock_settings_screen_test.dart: SmartLockSettingsScreen displays default time limit
+00:35 +198 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/smart_lock_settings_screen_test.dart: SmartLockSettingsScreen displays enabled state text
+00:36 +199 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/smart_lock_settings_screen_test.dart: SmartLockSettingsScreen displays disabled state text
+00:36 +200 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/smart_lock_settings_screen_test.dart: SmartLockSettingsScreen displays notification toggles
+00:36 +201 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/screens/smart_lock/smart_lock_settings_screen_test.dart: SmartLockSettingsScreen displays Vietnamese labels
+00:36 +202 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_test.dart: AppMonitorBloc initial state is AppMonitorInitial
+00:36 +203 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_test.dart: AppMonitorBloc emits AppMonitorRunning when StartMonitoring is added
+AppMonitorBloc._loadSettings error: type 'Null' is not a subtype of type 'Future<SmartLockSettingsModel?>'
+AppMonitorBloc: Pushed 22 monitored packages to native
+AppMonitorBloc: timeLimits updated (parent may have approved), force re-check
+00:36 +204 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_test.dart: AppMonitorBloc emits AppBlockedState when app_blocked event is received
+AppMonitorBloc: Pushed 22 monitored packages to native
+AppMonitorBloc: timeLimits updated (parent may have approved), force re-check
+AppMonitorBloc._getParentUid error: type 'Null' is not a subtype of type 'Future<FamilyModel?>'
+00:37 +205 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_test.dart: AppMonitorBloc ignores events for com.kidguardian.kidguardian (Bug #2 self-exclusion)
+AppMonitorBloc: Pushed 22 monitored packages to native
+AppMonitorBloc: timeLimits updated (parent may have approved), force re-check
+00:37 +206 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_test.dart: AppBlockedState extended fields AppBlockedState contains all required fields
+00:37 +207 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_test.dart: AppBlockedState extended fields AppBlockedState with iconUrl
+00:37 +208 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_test.dart: AppBlockedState extended fields AppBlockedState props include all fields for equality
+00:37 +209 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_test.dart: AppBlockedState extended fields AppBlockedState equality with different usedMinutes
+00:37 +210 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_test.dart: AppBlockedState - blockReason AppBlockedState with time_limit blockReason
+00:37 +211 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_test.dart: AppBlockedState - blockReason AppBlockedState with schedule blockReason
+00:37 +212 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_test.dart: AppBlockedState - blockReason AppBlockedState default blockReason is null
+00:37 +213 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_test.dart: AppBlockedState - blockReason AppBlockedState props include blockReason and scheduleName
+00:37 +214 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_test.dart: AppBlockedState - blockReason should save keyword alert to AlertRepository when KeywordDetectedEvent is added
+AppMonitorBloc: Pushed 22 monitored packages to native
+AppMonitorBloc: timeLimits updated (parent may have approved), force re-check
+Keyword alert saved: tự tử in com.facebook.katana
+00:38 +215 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bug1_bug2_bug4_test.dart: BUG-4: watchTimeLimits realtime listener watchTimeLimits được subscribed sau StartMonitoring
+AppMonitorBloc: Pushed 22 monitored packages to native
+AppMonitorBloc: timeLimits updated (parent may have approved), force re-check
+00:38 +216 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bug1_bug2_bug4_test.dart: BUG-4: watchTimeLimits realtime listener Khi timeLimits stream emit → CheckCurrentAppLimit được trigger
+AppMonitorBloc: Pushed 22 monitored packages to native
+AppMonitorBloc: timeLimits updated (parent may have approved), force re-check
+[Debug Write] AppMonitorBloc: Bỏ qua log app com.zhiliaoapp.musically do thời gian quá ngắn (0 s < 5s)
+00:38 +217 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bug1_bug2_bug4_test.dart: BUG-4: watchTimeLimits realtime listener watchTimeLimits subscription bị cancel khi bloc close()
+AppMonitorBloc: Pushed 22 monitored packages to native
+00:38 +218 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bug1_bug2_bug4_test.dart: BUG-2: App blocking logic (Dart side) blockAppUseCase.execute() được gọi khi CheckCurrentAppLimit trả về false
+AppMonitorBloc: Pushed 22 monitored packages to native
+AppMonitorBloc: timeLimits updated (parent may have approved), force re-check
+[Debug Write] AppMonitorBloc: Bỏ qua log app com.zhiliaoapp.musically do thời gian quá ngắn (0 s < 5s)
+AppMonitorBloc._onAppEventReceived check error: type 'Null' is not a subtype of type 'Future<void>'
+[Debug Write] AppMonitorBloc: Bỏ qua log app com.zhiliaoapp.musically do thời gian quá ngắn (0 s < 5s)
+AppMonitorBloc._getParentUid error: type 'Null' is not a subtype of type 'Future<FamilyModel?>'
+00:38 +219 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bug1_bug2_bug4_test.dart: BUG-2: App blocking logic (Dart side) blockAppUseCase.execute() được gọi khi CheckCurrentAppLimit trả về false
+[Debug Write] AppMonitorBloc: Bỏ qua log app com.zhiliaoapp.musically do thời gian quá ngắn (0 s < 5s)
+00:38 +220 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/smart_lock_bloc_test.dart: SmartLockBloc emits [SmartLockLoading, SmartLockLoaded] when LoadAppTimeLimits is added
+00:38 +220 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bug1_bug2_bug4_test.dart: BUG-2: App blocking logic (Dart side) BUG-1 FIX: blockAppUseCase.unblockApp() được gọi và emit AppMonitorRunning khi CheckCurrentAppLimit trả về true
+AppMonitorBloc: Pushed 22 monitored packages to native
+AppMonitorBloc: timeLimits updated (parent may have approved), force re-check
+00:38 +221 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bug1_bug2_bug4_test.dart: BUG-2: App blocking logic (Dart side) BUG-1 FIX: blockAppUseCase.unblockApp() được gọi và emit AppMonitorRunning khi CheckCurrentAppLimit trả về true
+00:39 +222 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bug1_bug2_bug4_test.dart: BUG-2: App blocking logic (Dart side) BUG-1 FIX: blockAppUseCase.unblockApp() được gọi và emit AppMonitorRunning khi CheckCurrentAppLimit trả về true
+00:39 +223 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bug1_bug2_bug4_test.dart: BUG-2: App blocking logic (Dart side) BUG-1 FIX: blockAppUseCase.unblockApp() được gọi và emit AppMonitorRunning khi CheckCurrentAppLimit trả về true
+00:39 +224 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bug1_bug2_bug4_test.dart: BUG-2: App blocking logic (Dart side) BUG-1 FIX: blockAppUseCase.unblockApp() được gọi và emit AppMonitorRunning khi CheckCurrentAppLimit trả về true
+[Debug Write] AppMonitorBloc: Bỏ qua log app com.zhiliaoapp.musically do thời gian quá ngắn (0 s < 5s)
+00:39 +225 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/smart_lock_bloc_test.dart: SmartLockBloc - Monitored Apps emits [MonitoredAppsLoaded] when AddCustomApp is added
+00:39 +226 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bug1_bug2_bug4_test.dart: BUG-2: App blocking logic (Dart side) blocked event từ native → AppBlockedState được emit
+AppMonitorBloc: Pushed 22 monitored packages to native
+AppMonitorBloc: timeLimits updated (parent may have approved), force re-check
+00:39 +227 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bug1_bug2_bug4_test.dart: BUG-2: App blocking logic (Dart side) blocked event từ native → AppBlockedState được emit
+00:39 +228 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bug1_bug2_bug4_test.dart: BUG-2: App blocking logic (Dart side) blocked event từ native → AppBlockedState được emit
+00:39 +229 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bug1_bug2_bug4_test.dart: BUG-2: App blocking logic (Dart side) blocked event từ native → AppBlockedState được emit
+00:39 +230 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bug1_bug2_bug4_test.dart: BUG-2: App blocking logic (Dart side) blocked event từ native → AppBlockedState được emit
+AppMonitorBloc._buildBlockedState error: type 'Null' is not a subtype of type 'Future<List<AppTimeLimitModel>>'
+AppMonitorBloc._getParentUid error: type 'Null' is not a subtype of type 'Future<FamilyModel?>'
+00:39 +231 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bug1_bug2_bug4_test.dart: BUG-2: App blocking logic (Dart side) blocked event từ native → AppBlockedState được emit
+[Debug Write] AppMonitorBloc: Bỏ qua log app com.zhiliaoapp.musically do thời gian quá ngắn (0 s < 5s)
+00:39 +232 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/smart_lock_bloc_test.dart: SmartLockBloc - Schedules emits [SmartLockLoading, SmartLockSettingsLoaded] when LoadSmartLockSettings succeeds
+00:39 +233 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bug1_bug2_bug4_test.dart: BUG-1: Keyword detection flow KeywordDetectedEvent → createKeywordAlert được gọi với đúng args
+AppMonitorBloc: Pushed 22 monitored packages to native
+AppMonitorBloc: timeLimits updated (parent may have approved), force re-check
+00:39 +234 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bug1_bug2_bug4_test.dart: BUG-1: Keyword detection flow KeywordDetectedEvent → createKeywordAlert được gọi với đúng args
+00:39 +235 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bug1_bug2_bug4_test.dart: BUG-1: Keyword detection flow KeywordDetectedEvent → createKeywordAlert được gọi với đúng args
+00:39 +236 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bug1_bug2_bug4_test.dart: BUG-1: Keyword detection flow KeywordDetectedEvent → createKeywordAlert được gọi với đúng args
+00:39 +237 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bug1_bug2_bug4_test.dart: BUG-1: Keyword detection flow KeywordDetectedEvent → createKeywordAlert được gọi với đúng args
+Keyword alert saved: tự tử in com.google.android.googlequicksearchbox
+00:39 +238 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bug1_bug2_bug4_test.dart: BUG-1: Keyword detection flow KeywordDetectedEvent → createKeywordAlert được gọi với đúng args
+00:39 +239 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bug1_bug2_bug4_test.dart: BUG-1: Keyword detection flow KeywordDetectedEvent từ Chrome → createKeywordAlert được gọi
+AppMonitorBloc: Pushed 22 monitored packages to native
+AppMonitorBloc: timeLimits updated (parent may have approved), force re-check
+Keyword alert saved: ma túy in com.android.chrome
+00:39 +240 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bug1_bug2_bug4_test.dart: BUG-1: Keyword detection flow Keyword alert không được spam — cooldown 5 phút (cùng keyword+package chỉ gọi 1 lần)
+AppMonitorBloc: Pushed 22 monitored packages to native
+AppMonitorBloc: timeLimits updated (parent may have approved), force re-check
+Keyword alert saved: tự tử in com.android.chrome
+AppMonitorBloc: Keyword alert cooldown active for "tự tử", skipping write.
+AppMonitorBloc: Keyword alert cooldown active for "tự tử", skipping write.
+00:40 +241 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_extra_edge_cases_test.dart: AppMonitorBloc Stability & Robustness Edge Cases AppEventReceived with unknown eventType does not crash BLoC
+AppMonitorBloc: Pushed 22 monitored packages to native
+AppMonitorBloc: timeLimits updated (parent may have approved), force re-check
+00:41 +242 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_extra_edge_cases_test.dart: AppMonitorBloc Stability & Robustness Edge Cases AppEventReceived with missing packageName is handled safely
+AppMonitorBloc: Pushed 22 monitored packages to native
+AppMonitorBloc: timeLimits updated (parent may have approved), force re-check
+00:41 +243 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_extra_edge_cases_test.dart: AppMonitorBloc Stability & Robustness Edge Cases CheckAppAccessUseCase exception is handled gracefully without breaking monitoring state
+AppMonitorBloc: Pushed 22 monitored packages to native
+AppMonitorBloc: timeLimits updated (parent may have approved), force re-check
+00:41 +243 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_edge_cases_test.dart: AppMonitorBloc - Edge Cases & Resilience Tests Open-by-default when monitoredApps is empty: logs user app but ignores system app
+AppMonitorBloc: Pushed 22 monitored packages to native
+AppMonitorBloc: timeLimits updated (parent may have approved), force re-check
+00:41 +244 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_edge_cases_test.dart: AppMonitorBloc - Edge Cases & Resilience Tests Open-by-default when monitoredApps is empty: logs user app but ignores system app
+00:41 +244 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_extra_edge_cases_test.dart: AppMonitorBloc Stability & Robustness Edge Cases close cancels all internal timers and streams cleanly
+AppMonitorBloc: Pushed 22 monitored packages to native
+AppMonitorBloc: timeLimits updated (parent may have approved), force re-check
+00:41 +245 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_edge_cases_test.dart: AppMonitorBloc - Edge Cases & Resilience Tests Open-by-default when monitoredApps is empty: logs user app but ignores system app
+AppMonitorBloc._onCheckCurrentAppLimit error: type 'Null' is not a subtype of type 'Future<void>'
+00:42 +246 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_edge_cases_test.dart: AppMonitorBloc - Edge Cases & Resilience Tests Open-by-default when monitoredApps is empty: logs user app but ignores system app
+00:43 +247 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_edge_cases_test.dart: AppMonitorBloc - Edge Cases & Resilience Tests Open-by-default when monitoredApps is empty: logs user app but ignores system app
+00:43 +247 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/time_request/time_request_bloc_test.dart: TimeRequestBloc SubmitTimeRequest emits TimeRequestError on failure
+Error submitting time request: Exception: Network error
+00:43 +248 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_edge_cases_test.dart: AppMonitorBloc - Edge Cases & Resilience Tests Open-by-default when monitoredApps is empty: logs user app but ignores system app
+00:43 +249 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_edge_cases_test.dart: AppMonitorBloc - Edge Cases & Resilience Tests Open-by-default when monitoredApps is empty: logs user app but ignores system app
+Error fetching installed apps: MissingPluginException(No implementation found for method getInstalledApps on channel installed_apps)
+AppMonitorBloc._syncInstalledApps error: MissingPluginException(No implementation found for method getAll on channel plugins.flutter.io/shared_preferences)
+00:43 +250 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_edge_cases_test.dart: AppMonitorBloc - Edge Cases & Resilience Tests Open-by-default when monitoredApps is empty: logs user app but ignores system app
+00:43 +251 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_edge_cases_test.dart: AppMonitorBloc - Edge Cases & Resilience Tests Open-by-default when monitoredApps is empty: logs user app but ignores system app
+00:44 +252 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_edge_cases_test.dart: AppMonitorBloc - Edge Cases & Resilience Tests Open-by-default when monitoredApps is empty: logs user app but ignores system app
+00:45 +253 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_edge_cases_test.dart: AppMonitorBloc - Edge Cases & Resilience Tests Open-by-default when monitoredApps is empty: logs user app but ignores system app
+00:45 +253 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/in_app_notification/in_app_notification_bloc_test.dart: InAppNotificationBloc LoadInAppNotifications emits Loading then Loaded with empty list when no alerts
+InAppNotificationBloc: Failed to load persisted readIds: MissingPluginException(No implementation found for method getAll on channel plugins.flutter.io/shared_preferences)
+00:45 +254 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_edge_cases_test.dart: AppMonitorBloc - Edge Cases & Resilience Tests Open-by-default when monitoredApps is empty: logs user app but ignores system app
+00:45 +254 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/in_app_notification/in_app_notification_bloc_test.dart: InAppNotificationBloc LoadInAppNotifications loads alerts from stream and creates notifications
+InAppNotificationBloc: Failed to load persisted readIds: MissingPluginException(No implementation found for method getAll on channel plugins.flutter.io/shared_preferences)
+00:45 +255 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_edge_cases_test.dart: AppMonitorBloc - Edge Cases & Resilience Tests Open-by-default when monitoredApps is empty: logs user app but ignores system app
+00:45 +255 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/in_app_notification/in_app_notification_bloc_test.dart: InAppNotificationBloc LoadInAppNotifications sorts notifications by timestamp descending
+InAppNotificationBloc: Failed to load persisted readIds: MissingPluginException(No implementation found for method getAll on channel plugins.flutter.io/shared_preferences)
+00:45 +256 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_edge_cases_test.dart: AppMonitorBloc - Edge Cases & Resilience Tests Open-by-default when monitoredApps is empty: logs user app but ignores system app
+00:45 +256 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/in_app_notification/in_app_notification_bloc_test.dart: InAppNotificationBloc MarkInAppNotificationAsRead marks single notification as read and updates unreadCount
+InAppNotificationBloc: Failed to load persisted readIds: MissingPluginException(No implementation found for method getAll on channel plugins.flutter.io/shared_preferences)
+InAppNotificationBloc: Failed to persist readIds: MissingPluginException(No implementation found for method getAll on channel plugins.flutter.io/shared_preferences)
+00:46 +257 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_edge_cases_test.dart: AppMonitorBloc - Edge Cases & Resilience Tests Open-by-default when monitoredApps is empty: logs user app but ignores system app
+00:46 +257 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/in_app_notification/in_app_notification_bloc_test.dart: InAppNotificationBloc MarkAllInAppNotificationsAsRead marks all notifications as read
+InAppNotificationBloc: Failed to load persisted readIds: MissingPluginException(No implementation found for method getAll on channel plugins.flutter.io/shared_preferences)
+00:46 +258 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_edge_cases_test.dart: AppMonitorBloc - Edge Cases & Resilience Tests Open-by-default when monitoredApps is empty: logs user app but ignores system app
+00:46 +259 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_edge_cases_test.dart: AppMonitorBloc - Edge Cases & Resilience Tests Open-by-default when monitoredApps is empty: logs user app but ignores system app
+00:46 +260 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_edge_cases_test.dart: AppMonitorBloc - Edge Cases & Resilience Tests Open-by-default when monitoredApps is empty: logs user app but ignores system app
+00:46 +261 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_edge_cases_test.dart: AppMonitorBloc - Edge Cases & Resilience Tests Open-by-default when monitoredApps is empty: logs user app but ignores system app
+00:46 +261 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/in_app_notification/in_app_notification_bloc_test.dart: InAppNotificationBloc close cancels subscriptions on close
+InAppNotificationBloc: Failed to load persisted readIds: MissingPluginException(No implementation found for method getAll on channel plugins.flutter.io/shared_preferences)
+00:46 +262 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_edge_cases_test.dart: AppMonitorBloc - Edge Cases & Resilience Tests Open-by-default when monitoredApps is empty: logs user app but ignores system app
+[Debug Write] AppMonitorBloc: Ghi nhận app com.google.android.youtube dùng 1 phút (5 giây)
+00:47 +263 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_edge_cases_test.dart: AppMonitorBloc - Edge Cases & Resilience Tests Handles malformed and invalid JSON offline logs gracefully without throwing exception
+AppMonitorBloc: Pushed 22 monitored packages to native
+Skipping malformed offline log item: FormatException: Unexpected character (at character 1)
+INVALID_NOT_JSON_STRING
+^
+
+[Offline Sync] AppMonitorBloc: Tìm thấy 2 log sử dụng lúc tắt UI
+[Offline Sync] Đồng bộ log: com.google.android.youtube (1 phút)
+AppMonitorBloc: timeLimits updated (parent may have approved), force re-check
+00:47 +264 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_edge_cases_test.dart: AppMonitorBloc - Edge Cases & Resilience Tests Monitored apps whitelist filtering: ignores app set to isMonitored=false
+AppMonitorBloc: Pushed 23 monitored packages to native
+AppMonitorBloc: timeLimits updated (parent may have approved), force re-check
+00:48 +265 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_edge_cases_test.dart: AppMonitorBloc - Edge Cases & Resilience Tests Monitored apps whitelist filtering: ignores app set to isMonitored=false
+00:48 +266 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_edge_cases_test.dart: AppMonitorBloc - Edge Cases & Resilience Tests Monitored apps whitelist filtering: ignores app set to isMonitored=false
+00:49 +267 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_edge_cases_test.dart: AppMonitorBloc - Edge Cases & Resilience Tests Monitored apps whitelist filtering: ignores app set to isMonitored=false
+00:49 +268 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_edge_cases_test.dart: AppMonitorBloc - Edge Cases & Resilience Tests Monitored apps whitelist filtering: ignores app set to isMonitored=false
+00:49 +268 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_edge_cases_test.dart: AppMonitorBloc - Edge Cases & Resilience Tests Handles malformed and invalid JSON offline logs gracefully without throwing exception
+Error fetching installed apps: MissingPluginException(No implementation found for method getInstalledApps on channel installed_apps)
+AppMonitorBloc._syncInstalledApps error: MissingPluginException(No implementation found for method getAll on channel plugins.flutter.io/shared_preferences)
+00:49 +269 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_edge_cases_test.dart: AppMonitorBloc - Edge Cases & Resilience Tests Monitored apps whitelist filtering: ignores app set to isMonitored=false
+Error fetching installed apps: MissingPluginException(No implementation found for method getInstalledApps on channel installed_apps)
+AppMonitorBloc._syncInstalledApps error: MissingPluginException(No implementation found for method getAll on channel plugins.flutter.io/shared_preferences)
+00:50 +270 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_edge_cases_test.dart: AppMonitorBloc - Edge Cases & Resilience Tests Monitored apps whitelist filtering: ignores app set to isMonitored=false
+00:50 +271 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_edge_cases_test.dart: AppMonitorBloc - Edge Cases & Resilience Tests Monitored apps whitelist filtering: ignores app set to isMonitored=false
+00:51 +272 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_edge_cases_test.dart: AppMonitorBloc - Edge Cases & Resilience Tests Monitored apps whitelist filtering: ignores app set to isMonitored=false
+00:51 +272 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/keyword_management/keyword_management_bloc_test.dart: KeywordManagementBloc LoadKeywords loads default keywords when no custom set
+Warning: Could not sync keywords to native: MissingPluginException(No implementation found for method updateKeywords on channel com.kidguardian/accessibility)
+00:51 +273 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_edge_cases_test.dart: AppMonitorBloc - Edge Cases & Resilience Tests Monitored apps whitelist filtering: ignores app set to isMonitored=false
+00:51 +273 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/keyword_management/keyword_management_bloc_test.dart: KeywordManagementBloc AddKeyword adds new keyword to list
+Warning: Could not sync keywords to native: MissingPluginException(No implementation found for method updateKeywords on channel com.kidguardian/accessibility)
+Warning: Could not sync keywords to native: MissingPluginException(No implementation found for method updateKeywords on channel com.kidguardian/accessibility)
+00:52 +274 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_edge_cases_test.dart: AppMonitorBloc - Edge Cases & Resilience Tests Monitored apps whitelist filtering: ignores app set to isMonitored=false
+00:52 +274 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/keyword_management/keyword_management_bloc_test.dart: KeywordManagementBloc AddKeyword does not add duplicate keyword
+Warning: Could not sync keywords to native: MissingPluginException(No implementation found for method updateKeywords on channel com.kidguardian/accessibility)
+00:53 +275 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/smart_lock/app_monitor_bloc_edge_cases_test.dart: AppMonitorBloc - Edge Cases & Resilience Tests Monitored apps whitelist filtering: ignores app set to isMonitored=false
+00:53 +275 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/keyword_management/keyword_management_bloc_test.dart: KeywordManagementBloc AddKeyword does not add empty string
+Warning: Could not sync keywords to native: MissingPluginException(No implementation found for method updateKeywords on channel com.kidguardian/accessibility)
+00:53 +276 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/keyword_management/keyword_management_bloc_test.dart: KeywordManagementBloc AddKeyword does not add empty string
+00:54 +277 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/keyword_management/keyword_management_bloc_test.dart: KeywordManagementBloc RemoveKeyword removes keyword from list
+Warning: Could not sync keywords to native: MissingPluginException(No implementation found for method updateKeywords on channel com.kidguardian/accessibility)
+Warning: Could not sync keywords to native: MissingPluginException(No implementation found for method updateKeywords on channel com.kidguardian/accessibility)
+00:55 +278 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/keyword_management/keyword_management_bloc_test.dart: KeywordManagementBloc ResetToDefaults restores default keywords
+Warning: Could not sync keywords to native: MissingPluginException(No implementation found for method updateKeywords on channel com.kidguardian/accessibility)
+00:55 +279 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/keyword_management/keyword_management_bloc_test.dart: KeywordManagementBloc ResetToDefaults restores default keywords
+00:55 +280 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/keyword_management/keyword_management_bloc_test.dart: KeywordManagementBloc ResetToDefaults restores default keywords
+00:55 +281 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/keyword_management/keyword_management_bloc_test.dart: KeywordManagementBloc ResetToDefaults restores default keywords
+00:55 +282 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/keyword_management/keyword_management_bloc_test.dart: KeywordManagementBloc ResetToDefaults restores default keywords
+00:55 +283 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/keyword_management/keyword_management_bloc_test.dart: KeywordManagementBloc ResetToDefaults restores default keywords
+00:55 +284 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/keyword_management/keyword_management_bloc_test.dart: KeywordManagementBloc ResetToDefaults restores default keywords
+Warning: Could not sync keywords to native: MissingPluginException(No implementation found for method updateKeywords on channel com.kidguardian/accessibility)
+Warning: Could not sync keywords to native: MissingPluginException(No implementation found for method updateKeywords on channel com.kidguardian/accessibility)
+00:56 +285 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/alert_review/alert_review_bloc_test.dart: AlertReviewBloc initial state is AlertReviewInitial
+00:56 +286 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/alert_review/alert_review_bloc_test.dart: AlertReviewBloc LoadAlertDetail emits AlertReviewLoaded when alert found
+00:56 +287 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/alert_review/alert_review_bloc_test.dart: AlertReviewBloc LoadAlertDetail emits AlertReviewError when alert not found
+00:57 +288 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/alert_review/alert_review_bloc_test.dart: AlertReviewBloc MarkAsReviewed calls repository and reloads alert
+00:57 +289 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/alert_review/alert_review_bloc_test.dart: AlertReviewBloc AddNotes calls repository and reloads alert
+00:57 +290 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/alert_review/alert_review_bloc_test.dart: AlertReviewBloc AddNotes calls repository and reloads alert
+00:57 +291 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/alert_review/alert_review_bloc_test.dart: AlertReviewBloc AddNotes calls repository and reloads alert
+00:58 +292 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/alert_history/alert_history_bloc_test.dart: AlertHistoryBloc BUG-4: LoadAlerts filters out non-keyword alerts (e.g. app_blocked)
+00:58 +293 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/alert_review/alert_review_bloc_test.dart: AlertReviewBloc DismissAlert calls repository and reloads alert
+00:58 +294 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/alert_review/alert_review_bloc_test.dart: AlertReviewBloc DismissAlert calls repository and reloads alert
+00:58 +295 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/alert_history/alert_history_bloc_test.dart: AlertHistoryBloc FilterByStatus filters reviewed alerts
+00:58 +296 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/alert_history/alert_history_bloc_test.dart: AlertHistoryBloc MarkAlertReviewed calls repository
+00:59 +297 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/notification_history/notification_history_bloc_test.dart: NotificationHistoryBloc initial state is NotificationHistoryInitial
+00:59 +298 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/notification_history/notification_history_bloc_test.dart: NotificationHistoryBloc LoadNotifications starts listening and emits loaded state
+00:59 +299 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/notification_history/notification_history_bloc_test.dart: NotificationHistoryBloc emits notifications sorted by date from stream
+00:59 +300 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/notification_history/notification_history_bloc_test.dart: NotificationHistoryBloc FilterByReadStatus filters unread notifications
+01:00 +301 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/notification_history/notification_history_bloc_test.dart: NotificationHistoryBloc FilterByReadStatus filters read notifications
+01:00 +302 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/notification_history/notification_history_bloc_test.dart: NotificationHistoryBloc FilterByType filters by notification type
+01:00 +303 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/notification_history/notification_history_bloc_test.dart: NotificationHistoryBloc MarkAsReadEvent calls repository
+01:00 +304 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/notification_history/notification_history_bloc_test.dart: NotificationHistoryBloc MarkAllAsReadEvent calls repository
+01:00 +305 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/bugs/bug_ab_native_behavior_test.dart: Bug A — Gửi danh sách blocked apps xuống native Step 1: Khi LoadMonitoredApps, MethodChannel updateBlockedApps phải được gọi
+01:01 +306 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/bugs/bug_ab_native_behavior_test.dart: Bug A — Gửi danh sách blocked apps xuống native Step 1: Khi LoadMonitoredApps, MethodChannel updateBlockedApps phải được gọi
+01:01 +306 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/notification_history/notification_history_bloc_test.dart: NotificationHistoryBloc emits error state when markAsRead fails
+Error marking notification as read: Exception: Failed
+01:01 +307 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/bugs/bug_ab_native_behavior_test.dart: Bug A — Gửi danh sách blocked apps xuống native Step 1: Khi LoadMonitoredApps, MethodChannel updateBlockedApps phải được gọi
+01:01 +308 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/bugs/bug_ab_native_behavior_test.dart: Bug B — Self-exclusion kiểm tra boundary từ Dart Step 2: Đảm bảo app không vô tình sync own package xuống Native (Dù native cũng đã có C-level guard)
+01:02 +309 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/emergency_access/emergency_access_bloc_test.dart: EmergencyAccessBloc initial state is EmergencyAccessInitial
+01:02 +310 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/emergency_access/emergency_access_bloc_test.dart: EmergencyAccessBloc LoadEmergencyHistory emits [EmergencyAccessLoading, EmergencyHistoryLoaded] on success
+01:02 +311 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/emergency_access/emergency_access_bloc_test.dart: EmergencyAccessBloc LoadEmergencyHistory emits [EmergencyAccessLoading, EmergencyHistoryLoaded] with empty list
+01:02 +312 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/emergency_access/emergency_access_bloc_test.dart: EmergencyAccessBloc LoadEmergencyHistory emits [EmergencyAccessLoading, EmergencyAccessError] on failure
+01:02 +313 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/emergency_access/emergency_access_bloc_test.dart: EmergencyAccessBloc LoadEmergencyContacts emits [EmergencyAccessLoading, EmergencyContactLoaded] on success
+01:02 +314 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/emergency_access/emergency_access_bloc_test.dart: EmergencyAccessBloc LoadEmergencyContacts emits EmergencyContactLoaded with null values when not found
+01:02 +315 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/emergency_access/emergency_access_bloc_test.dart: EmergencyAccessBloc LoadEmergencyContacts emits [EmergencyAccessLoading, EmergencyAccessError] on failure
+01:02 +316 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/emergency_access/emergency_access_bloc_test.dart: EmergencyAccessBloc UpdateEmergencyPhone emits [EmergencyAccessLoading, EmergencyAccessSuccess] on success
+01:03 +317 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/emergency_access/emergency_access_bloc_test.dart: EmergencyAccessBloc UpdateEmergencyPhone emits [EmergencyAccessLoading, EmergencyAccessError] on failure
+01:03 +318 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/emergency_access/emergency_access_bloc_test.dart: EmergencyAccessBloc ActivateEmergency emits EmergencyActivated when canActivate is true
+01:03 +319 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/emergency_access/emergency_access_bloc_test.dart: EmergencyAccessBloc ActivateEmergency emits EmergencyAccessError when canActivate is false
+01:03 +320 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/emergency_access/emergency_access_bloc_test.dart: EmergencyAccessBloc DeactivateEmergency emits EmergencyAccessSuccess after deactivation
+01:03 +321 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/emergency_access/emergency_access_bloc_test.dart: EmergencyAccessBloc ListenEmergencyState emits EmergencyActive when manager is active
+01:03 +322 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/emergency_access/emergency_access_bloc_test.dart: EmergencyAccessBloc ListenEmergencyState emits EmergencyCooldown when manager has cooldownUntil
+01:03 +323 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/emergency_access/emergency_access_bloc_test.dart: EmergencyAccessBloc ListenEmergencyState emits nothing when manager is inactive and no cooldown
+01:03 +324 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/emergency_access/emergency_access_bloc_test.dart: EmergencyAccessBloc EmergencyTimerUpdated emits EmergencyActive with updated seconds when currently active
+01:03 +325 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/emergency_access/emergency_access_bloc_test.dart: EmergencyAccessBloc EmergencyTimerUpdated emits nothing when manager is not active
+01:03 +326 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/emergency_access/emergency_access_bloc_test.dart: EmergencyAccessBloc EmergencyTimerUpdated emits nothing when current state is not EmergencyActive
+01:03 +327 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/notification/notification_bloc_time_request_test.dart: NotificationBloc — FIX C3: Time Request Stream Listener StartTimeRequestListening khởi tạo stream và emit NotificationListening
+01:03 +328 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/notification/notification_bloc_time_request_test.dart: NotificationBloc — FIX C3: Time Request Stream Listener Time request mới (pending) → hiển thị local notification
+[NotificationBloc] New pending time request detected: req-1 (TikTok, 15m)
+[NotificationBloc] Triggering push notification for request req-1
+01:03 +329 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/notification/notification_bloc_time_request_test.dart: NotificationBloc — FIX C3: Time Request Stream Listener Request cùng ID không trigger notification lần thứ 2 (dedup)
+[NotificationBloc] New pending time request detected: req-dup (TikTok, 15m)
+[NotificationBloc] Triggering push notification for request req-dup
+01:04 +330 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/notification/notification_bloc_time_request_test.dart: NotificationBloc — FIX C3: Time Request Stream Listener Hai request khác ID đều trigger notification
+[NotificationBloc] New pending time request detected: req-a (TikTok, 15m)
+[NotificationBloc] Triggering push notification for request req-a
+[NotificationBloc] New pending time request detected: req-b (TikTok, 15m)
+[NotificationBloc] Triggering push notification for request req-b
+01:04 +331 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/notification/notification_bloc_time_request_test.dart: NotificationBloc — FIX C3: Time Request Stream Listener StopTimeRequestListening — request sau khi stop không trigger notification
+01:04 +332 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/notification/notification_bloc_test.dart: (setUpAll)
+01:04 +332 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/notification/notification_bloc_time_request_test.dart: NotificationBloc — FIX C3: Time Request Stream Listener QuickApproveRequest / QuickRejectRequest QuickApproveRequest gọi repository.approveRequest
+01:04 +333 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/notification/notification_bloc_test.dart: NotificationBloc initial state is NotificationInitial
+01:04 +334 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/notification/notification_bloc_test.dart: NotificationBloc initial state is NotificationInitial
+01:04 +335 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/notification/notification_bloc_test.dart: NotificationBloc initializeNotifications calls plugin initialize
+01:04 +336 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/notification/notification_bloc_test.dart: NotificationBloc StartAlertListening emits NotificationListening
+01:04 +337 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/notification/notification_bloc_test.dart: NotificationBloc StopAlertListening emits NotificationInitial
+01:04 +338 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/notification/notification_bloc_test.dart: NotificationBloc stream alerts trigger AlertReceived and update pending count
+01:04 +339 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/notification/notification_bloc_test.dart: NotificationBloc MarkAlertReviewed calls repository and decrements pending count
+01:05 +340 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/notification/notification_bloc_test.dart: NotificationBloc MarkAlertReviewed emits error when repository throws
+Error marking alert as reviewed: Exception: DB error
+01:05 +341 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/notification/notification_bloc_test.dart: NotificationBloc QuickApproveRequest calls repository and emits listening state
+01:05 +342 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/notification/notification_bloc_test.dart: NotificationBloc QuickApproveRequest emits error when repository throws
+Error quick approving request: Exception: Approve error
+01:06 +343 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/notification/notification_bloc_test.dart: NotificationBloc QuickRejectRequest calls repository and emits listening state
+01:06 +344 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/notification_preferences_section_test.dart: NotificationPreferencesSection displays all notification toggles
+01:06 +344 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/blocs/notification/notification_bloc_test.dart: NotificationBloc QuickRejectRequest emits error when repository throws
+Error quick rejecting request: Exception: Reject error
+01:06 +345 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/notification_preferences_section_test.dart: NotificationPreferencesSection displays all notification toggles
+01:07 +346 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/notification_preferences_section_test.dart: NotificationPreferencesSection displays correct toggle states
+01:07 +347 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/notification_preferences_section_test.dart: NotificationPreferencesSection displays Vietnamese descriptions
+01:07 +348 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/notification_preferences_section_test.dart: NotificationPreferencesSection displays quiet hours section
+01:07 +349 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/notification_preferences_section_test.dart: NotificationPreferencesSection displays quiet hours time pickers when enabled
+01:07 +350 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/notification_preferences_section_test.dart: NotificationPreferencesSection displays notification sound section
+01:08 +351 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/emergency_contact_sheet_test.dart: EmergencyContactSheet displays title
+01:09 +352 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/emergency_contact_sheet_test.dart: EmergencyContactSheet displays subtitle
+01:10 +353 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/time_picker_bottom_sheet_test.dart: TimePickerBottomSheet displays everyday picker correctly
+01:10 +354 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/time_picker_bottom_sheet_test.dart: TimePickerBottomSheet displays everyday picker correctly
+01:10 +355 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/time_picker_bottom_sheet_test.dart: TimePickerBottomSheet displays everyday picker correctly
+01:10 +356 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/time_picker_bottom_sheet_test.dart: TimePickerBottomSheet displays everyday picker correctly
+01:11 +357 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/time_picker_bottom_sheet_test.dart: TimePickerBottomSheet displays everyday picker correctly
+01:11 +358 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/time_picker_bottom_sheet_test.dart: TimePickerBottomSheet displays everyday picker correctly
+01:11 +359 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/emergency_contact_sheet_test.dart: EmergencyContactSheet close button dismisses sheet
+01:11 +360 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/emergency_contact_sheet_test.dart: EmergencyAccessManager initial state is inactive
+01:11 +361 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/emergency_contact_sheet_test.dart: EmergencyAccessManager activate sets isActive to true
+EmergencyAccessManager: activated for 5 minutes
+EmergencyAccessManager: deactivated, cooldown until 2026-09-05 04:13:23.188500
+01:11 +362 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/emergency_contact_sheet_test.dart: EmergencyAccessManager cannot activate when already active
+EmergencyAccessManager: activated for 5 minutes
+EmergencyAccessManager: deactivated, cooldown until 2026-09-05 04:13:23.285461
+01:11 +363 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/emergency_contact_sheet_test.dart: EmergencyAccessManager deactivate sets cooldown
+EmergencyAccessManager: activated for 5 minutes
+EmergencyAccessManager: deactivated, cooldown until 2026-09-05 04:13:23.294110
+01:13 +364 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/request_time_dialog_test.dart: RequestTimeDialog (Specific App) displays dialog title
+01:15 +365 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/time_picker_bottom_sheet_zero_test.dart: TimePickerBottomSheet passes empty map when everyday minutes is 0
+01:15 +366 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/time_picker_bottom_sheet_zero_test.dart: TimePickerBottomSheet passes empty map when everyday minutes is 0
+01:15 +367 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/time_picker_bottom_sheet_zero_test.dart: TimePickerBottomSheet passes empty map when everyday minutes is 0
+01:16 +368 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/request_time_dialog_test.dart: RequestTimeDialog (Specific App) 15 phút is selected by default
+01:16 +369 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/request_time_dialog_test.dart: RequestTimeDialog (Specific App) can select different minute option
+01:16 +370 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/request_time_dialog_test.dart: RequestTimeDialog (Specific App) displays reason text field
+01:16 +371 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/request_time_dialog_test.dart: RequestTimeDialog (Specific App) displays submit button
+01:16 +372 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/request_time_dialog_test.dart: RequestTimeDialog (Specific App) displays cancel button
+01:17 +373 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/request_time_dialog_test.dart: RequestTimeDialog (Specific App) can enter reason text
+01:17 +374 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/request_time_dialog_test.dart: RequestTimeDialog (General Request with App Selector) displays DropdownButtonFormField when general_time
+01:17 +375 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/request_time_dialog_test.dart: RequestTimeDialog (General Request with App Selector) displays DropdownButtonFormField when general_time
+01:17 +376 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/request_time_dialog_test.dart: RequestTimeDialog (General Request with App Selector) displays DropdownButtonFormField when general_time
+01:17 +377 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/request_time_dialog_test.dart: RequestTimeDialog (General Request with App Selector) displays DropdownButtonFormField when general_time
+01:17 +378 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/request_time_dialog_test.dart: RequestTimeDialog (General Request with App Selector) displays DropdownButtonFormField when general_time
+01:17 +379 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/request_time_dialog_test.dart: RequestTimeDialog (General Request with App Selector) displays DropdownButtonFormField when general_time
+01:17 +380 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/request_time_dialog_test.dart: RequestTimeDialog (General Request with App Selector) displays DropdownButtonFormField when general_time
+01:17 +381 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/request_time_dialog_test.dart: RequestTimeDialog (General Request with App Selector) displays DropdownButtonFormField when general_time
+01:17 +382 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/request_time_dialog_test.dart: RequestTimeDialog (General Request with App Selector) displays DropdownButtonFormField when general_time
+01:17 +383 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/request_time_dialog_test.dart: RequestTimeDialog (General Request with App Selector) displays DropdownButtonFormField when general_time
+01:17 +384 -1: loading /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/time_range_picker_test.dart
+01:19 +384 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/time_range_picker_test.dart: TimeRangePicker should display start and end time
+01:20 +385 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/day_selector_test.dart: DaySelector should render all 7 days
+01:21 +386 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/day_selector_test.dart: DaySelector should render all 7 days
+01:21 +387 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/day_selector_test.dart: DaySelector should render all 7 days
+01:21 +388 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/day_selector_test.dart: DaySelector should highlight selected days
+01:21 +389 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/day_selector_test.dart: DaySelector should call onChanged when day is tapped
+01:22 +390 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/day_selector_test.dart: DaySelector should show select all button
+01:23 +391 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/smart_lock/app_limit_item_test.dart: AppLimitItem displays correctly with everyday limit
+01:24 +392 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/child_analytics_widget_test.dart: ChildAnalyticsWidget — Loading & Empty states hiển thị loading spinner khi DashboardLoading
+01:24 +393 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/child_analytics_widget_test.dart: ChildAnalyticsWidget — Loading & Empty states hiển thị loading spinner khi DashboardLoading
+01:25 +394 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/child_analytics_widget_test.dart: ChildAnalyticsWidget — Loading & Empty states hiển thị empty state khi DashboardLoaded rỗng
+01:25 +395 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/child_analytics_widget_test.dart: ChildAnalyticsWidget — Loading & Empty states hiển thị error state khi DashboardError
+01:25 +396 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/child_analytics_widget_test.dart: ChildAnalyticsWidget — Summary Cards hiển thị 3 summary card labels
+01:25 +397 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/child_analytics_widget_test.dart: ChildAnalyticsWidget — Summary Cards hiển thị đúng số phút hôm nay
+01:26 +398 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/child_analytics_widget_test.dart: ChildAnalyticsWidget — Summary Cards tính đúng tổng 7 ngày (30+45+60=135)
+01:26 +399 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/child_analytics_widget_test.dart: ChildAnalyticsWidget — Summary Cards hiển thị số 0 khi không có data
+01:26 +400 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/child_analytics_widget_test.dart: ChildAnalyticsWidget — App Filtering render không crash khi có cả monitored và system app
+01:26 +401 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/child_analytics_widget_test.dart: ChildAnalyticsWidget — App Filtering render không crash khi tất cả app đều có 0 phút
+01:26 +402 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/child_analytics_widget_test.dart: ChildAnalyticsWidget — Daily list hiển thị header "7 ngày gần nhất" khi có dailyTotals
+01:26 +403 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/child_analytics_widget_test.dart: ChildAnalyticsWidget — Daily list ẩn danh sách ngày khi dailyTotals rỗng
+01:26 +404 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/bug_c_usage_chart_test.dart: Bug C — Daily Chart (Tab Ngày) Step 1: Khi cả appTotals và dailyTotals đều rỗng → hiện thông báo "Chưa có dữ liệu hôm nay"
+01:26 +405 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/bug_c_usage_chart_test.dart: Bug C — Daily Chart (Tab Ngày) Step 1: Khi cả appTotals và dailyTotals đều rỗng → hiện thông báo "Chưa có dữ liệu hôm nay"
+01:27 +406 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/bug_c_usage_chart_test.dart: Bug C — Daily Chart (Tab Ngày) Step 1: Khi cả appTotals và dailyTotals đều rỗng → hiện thông báo "Chưa có dữ liệu hôm nay"
+01:27 +407 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/bug_c_usage_chart_test.dart: Bug C — Daily Chart (Tab Ngày) Step 1: Khi cả appTotals và dailyTotals đều rỗng → hiện thông báo "Chưa có dữ liệu hôm nay"
+01:27 +408 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/bug_c_usage_chart_test.dart: Bug C — Daily Chart (Tab Ngày) Step 1: Khi cả appTotals và dailyTotals đều rỗng → hiện thông báo "Chưa có dữ liệu hôm nay"
+01:28 +409 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/bug_c_usage_chart_test.dart: Bug C — Daily Chart (Tab Ngày) Step 2: Khi appTotals rỗng nhưng dailyTotals có data → hiện tổng tuần từ dailyTotals
+01:28 +410 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/bug_c_usage_chart_test.dart: Bug C — Daily Chart (Tab Ngày) Step 3: Khi appTotals có data hợp lệ → PIE CHART phải hiển thị, không bị ẩn
+01:28 +411 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/bug_c_usage_chart_test.dart: Bug C — Daily Chart (Tab Ngày) Step 3: Khi appTotals có data hợp lệ → PIE CHART phải hiển thị, không bị ẩn
+01:28 +412 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/bug_c_usage_chart_test.dart: Bug C — Daily Chart (Tab Ngày) Step 3: Khi appTotals có data hợp lệ → PIE CHART phải hiển thị, không bị ẩn
+01:28 +413 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/bug_c_usage_chart_test.dart: Bug C — Daily Chart (Tab Ngày) Step 3: Khi appTotals có data hợp lệ → PIE CHART phải hiển thị, không bị ẩn
+01:28 +414 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/bug_c_usage_chart_test.dart: Bug C — Daily Chart (Tab Ngày) Step 3: Khi appTotals có data hợp lệ → PIE CHART phải hiển thị, không bị ẩn
+01:28 +415 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/lock_history_entry_model_test.dart: LockHistoryEntryModel toJson serializes all fields
+01:28 +416 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/bug_c_usage_chart_test.dart: Bug C — Daily Chart (Tab Ngày) Step 4: Khi appTotals có entries với value = 0 → widget không crash và hiện empty state
+01:28 +417 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/bug_c_usage_chart_test.dart: Bug C — Daily Chart (Tab Ngày) Step 4: Khi appTotals có entries với value = 0 → widget không crash và hiện empty state
+01:28 +418 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/bug_c_usage_chart_test.dart: Bug C — Daily Chart (Tab Ngày) Step 4: Khi appTotals có entries với value = 0 → widget không crash và hiện empty state
+01:28 +419 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/bug_c_usage_chart_test.dart: Bug C — Weekly Chart (Tab Tuần) Step 5: Tab Tuần với dailyTotals rỗng → hiện empty state
+01:28 +420 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/bug_c_usage_chart_test.dart: Bug C — Weekly Chart (Tab Tuần) Step 6: Tab Tuần với dailyTotals dạng "yyyy-MM-dd" → BAR CHART phải render
+01:29 +421 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/bug_c_usage_chart_test.dart: Bug C — Weekly Chart (Tab Tuần) Step 7: Weekly chart group by week — nhiều ngày trong cùng tuần → 1 bar
+01:29 +422 -1: /home/minhduc168/KidGuardian-THPT/test/presentation/widgets/bug_c_usage_chart_test.dart: Regression — Tab switching Step 8: Switch qua lại giữa Ngày và Tuần nhiều lần không crash
+01:29 +423 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/user_model_test.dart: UserModel should be a subclass of User entity
+01:29 +424 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/user_model_test.dart: UserModel constructor should create parent user with optional fields
+01:29 +425 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/user_model_test.dart: UserModel constructor should create child user with optional fields
+01:29 +426 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/user_model_test.dart: UserModel fromFirestore should return valid parent model from Firestore document
+01:29 +427 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/user_model_test.dart: UserModel fromFirestore should return child role when role is not parent
+01:30 +428 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/user_model_test.dart: UserModel fromFirestore should default to child role for unknown role string
+01:30 +429 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/user_model_test.dart: UserModel fromFirestore should use defaults when fields are missing
+01:30 +430 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/user_model_test.dart: UserModel fromFirestore should fallback to DateTime.now when createdAt is null
+01:30 +431 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/user_model_test.dart: UserModel toMap should return a valid map for parent user
+01:30 +432 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/user_model_test.dart: UserModel toMap should return child role string for child user
+01:30 +433 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/user_model_test.dart: UserModel toMap should handle null optional fields
+01:30 +434 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/user_model_test.dart: UserModel Equatable should be equal when all fields match
+01:30 +435 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/user_model_test.dart: UserModel Equatable should not be equal when fields differ
+01:31 +436 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/usage_log_model_test.dart: UsageLogModel should be a subclass of UsageLog entity
+01:31 +437 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/usage_log_model_test.dart: UsageLogModel toMap should return a valid map
+01:31 +438 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/family_model_test.dart: FamilyModel should be a subclass of Family entity
+01:31 +439 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/family_model_test.dart: FamilyModel constructor should use default values for optional fields
+01:31 +440 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/family_model_test.dart: FamilyModel fromFirestore should return valid model from Firestore document
+01:31 +441 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/family_model_test.dart: FamilyModel fromFirestore should use defaults when fields are missing
+01:31 +442 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/family_model_test.dart: FamilyModel fromFirestore should fallback to DateTime.now when timestamps are null
+01:31 +443 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/family_model_test.dart: FamilyModel fromFirestore should handle empty childUids list
+01:31 +444 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/family_model_test.dart: FamilyModel toMap should return a valid map
+01:31 +445 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/family_model_test.dart: FamilyModel copyWith should return same values when no arguments provided
+01:31 +446 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/family_model_test.dart: FamilyModel copyWith should override specified fields
+01:31 +447 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/family_model_test.dart: FamilyModel Equatable should be equal when all fields match
+01:31 +448 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/family_model_test.dart: FamilyModel Equatable should not be equal when fields differ
+01:32 +449 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/emergency_log_model_test.dart: EmergencyLogModel constructor should create instance with all fields
+01:32 +450 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/emergency_log_model_test.dart: EmergencyLogModel fromFirestore should return valid model from Firestore document
+01:32 +451 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/emergency_log_model_test.dart: EmergencyLogModel fromFirestore should use defaults when fields are missing
+01:32 +452 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/emergency_log_model_test.dart: EmergencyLogModel fromFirestore should fallback to DateTime.now when timestamp is null
+01:32 +453 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/emergency_log_model_test.dart: EmergencyLogModel toJson should return a valid map
+01:32 +454 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/emergency_log_model_test.dart: EmergencyLogModel toJson should not include id in map
+01:32 +455 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/emergency_log_model_test.dart: EmergencyLogModel actionLabel should return Vietnamese label for call action
+01:32 +456 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/emergency_log_model_test.dart: EmergencyLogModel actionLabel should return Vietnamese label for sms action
+01:32 +457 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/emergency_log_model_test.dart: EmergencyLogModel actionLabel should return raw action for unknown action
+01:32 +458 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/emergency_log_model_test.dart: EmergencyLogModel statusLabel should return Vietnamese label for active status
+01:32 +459 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/emergency_log_model_test.dart: EmergencyLogModel statusLabel should return Vietnamese label for completed status
+01:32 +460 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/emergency_log_model_test.dart: EmergencyLogModel statusLabel should return raw status for unknown status
+01:33 +461 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/smart_lock_settings_model_test.dart: SmartLockSettingsModel fromJson creates model with all fields
+01:33 +462 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/smart_lock_settings_model_test.dart: SmartLockSettingsModel fromJson uses defaults for missing fields
+01:33 +463 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/smart_lock_settings_model_test.dart: SmartLockSettingsModel fromJson handles num types flexibly
+01:33 +464 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/smart_lock_settings_model_test.dart: SmartLockSettingsModel toJson serializes all fields
+01:33 +465 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/smart_lock_settings_model_test.dart: SmartLockSettingsModel copyWith creates new instance with updated fields
+01:33 +466 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/smart_lock_settings_model_test.dart: SmartLockSettingsModel default constructor has correct defaults
+01:33 +467 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/smart_lock_settings_model_test.dart: SmartLockSettingsModel equality works correctly
+01:33 +468 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/smart_lock_settings_model_test.dart: SmartLockSettingsModel equality differs when fields differ
+01:34 +469 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/weekly_report_model_test.dart: WeeklyReportModel should be a subclass of WeeklyReport entity
+01:34 +470 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/weekly_report_model_test.dart: WeeklyReportModel constructor should use default values for optional fields
+01:34 +471 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/weekly_report_model_test.dart: WeeklyReportModel fromFirestore should return valid model from Firestore document
+01:34 +472 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/monitored_app_model_test.dart: MonitoredAppModel should return a valid model from JSON
+01:34 +473 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/weekly_report_model_test.dart: WeeklyReportModel fromFirestore should use defaults when fields are missing
+01:34 +474 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/weekly_report_model_test.dart: WeeklyReportModel fromFirestore should use defaults when fields are missing
+01:34 +475 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/monitored_app_model_test.dart: MonitoredAppModel should default isMonitored to true when missing in JSON
+01:34 +476 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/weekly_report_model_test.dart: WeeklyReportModel fromFirestore should convert int percentChange to double
+01:34 +477 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/monitored_app_model_test.dart: MonitoredAppModel should return a JSON map containing proper data
+01:34 +478 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/weekly_report_model_test.dart: WeeklyReportModel fromFirestore should fallback to DateTime.now when generatedAt is null
+01:34 +479 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/weekly_report_model_test.dart: WeeklyReportModel fromFirestore should fallback to DateTime.now when generatedAt is null
+01:34 +480 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/weekly_report_model_test.dart: WeeklyReportModel fromFirestore should fallback to DateTime.now when generatedAt is null
+01:34 +481 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/weekly_report_model_test.dart: WeeklyReportModel toMap should return a valid map
+01:34 +482 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/weekly_report_model_test.dart: WeeklyReportModel toMap should return a valid map
+01:34 +483 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/weekly_report_model_test.dart: WeeklyReportModel toMap should return a valid map
+01:34 +484 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/weekly_report_model_test.dart: WeeklyReportModel toMap should not include reportId in map
+01:34 +485 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/weekly_report_model_test.dart: WeeklyReportModel Equatable should be equal when all fields match
+01:34 +486 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/weekly_report_model_test.dart: WeeklyReportModel Equatable should not be equal when fields differ
+01:36 +487 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/auto_approval_rule_model_test.dart: AutoApprovalRule constructor should create instance with required fields only
+01:36 +488 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/auto_approval_rule_model_test.dart: AutoApprovalRule constructor should create instance with all fields
+01:36 +489 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/auto_approval_rule_model_test.dart: AutoApprovalRule fromFirestore should return valid model from Firestore document
+01:36 +490 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/schedule_model_test.dart: ScheduleModel should return a valid model from JSON
+01:36 +491 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/auto_approval_rule_model_test.dart: AutoApprovalRule fromFirestore should use defaults when fields are missing
+01:36 +492 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/auto_approval_rule_model_test.dart: AutoApprovalRule fromFirestore should use defaults when fields are missing
+01:36 +493 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/auto_approval_rule_model_test.dart: AutoApprovalRule fromFirestore should use defaults when fields are missing
+01:36 +494 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/auto_approval_rule_model_test.dart: AutoApprovalRule fromFirestore should use defaults when fields are missing
+01:36 +495 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/schedule_model_test.dart: ScheduleModel copyWith should keep original values when no changes
+01:36 +496 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/auto_approval_rule_model_test.dart: AutoApprovalRule fromFirestore should handle null data gracefully
+01:36 +497 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/auto_approval_rule_model_test.dart: AutoApprovalRule fromFirestore should handle null data gracefully
+01:36 +498 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/schedule_model_test.dart: ScheduleModel should handle same-day schedule (endHour > startHour)
+01:36 +499 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/auto_approval_rule_model_test.dart: AutoApprovalRule fromFirestore should parse appSpecificRules with non-bool values
+01:36 +500 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/auto_approval_rule_model_test.dart: AutoApprovalRule fromFirestore should parse appSpecificRules with non-bool values
+01:36 +501 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/auto_approval_rule_model_test.dart: AutoApprovalRule fromFirestore should parse appSpecificRules with non-bool values
+01:36 +502 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/auto_approval_rule_model_test.dart: AutoApprovalRule fromFirestore should parse appSpecificRules with non-bool values
+01:36 +503 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/auto_approval_rule_model_test.dart: AutoApprovalRule fromFirestore should parse appSpecificRules with non-bool values
+01:36 +504 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/auto_approval_rule_model_test.dart: AutoApprovalRule toMap should return a valid map
+01:36 +505 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/auto_approval_rule_model_test.dart: AutoApprovalRule toMap should return a valid map
+01:36 +506 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/auto_approval_rule_model_test.dart: AutoApprovalRule toMap should not include id in map
+01:36 +507 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/auto_approval_rule_model_test.dart: AutoApprovalRule copyWith should return same values when no arguments provided
+01:36 +508 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/auto_approval_rule_model_test.dart: AutoApprovalRule copyWith should override specified fields
+01:36 +509 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/auto_approval_rule_model_test.dart: AutoApprovalRule Equatable should be equal when all fields match
+01:36 +510 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/auto_approval_rule_model_test.dart: AutoApprovalRule Equatable should not be equal when fields differ
+01:37 +511 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/app_time_limit_model_edge_case_test.dart: AppTimeLimitModel handles missing JSON keys gracefully
+01:38 +512 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/daily_summary_model_test.dart: DailySummaryModel should be a subclass of DailySummary entity
+01:38 +513 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/daily_summary_model_test.dart: DailySummaryModel constructor should use default values for optional fields
+01:38 +514 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/daily_summary_model_test.dart: DailySummaryModel fromFirestore should return valid model from Firestore document
+01:38 +515 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/daily_summary_model_test.dart: DailySummaryModel fromFirestore should use defaults when fields are missing
+01:38 +516 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/daily_summary_model_test.dart: DailySummaryModel fromFirestore should handle null sentAt
+01:38 +517 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/daily_summary_model_test.dart: DailySummaryModel toMap should return a valid map
+01:38 +518 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/daily_summary_model_test.dart: DailySummaryModel toMap should return null sentAt when not set
+01:38 +519 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/daily_summary_model_test.dart: DailySummaryModel toMap should not include summaryId in map
+01:38 +520 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/daily_summary_model_test.dart: DailySummaryModel Equatable should be equal when all fields match
+01:38 +521 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/daily_summary_model_test.dart: DailySummaryModel Equatable should not be equal when fields differ
+01:38 +522 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/app_time_limit_model_test.dart: AppTimeLimitModel should return a valid model from JSON
+01:38 +523 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/app_time_limit_model_test.dart: AppTimeLimitModel should return a JSON map containing proper data
+01:38 +524 -1: /home/minhduc168/KidGuardian-THPT/test/data/models/app_time_limit_model_test.dart: AppTimeLimitModel copyWith should return a new object with updated values
+01:39 +525 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/report_repository_impl_test.dart: (setUpAll)
+01:39 +525 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/report_repository_impl_test.dart: ReportRepositoryImpl getReportsByChild should return empty list when no reports exist
+01:39 +526 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/report_repository_impl_test.dart: ReportRepositoryImpl getReportsByChild should return reports when they exist
+01:39 +527 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/report_repository_impl_test.dart: ReportRepositoryImpl getReportsByChild should return empty list on error
+01:39 +528 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/report_repository_impl_test.dart: ReportRepositoryImpl getReportsByFamily should return empty list when no reports exist
+01:39 +529 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/report_repository_impl_test.dart: ReportRepositoryImpl getReportsByFamily should return empty list on error
+01:39 +530 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/report_repository_impl_test.dart: ReportRepositoryImpl getLatestReport should return null when no reports exist
+01:39 +531 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/report_repository_impl_test.dart: ReportRepositoryImpl sendReportByEmail should call email service and return result
+01:39 +532 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/report_repository_impl_test.dart: ReportRepositoryImpl sendReportByEmail should return false when email service fails
+01:39 +533 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/report_repository_impl_test.dart: ReportRepositoryImpl updateEmailPreference should call email service and return true
+01:39 +534 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/report_repository_impl_test.dart: ReportRepositoryImpl updateEmailPreference should return false when service fails
+01:39 +535 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/report_repository_impl_test.dart: ReportRepositoryImpl getEmailPreference should return true when email report is enabled
+01:39 +536 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/report_repository_impl_test.dart: ReportRepositoryImpl getEmailPreference should return false when email report is disabled
+01:39 +537 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/report_repository_impl_test.dart: ReportRepositoryImpl getEmailPreference should return false when document does not exist
+01:39 +538 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/report_repository_impl_test.dart: ReportRepositoryImpl getEmailPreference should return false on error
+01:39 +539 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/report_repository_impl_test.dart: ReportRepositoryImpl generateWeeklyReport should calculate real-time weekly report and save to firestore
+01:39 +540 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/report_repository_impl_test.dart: ReportRepositoryImpl generateWeeklyReport should generate new report when none exists for this week
+01:39 +541 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/report_repository_impl_test.dart: ReportRepositoryImpl generateWeeklyReport should filter out unmonitored apps like Gmail and LinkedIn from weekly report
+01:39 +542 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/report_repository_impl_test.dart: (tearDownAll)
+01:40 +542 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/smart_lock_repository_test.dart: (setUpAll)
+01:40 +542 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/smart_lock_repository_test.dart: SmartLockRepository getAppTimeLimits should return a list of AppTimeLimitModel
+01:40 +543 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/smart_lock_repository_test.dart: SmartLockRepository saveAppTimeLimit should set data to correct document
+01:40 +544 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/smart_lock_repository_test.dart: SmartLockRepository - Monitored Apps getMonitoredApps should return a list of MonitoredAppModel
+01:40 +545 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/smart_lock_repository_test.dart: SmartLockRepository - Monitored Apps getMonitoredApps should return empty list when no documents
+01:40 +546 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/smart_lock_repository_test.dart: SmartLockRepository - Monitored Apps toggleMonitoredApp should set data to correct document
+01:40 +547 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/smart_lock_repository_test.dart: SmartLockRepository - Monitored Apps addCustomApp should set data to correct document
+01:40 +548 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/smart_lock_repository_test.dart: SmartLockRepository - Monitored Apps getPopularMonitoredApps should return predefined list
+01:40 +549 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/smart_lock_repository_test.dart: SmartLockRepository - Schedules getSchedules should return a list of ScheduleModel
+01:40 +550 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/smart_lock_repository_test.dart: SmartLockRepository - Schedules getSchedules should return empty list when no documents
+01:40 +551 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/smart_lock_repository_test.dart: SmartLockRepository - Schedules saveSchedule should set data to correct document
+01:40 +552 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/smart_lock_repository_test.dart: SmartLockRepository - Schedules saveSchedule should use provided id when not empty
+01:40 +553 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/smart_lock_repository_test.dart: SmartLockRepository - Schedules deleteSchedule should delete correct document
+01:40 +554 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/smart_lock_repository_test.dart: (tearDownAll)
+01:41 +554 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — Alert Repository: tất cả loại alert phải hiển thị Step 1: keyword_detected alert → xuất hiện trong notification list với title "⚠️ Cảnh báo từ khóa"
+InAppNotificationBloc: Failed to load persisted readIds: MissingPluginException(No implementation found for method getAll on channel plugins.flutter.io/shared_preferences)
+01:41 +555 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — Alert Repository: tất cả loại alert phải hiển thị Step 1: keyword_detected alert → xuất hiện trong notification list với title "⚠️ Cảnh báo từ khóa"
+01:41 +556 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — Alert Repository: tất cả loại alert phải hiển thị Step 1: keyword_detected alert → xuất hiện trong notification list với title "⚠️ Cảnh báo từ khóa"
+01:41 +557 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — Alert Repository: tất cả loại alert phải hiển thị Step 1: keyword_detected alert → xuất hiện trong notification list với title "⚠️ Cảnh báo từ khóa"
+01:41 +558 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — Alert Repository: tất cả loại alert phải hiển thị Step 1: keyword_detected alert → xuất hiện trong notification list với title "⚠️ Cảnh báo từ khóa"
+01:41 +559 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — Alert Repository: tất cả loại alert phải hiển thị Step 1: keyword_detected alert → xuất hiện trong notification list với title "⚠️ Cảnh báo từ khóa"
+01:41 +560 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — Alert Repository: tất cả loại alert phải hiển thị Step 1: keyword_detected alert → xuất hiện trong notification list với title "⚠️ Cảnh báo từ khóa"
+01:41 +561 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — Alert Repository: tất cả loại alert phải hiển thị Step 1: keyword_detected alert → xuất hiện trong notification list với title "⚠️ Cảnh báo từ khóa"
+01:41 +562 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — Alert Repository: tất cả loại alert phải hiển thị Step 1: keyword_detected alert → xuất hiện trong notification list với title "⚠️ Cảnh báo từ khóa"
+01:41 +563 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — Alert Repository: tất cả loại alert phải hiển thị Step 1: keyword_detected alert → xuất hiện trong notification list với title "⚠️ Cảnh báo từ khóa"
+01:41 +564 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — Alert Repository: tất cả loại alert phải hiển thị Step 1: keyword_detected alert → xuất hiện trong notification list với title "⚠️ Cảnh báo từ khóa"
+01:41 +565 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — Alert Repository: tất cả loại alert phải hiển thị Step 2: app_blocked alert → xuất hiện trong notification list với title "🔒 Ứng dụng bị chặn"
+InAppNotificationBloc: Failed to load persisted readIds: MissingPluginException(No implementation found for method getAll on channel plugins.flutter.io/shared_preferences)
+01:42 +566 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — Alert Repository: tất cả loại alert phải hiển thị Step 3: time_request alert từ AlertRepository phải bị bỏ qua (đã được xử lý riêng qua TimeRequestRepository stream)
+InAppNotificationBloc: Failed to load persisted readIds: MissingPluginException(No implementation found for method getAll on channel plugins.flutter.io/shared_preferences)
+01:42 +567 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — Alert Repository: tất cả loại alert phải hiển thị Step 4: Mixed alerts (keyword + app_blocked) → TẤT CẢ 3 phải hiện
+InAppNotificationBloc: Failed to load persisted readIds: MissingPluginException(No implementation found for method getAll on channel plugins.flutter.io/shared_preferences)
+01:42 +568 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — Alert Repository: tất cả loại alert phải hiển thị Step 4: Mixed alerts (keyword + app_blocked) → TẤT CẢ 3 phải hiện
+01:42 +569 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — Alert Repository: tất cả loại alert phải hiển thị Step 4: Mixed alerts (keyword + app_blocked) → TẤT CẢ 3 phải hiện
+01:42 +569 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/auth_repository_impl_test.dart: AuthRepositoryImpl getCurrentUser should return null when user exists in Auth but not in Firestore
+User document does not exist for uid: uid-123
+01:42 +570 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — Alert Repository: tất cả loại alert phải hiển thị Step 4: Mixed alerts (keyword + app_blocked) → TẤT CẢ 3 phải hiện
+01:42 +570 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/auth_repository_impl_test.dart: AuthRepositoryImpl login should return user on successful login
+Firebase Auth successful for uid: uid-123
+01:42 +571 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — Alert Repository: tất cả loại alert phải hiển thị Step 4: Mixed alerts (keyword + app_blocked) → TẤT CẢ 3 phải hiện
+01:42 +571 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/auth_repository_impl_test.dart: AuthRepositoryImpl login should create Firestore document when user not in Firestore
+Firebase Auth successful for uid: uid-123
+User document does not exist for uid: uid-123
+User document not found in Firestore, creating...
+01:42 +572 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — Alert Repository: tất cả loại alert phải hiển thị Step 4: Mixed alerts (keyword + app_blocked) → TẤT CẢ 3 phải hiện
+01:42 +572 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/auth_repository_impl_test.dart: AuthRepositoryImpl login should throw when credential user is null
+Unexpected error during login: Đăng nhập thất bại: Lỗi hệ thống từ Firebase.
+01:42 +573 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — Alert Repository: tất cả loại alert phải hiển thị Step 4: Mixed alerts (keyword + app_blocked) → TẤT CẢ 3 phải hiện
+01:42 +573 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/auth_repository_impl_test.dart: AuthRepositoryImpl login should throw Vietnamese message on user-not-found
+FirebaseAuthException during login: user-not-found - User not found
+01:42 +574 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — Alert Repository: tất cả loại alert phải hiển thị Step 4: Mixed alerts (keyword + app_blocked) → TẤT CẢ 3 phải hiện
+01:42 +574 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/auth_repository_impl_test.dart: AuthRepositoryImpl login should throw Vietnamese message on wrong-password
+FirebaseAuthException during login: wrong-password - Wrong password
+01:42 +575 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — Alert Repository: tất cả loại alert phải hiển thị Step 4: Mixed alerts (keyword + app_blocked) → TẤT CẢ 3 phải hiện
+01:42 +575 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/auth_repository_impl_test.dart: AuthRepositoryImpl login should throw Vietnamese message on invalid-email
+FirebaseAuthException during login: invalid-email - Invalid email
+01:42 +576 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — Alert Repository: tất cả loại alert phải hiển thị Step 4: Mixed alerts (keyword + app_blocked) → TẤT CẢ 3 phải hiện
+01:42 +576 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/auth_repository_impl_test.dart: AuthRepositoryImpl register should return user on successful registration
+Firebase Auth user created: new-uid
+User document created in Firestore
+01:42 +577 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — Alert Repository: tất cả loại alert phải hiển thị Step 4: Mixed alerts (keyword + app_blocked) → TẤT CẢ 3 phải hiện
+01:42 +577 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/auth_repository_impl_test.dart: AuthRepositoryImpl register should throw Vietnamese message on email-already-in-use
+FirebaseAuthException during registration: email-already-in-use - Email already in use
+01:42 +578 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — Alert Repository: tất cả loại alert phải hiển thị Step 4: Mixed alerts (keyword + app_blocked) → TẤT CẢ 3 phải hiện
+01:43 +578 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/auth_repository_impl_test.dart: AuthRepositoryImpl register should throw Vietnamese message on weak-password
+FirebaseAuthException during registration: weak-password - Weak password
+01:43 +579 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — Alert Repository: tất cả loại alert phải hiển thị Step 4: Mixed alerts (keyword + app_blocked) → TẤT CẢ 3 phải hiện
+01:43 +579 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/auth_repository_impl_test.dart: AuthRepositoryImpl register should throw when credential user is null
+Unexpected error during registration: Đăng ký thất bại: Lỗi hệ thống từ Firebase.
+01:43 +580 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — Alert Repository: tất cả loại alert phải hiển thị Step 4: Mixed alerts (keyword + app_blocked) → TẤT CẢ 3 phải hiện
+01:43 +581 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — Alert Repository: tất cả loại alert phải hiển thị Step 4: Mixed alerts (keyword + app_blocked) → TẤT CẢ 3 phải hiện
+01:43 +582 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — Alert Repository: tất cả loại alert phải hiển thị Step 4: Mixed alerts (keyword + app_blocked) → TẤT CẢ 3 phải hiện
+01:43 +583 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — Alert Repository: tất cả loại alert phải hiển thị Step 4: Mixed alerts (keyword + app_blocked) → TẤT CẢ 3 phải hiện
+01:43 +584 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — Alert Repository: tất cả loại alert phải hiển thị Step 4: Mixed alerts (keyword + app_blocked) → TẤT CẢ 3 phải hiện
+01:43 +585 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — Alert Repository: tất cả loại alert phải hiển thị Step 4: Mixed alerts (keyword + app_blocked) → TẤT CẢ 3 phải hiện
+01:43 +586 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — Alert Repository: tất cả loại alert phải hiển thị Step 4: Mixed alerts (keyword + app_blocked) → TẤT CẢ 3 phải hiện
+01:43 +587 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — Alert Repository: tất cả loại alert phải hiển thị Step 5: Reviewed alerts (isReviewed=true) → được mark isRead=true trong UI, unreadCount = 1 (chỉ 1 chưa đọc)
+InAppNotificationBloc: Failed to load persisted readIds: MissingPluginException(No implementation found for method getAll on channel plugins.flutter.io/shared_preferences)
+01:43 +588 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — Alert Repository: tất cả loại alert phải hiển thị Step 6: watchAllFamilyAlerts filter isReviewed=false ở Firestore → bloc chỉ nhận alerts chưa reviewed
+InAppNotificationBloc: Failed to load persisted readIds: MissingPluginException(No implementation found for method getAll on channel plugins.flutter.io/shared_preferences)
+01:43 +589 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — AlertRepository: watchAllFamilyAlerts không filter theo type Step 7 (Unit): AlertRepositoryImpl.watchAllFamilyAlerts phải emit cả keyword_detected VÀ app_blocked alerts sau khi fix
+InAppNotificationBloc: Failed to load persisted readIds: MissingPluginException(No implementation found for method getAll on channel plugins.flutter.io/shared_preferences)
+01:44 +590 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — AlertRepository: watchAllFamilyAlerts không filter theo type Step 7 (Unit): AlertRepositoryImpl.watchAllFamilyAlerts phải emit cả keyword_detected VÀ app_blocked alerts sau khi fix
+01:44 +591 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — AlertRepository: watchAllFamilyAlerts không filter theo type Step 7 (Unit): AlertRepositoryImpl.watchAllFamilyAlerts phải emit cả keyword_detected VÀ app_blocked alerts sau khi fix
+01:44 +592 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — AlertRepository: watchAllFamilyAlerts không filter theo type Step 7 (Unit): AlertRepositoryImpl.watchAllFamilyAlerts phải emit cả keyword_detected VÀ app_blocked alerts sau khi fix
+01:44 +593 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — AlertRepository: watchAllFamilyAlerts không filter theo type Step 7 (Unit): AlertRepositoryImpl.watchAllFamilyAlerts phải emit cả keyword_detected VÀ app_blocked alerts sau khi fix
+01:44 +594 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — AlertRepository: watchAllFamilyAlerts không filter theo type Step 7 (Unit): AlertRepositoryImpl.watchAllFamilyAlerts phải emit cả keyword_detected VÀ app_blocked alerts sau khi fix
+01:44 +595 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_e_alert_all_types_test.dart: Bug E — AlertRepository: watchAllFamilyAlerts không filter theo type Step 7 (Unit): AlertRepositoryImpl.watchAllFamilyAlerts phải emit cả keyword_detected VÀ app_blocked alerts sau khi fix
+01:45 +596 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_d_fcm_time_request_test.dart: (setUpAll)
+01:45 +596 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_d_fcm_time_request_test.dart: Bug D — Time Request FCM Pipeline Step 1: SubmitTimeRequest phải gọi repository.submitRequest() và emit TimeRequestSubmitting → TimeRequestSubmitted
+01:46 +597 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_d_fcm_time_request_test.dart: Bug D — Time Request FCM Pipeline Step 1: SubmitTimeRequest phải gọi repository.submitRequest() và emit TimeRequestSubmitting → TimeRequestSubmitted
+01:46 +598 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_d_fcm_time_request_test.dart: Bug D — Time Request FCM Pipeline Step 1: SubmitTimeRequest phải gọi repository.submitRequest() và emit TimeRequestSubmitting → TimeRequestSubmitted
+01:46 +599 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_d_fcm_time_request_test.dart: Bug D — Time Request FCM Pipeline Step 1: SubmitTimeRequest phải gọi repository.submitRequest() và emit TimeRequestSubmitting → TimeRequestSubmitted
+01:46 +600 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_d_fcm_time_request_test.dart: Bug D — Time Request FCM Pipeline Step 1: SubmitTimeRequest phải gọi repository.submitRequest() và emit TimeRequestSubmitting → TimeRequestSubmitted
+01:46 +601 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_d_fcm_time_request_test.dart: Bug D — Time Request FCM Pipeline Step 1: SubmitTimeRequest phải gọi repository.submitRequest() và emit TimeRequestSubmitting → TimeRequestSubmitted
+01:46 +602 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_d_fcm_time_request_test.dart: Bug D — Time Request FCM Pipeline Step 1: SubmitTimeRequest phải gọi repository.submitRequest() và emit TimeRequestSubmitting → TimeRequestSubmitted
+01:46 +603 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_d_fcm_time_request_test.dart: Bug D — Time Request FCM Pipeline Step 1: SubmitTimeRequest phải gọi repository.submitRequest() và emit TimeRequestSubmitting → TimeRequestSubmitted
+01:46 +604 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_d_fcm_time_request_test.dart: Bug D — Time Request FCM Pipeline Step 1: SubmitTimeRequest phải gọi repository.submitRequest() và emit TimeRequestSubmitting → TimeRequestSubmitted
+01:46 +605 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_d_fcm_time_request_test.dart: Bug D — Time Request FCM Pipeline Step 1: SubmitTimeRequest phải gọi repository.submitRequest() và emit TimeRequestSubmitting → TimeRequestSubmitted
+01:46 +606 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_d_fcm_time_request_test.dart: Bug D — Time Request FCM Pipeline Step 1: SubmitTimeRequest phải gọi repository.submitRequest() và emit TimeRequestSubmitting → TimeRequestSubmitted
+01:46 +607 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_d_fcm_time_request_test.dart: Bug D — Time Request FCM Pipeline Step 1: SubmitTimeRequest phải gọi repository.submitRequest() và emit TimeRequestSubmitting → TimeRequestSubmitted
+01:46 +608 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_d_fcm_time_request_test.dart: Bug D — Time Request FCM Pipeline Step 1: SubmitTimeRequest phải gọi repository.submitRequest() và emit TimeRequestSubmitting → TimeRequestSubmitted
+01:46 +609 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_d_fcm_time_request_test.dart: Bug D — Time Request FCM Pipeline Step 1: SubmitTimeRequest phải gọi repository.submitRequest() và emit TimeRequestSubmitting → TimeRequestSubmitted
+01:46 +610 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_d_fcm_time_request_test.dart: Bug D — Time Request FCM Pipeline Step 1: SubmitTimeRequest phải gọi repository.submitRequest() và emit TimeRequestSubmitting → TimeRequestSubmitted
+01:46 +611 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_d_fcm_time_request_test.dart: Bug D — Time Request FCM Pipeline Step 1: SubmitTimeRequest phải gọi repository.submitRequest() và emit TimeRequestSubmitting → TimeRequestSubmitted
+01:46 +612 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_d_fcm_time_request_test.dart: Bug D — Time Request FCM Pipeline Step 1: SubmitTimeRequest phải gọi repository.submitRequest() và emit TimeRequestSubmitting → TimeRequestSubmitted
+01:46 +613 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_d_fcm_time_request_test.dart: Bug D — Time Request FCM Pipeline Step 1: SubmitTimeRequest phải gọi repository.submitRequest() và emit TimeRequestSubmitting → TimeRequestSubmitted
+01:46 +614 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_d_fcm_time_request_test.dart: Bug D — Time Request FCM Pipeline Step 1: SubmitTimeRequest phải gọi repository.submitRequest() và emit TimeRequestSubmitting → TimeRequestSubmitted
+01:46 +615 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_d_fcm_time_request_test.dart: Bug D — Time Request FCM Pipeline Step 1: SubmitTimeRequest phải gọi repository.submitRequest() và emit TimeRequestSubmitting → TimeRequestSubmitted
+01:46 +616 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_d_fcm_time_request_test.dart: Bug D — Time Request FCM Pipeline Step 1: SubmitTimeRequest phải gọi repository.submitRequest() và emit TimeRequestSubmitting → TimeRequestSubmitted
+01:46 +617 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_d_fcm_time_request_test.dart: Bug D — Time Request FCM Pipeline Step 2: submitRequest phải được gọi với TimeRequest object có đúng thuộc tính để Cloud Function đọc được
+01:46 +618 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_d_fcm_time_request_test.dart: Bug D — Time Request FCM Pipeline Step 3: Khi submitRequest throw exception → emit TimeRequestError, không crash app
+Error submitting time request: Exception: Firestore write failed
+01:46 +619 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_d_fcm_time_request_test.dart: Bug D — Time Request FCM Pipeline Step 4: Sau khi submit thành công, TimeRequestSubmitted chứa message xác nhận
+01:47 +620 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/family_repository_impl_test.dart: FamilyRepositoryImpl createFamily should create a family document in Firestore
+01:47 +621 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_d_fcm_time_request_test.dart: Bug D — Verify Firestore collection path cho Cloud Function trigger Step 5: TimeRequest được ghi vào đúng path: families/{familyId}/children/{childUid}/timeRequests/{auto-id}
+01:47 +622 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_d_fcm_time_request_test.dart: Bug D — Verify Firestore collection path cho Cloud Function trigger Step 5: TimeRequest được ghi vào đúng path: families/{familyId}/children/{childUid}/timeRequests/{auto-id}
+01:47 +623 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_d_fcm_time_request_test.dart: Bug D — Verify Firestore collection path cho Cloud Function trigger Step 5: TimeRequest được ghi vào đúng path: families/{familyId}/children/{childUid}/timeRequests/{auto-id}
+01:47 +624 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_d_fcm_time_request_test.dart: Bug D — Verify Firestore collection path cho Cloud Function trigger Step 5: TimeRequest được ghi vào đúng path: families/{familyId}/children/{childUid}/timeRequests/{auto-id}
+01:47 +625 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_d_fcm_time_request_test.dart: Bug D — Verify Firestore collection path cho Cloud Function trigger Step 5: TimeRequest được ghi vào đúng path: families/{familyId}/children/{childUid}/timeRequests/{auto-id}
+01:47 +626 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_d_fcm_time_request_test.dart: Bug D — Verify Firestore collection path cho Cloud Function trigger Step 5: TimeRequest được ghi vào đúng path: families/{familyId}/children/{childUid}/timeRequests/{auto-id}
+01:47 +627 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_d_fcm_time_request_test.dart: Bug D — Verify Firestore collection path cho Cloud Function trigger Step 5: TimeRequest được ghi vào đúng path: families/{familyId}/children/{childUid}/timeRequests/{auto-id}
+01:47 +628 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_d_fcm_time_request_test.dart: Bug D — Verify Firestore collection path cho Cloud Function trigger Step 5: TimeRequest được ghi vào đúng path: families/{familyId}/children/{childUid}/timeRequests/{auto-id}
+01:47 +629 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/bug_d_fcm_time_request_test.dart: Bug D — Verify Firestore collection path cho Cloud Function trigger Step 5: TimeRequest được ghi vào đúng path: families/{familyId}/children/{childUid}/timeRequests/{auto-id}
+[BUG D] Firestore path: families/testFamily/children/testChild/timeRequests/<auto-id>
+[BUG D] Cloud Function trigger: families/{familyId}/children/{childUid}/timeRequests/{requestId}
+[BUG D] Path match: ✅
+01:47 +630 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/family_repository_impl_test.dart: FamilyRepositoryImpl addChildToFamily should add multiple children
+01:47 +631 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/family_repository_impl_test.dart: FamilyRepositoryImpl addChildToFamily should add multiple children
+01:47 +632 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/family_repository_impl_test.dart: FamilyRepositoryImpl removeChildFromFamily should remove child from family childUids
+01:47 +633 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/family_repository_impl_test.dart: FamilyRepositoryImpl removeChildFromFamily should remove familyId from child user document
+01:47 +634 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/family_repository_impl_test.dart: FamilyRepositoryImpl getFamilyByLinkingCode should return family by linking code
+01:47 +635 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/family_repository_impl_test.dart: FamilyRepositoryImpl getFamilyByLinkingCode should return null for non-existent linking code
+01:47 +636 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/family_repository_impl_test.dart: FamilyRepositoryImpl generateLinkingCode should generate a new linking code for the family
+01:47 +637 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/family_repository_impl_test.dart: FamilyRepositoryImpl generateLinkingCode should update the family document with new linking code
+01:48 +638 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/usage_repository_impl_test.dart: UsageRepositoryImpl logUsage should add data to collection
+[Debug Write] logUsage -> Attempting to add usage log for app: com.example.app (30 minutes on 2026-05-16)
+[Debug Write] logUsage -> Successfully added usage log to Firestore with Doc ID: mock-id-123
+01:48 +639 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/usage_repository_impl_test.dart: UsageRepositoryImpl getUsageByChild Server-Side Index mode
+[Debug Read] getUsageByChild -> Querying usage_logs for childUid: child1, date: 2026-05-16
+[Debug Read] getUsageByChild (Server-Side Index) -> Found 1 logs for date 2026-05-16
+01:48 +640 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/usage_repository_impl_test.dart: UsageRepositoryImpl getUsageByChild RAM Fallback mode when failed-precondition thrown
+[Debug Read] getUsageByChild -> Querying usage_logs for childUid: child1, date: 2026-05-16
+[Debug Read Warning] Composite Index chưa tạo cho childUid+date. Fallback sang RAM filtering.
+[Debug Read] getUsageByChild (RAM Fallback) -> Found 1 logs for date 2026-05-16
+01:48 +641 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/usage_repository_impl_test.dart: UsageRepositoryImpl getUsageByDateRange filters by date range in RAM cleanly
+[Debug Read] getUsageByDateRange -> childUid: child1, range: 2026-05-15 -> 2026-05-20
+[Debug Read] getUsageByDateRange -> Found 1 logs
+01:48 +642 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/usage_repository_impl_test.dart: UsageRepositoryImpl getUsageByDateRange should return empty list on error
+[Debug Read] getUsageByDateRange -> childUid: child1, range: 2026-05-15 -> 2026-05-20
+[Debug Read Error] getUsageByDateRange: Exception: Network error
+01:49 +643 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/rules_repository_test.dart: RulesRepository getRules returns null when no rules exist
+01:49 +644 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/rules_repository_test.dart: RulesRepository saveRules saves rules to Firestore
+01:49 +645 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/rules_repository_test.dart: RulesRepository shouldAutoApprove returns false when rules are disabled
+01:50 +646 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/rules_repository_test.dart: RulesRepository shouldAutoApprove returns true when all conditions met
+01:50 +647 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/rules_repository_test.dart: RulesRepository shouldAutoApprove returns false when minutes exceed limit
+01:50 +648 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/rules_repository_test.dart: RulesRepository shouldAutoApprove returns false when app is disabled
+01:50 +649 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/rules_repository_test.dart: RulesRepository logAutoApprovedRequest logs request to Firestore
+01:50 +650 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/rules_repository_test.dart: RulesRepository getTodayAutoApprovedCount returns correct count
+01:51 +651 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/auth_repository_fake_firebase_test.dart: AuthRepositoryImpl with Fake Firebase Integration Đăng ký tạo tài khoản trên Firebase Auth và lưu dữ liệu đúng chuẩn vào Firestore
+Firebase Auth user created: fe1acaef-b126-4428-a4eb-6e19a6055e8d
+User document created in Firestore
+01:51 +652 -1: /home/minhduc168/KidGuardian-THPT/test/data/repositories/auth_repository_fake_firebase_test.dart: AuthRepositoryImpl with Fake Firebase Integration Đăng nhập thành công sẽ query trực tiếp vào Firestore để lấy đúng Role và FamilyId
+Firebase Auth successful for uid: mock_uid_123
+01:52 +653 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/smart_lock/schedule_checker_test.dart: ScheduleChecker isInBlockedPeriod should return false when no schedules
+01:52 +654 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/smart_lock/schedule_checker_test.dart: ScheduleChecker isInBlockedPeriod should return false when schedule is disabled
+01:52 +655 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/smart_lock/schedule_checker_test.dart: ScheduleChecker isInBlockedPeriod should return true when current time is within same-day schedule
+01:52 +656 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/smart_lock/schedule_checker_test.dart: ScheduleChecker isInBlockedPeriod should return false when current time is outside same-day schedule
+01:52 +657 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/smart_lock/schedule_checker_test.dart: ScheduleChecker isInBlockedPeriod should return true at exact start time
+01:52 +658 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/smart_lock/schedule_checker_test.dart: ScheduleChecker isInBlockedPeriod should return false at exact end time
+01:52 +659 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/smart_lock/schedule_checker_test.dart: ScheduleChecker isInBlockedPeriod should handle overnight schedule - before midnight
+01:52 +660 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/smart_lock/schedule_checker_test.dart: ScheduleChecker isInBlockedPeriod should handle overnight schedule - after midnight
+01:52 +661 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/smart_lock/schedule_checker_test.dart: ScheduleChecker isInBlockedPeriod should return false when day is not in schedule
+01:52 +662 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/smart_lock/schedule_checker_test.dart: ScheduleChecker isInBlockedPeriod should return true when day is in schedule
+01:52 +663 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/smart_lock/schedule_checker_test.dart: ScheduleChecker isInBlockedPeriod should check multiple schedules and return true if any blocks
+01:52 +664 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/smart_lock/schedule_checker_test.dart: ScheduleChecker isInBlockedPeriod should return false when no schedule blocks
+01:52 +665 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/smart_lock/schedule_checker_test.dart: ScheduleChecker isInBlockedPeriod should handle schedule with minutes
+01:52 +666 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/smart_lock/schedule_checker_test.dart: ScheduleChecker isInBlockedPeriod should handle overnight schedule with minutes
+01:52 +667 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/smart_lock/schedule_checker_test.dart: ScheduleChecker isInBlockedPeriod should handle Sunday to Monday overnight
+01:52 +668 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/smart_lock/schedule_checker_test.dart: ScheduleChecker getActiveSchedule should return null when no schedules block
+01:52 +669 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/smart_lock/schedule_checker_test.dart: ScheduleChecker getActiveSchedule should return the active schedule
+01:52 +670 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/smart_lock/schedule_checker_test.dart: ScheduleChecker getActiveSchedule should return first active schedule when multiple block
+01:52 +671 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/smart_lock/schedule_checker_test.dart: ScheduleChecker getScheduleEndTime should return end time on same day for same-day schedule
+01:52 +672 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/smart_lock/schedule_checker_test.dart: ScheduleChecker getScheduleEndTime should return end time on next day for overnight schedule
+01:52 +673 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/smart_lock/schedule_checker_test.dart: ScheduleChecker getScheduleEndTime should return end time on same day when after midnight
+01:53 +674 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/smart_lock/check_app_access_usecase_test.dart: CheckAppAccessUseCase should return true if no limits exist
+01:53 +675 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/smart_lock/check_app_access_usecase_test.dart: CheckAppAccessUseCase should return true if usage is under limit
+01:53 +676 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/smart_lock/check_app_access_usecase_test.dart: CheckAppAccessUseCase should return false if usage equals or exceeds limit
+01:53 +677 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/smart_lock/check_app_access_usecase_test.dart: CheckAppAccessUseCase Bug #1: should fetch limits with forceServer=true to avoid race condition cache issue
+01:54 +678 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/smart_lock/block_app_usecase_test.dart: BlockAppUseCase khởi tạo với danh sách trống
+01:54 +679 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/smart_lock/block_app_usecase_test.dart: BlockAppUseCase execute() thêm app và gọi updateBlockedApps trên native
+01:54 +680 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/smart_lock/block_app_usecase_test.dart: BlockAppUseCase execute() nhiều lần cùng app không tạo duplicate
+01:54 +681 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/smart_lock/block_app_usecase_test.dart: BlockAppUseCase unblockApp() xoá app khỏi danh sách
+01:54 +682 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/smart_lock/block_app_usecase_test.dart: BlockAppUseCase unblockAll() xoá toàn bộ và gọi native với list rỗng
+01:54 +683 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/smart_lock/block_app_usecase_test.dart: BlockAppUseCase loadBlockedApps() nạp danh sách mà không gọi native
+01:54 +684 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/smart_lock/block_app_usecase_test.dart: BlockAppUseCase startMonitoring() gọi startMonitorService
+01:54 +685 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/smart_lock/block_app_usecase_test.dart: BlockAppUseCase stopMonitoring() gọi stopMonitorService
+01:54 +686 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/smart_lock/block_app_usecase_test.dart: BlockAppUseCase forceGoHome() gọi moveToHome
+01:54 +687 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/smart_lock/block_app_usecase_test.dart: BlockAppUseCase blockedApps là unmodifiable
+01:54 +688 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/auth/login_usecase_test.dart: LoginUseCase should return User when login succeeds
+01:54 +689 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/auth/login_usecase_test.dart: LoginUseCase should throw when email is empty
+01:54 +690 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/auth/login_usecase_test.dart: LoginUseCase should throw when password is empty
+01:54 +691 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/auth/login_usecase_test.dart: LoginUseCase should throw when both email and password are empty
+01:54 +692 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/auth/login_usecase_test.dart: LoginUseCase should throw when email format is invalid
+01:54 +693 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/auth/login_usecase_test.dart: LoginUseCase should throw when email has no domain
+01:54 +694 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/auth/login_usecase_test.dart: LoginUseCase should propagate repository exception on login failure
+01:55 +695 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/auth/logout_usecase_test.dart: LogoutUseCase should call repository logout
+01:55 +696 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/auth/logout_usecase_test.dart: LogoutUseCase should propagate repository exception on logout failure
+01:56 +697 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/auth/register_usecase_test.dart: (setUpAll)
+01:56 +697 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/auth/register_usecase_test.dart: RegisterUseCase should return User when registration succeeds
+01:56 +698 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/auth/register_usecase_test.dart: RegisterUseCase should throw when email is empty
+01:56 +699 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/auth/register_usecase_test.dart: RegisterUseCase should throw when password is empty
+01:56 +700 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/auth/register_usecase_test.dart: RegisterUseCase should throw when name is empty
+01:56 +701 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/auth/register_usecase_test.dart: RegisterUseCase should throw when email format is invalid
+01:56 +702 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/auth/register_usecase_test.dart: RegisterUseCase should throw when password is shorter than 6 characters
+01:56 +703 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/auth/register_usecase_test.dart: RegisterUseCase should throw when name is shorter than 2 characters
+01:56 +704 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/auth/register_usecase_test.dart: RegisterUseCase should work with child role
+01:56 +705 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/auth/register_usecase_test.dart: RegisterUseCase should propagate repository exception on registration failure
+01:56 +706 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/auth/register_usecase_test.dart: (tearDownAll)
+01:56 +706 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/auth/get_current_user_usecase_test.dart: GetCurrentUserUseCase should return current user when logged in
+01:56 +707 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/auth/get_current_user_usecase_test.dart: GetCurrentUserUseCase should return null when no user is logged in
+01:56 +708 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/auth/get_current_user_usecase_test.dart: GetCurrentUserUseCase should propagate repository exception on failure
+01:56 +709 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/auth/get_current_user_usecase_test.dart: GetCurrentUserUseCase should expose authStateChanges stream from repository
+01:57 +710 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/auth/link_child_usecase_test.dart: LinkChildUseCase should link child to family when valid code is provided
+01:57 +711 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/auth/link_child_usecase_test.dart: LinkChildUseCase should throw when linkingCode is empty
+01:57 +712 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/auth/link_child_usecase_test.dart: LinkChildUseCase should throw when childUid is empty
+01:57 +713 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/auth/link_child_usecase_test.dart: LinkChildUseCase should throw when linkingCode is invalid (family not found)
+01:57 +714 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/auth/link_child_usecase_test.dart: LinkChildUseCase should propagate repository exception on link failure
+01:57 +715 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/auth/reset_password_usecase_test.dart: ResetPasswordUseCase should call repository resetPassword with valid email
+01:57 +716 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/auth/reset_password_usecase_test.dart: ResetPasswordUseCase should throw when email is empty
+01:57 +717 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/auth/reset_password_usecase_test.dart: ResetPasswordUseCase should throw when email format is invalid
+01:57 +718 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/auth/reset_password_usecase_test.dart: ResetPasswordUseCase should throw when email has no @ symbol
+01:57 +719 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/auth/reset_password_usecase_test.dart: ResetPasswordUseCase should propagate repository exception on reset failure
+01:58 +720 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/auth/update_profile_usecase_test.dart: UpdateProfileUseCase should call repository updateProfile with uid and displayName
+01:58 +721 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/auth/update_profile_usecase_test.dart: UpdateProfileUseCase should call repository updateProfile with uid only
+01:58 +722 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/auth/update_profile_usecase_test.dart: UpdateProfileUseCase should throw when uid is empty
+01:58 +723 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/auth/update_profile_usecase_test.dart: UpdateProfileUseCase should throw when displayName is shorter than 2 characters
+01:58 +724 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/auth/update_profile_usecase_test.dart: UpdateProfileUseCase should allow null displayName
+01:58 +725 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/auth/update_profile_usecase_test.dart: UpdateProfileUseCase should propagate repository exception on update failure
+01:58 +726 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/dashboard/load_dashboard_data_usecase_test.dart: LoadDashboardDataUseCase returns DashboardData with correct totalMinutesToday
+01:58 +727 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/dashboard/load_dashboard_data_usecase_test.dart: LoadDashboardDataUseCase returns DashboardData with correct usageByApp
+01:58 +728 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/dashboard/load_dashboard_data_usecase_test.dart: LoadDashboardDataUseCase returns DashboardData with dailyTotals for 7 days
+01:58 +729 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/dashboard/load_dashboard_data_usecase_test.dart: LoadDashboardDataUseCase returns DashboardData with empty data when no logs
+01:58 +730 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/dashboard/load_dashboard_data_usecase_test.dart: LoadDashboardDataUseCase returns recentLogs from today usage
+01:58 +731 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/dashboard/load_dashboard_data_usecase_test.dart: LoadDashboardDataUseCase propagates exception from repository
+01:59 +732 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/dashboard/load_child_usage_usecase_test.dart: LoadChildUsageUseCase throws when childUid is empty
+01:59 +733 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/dashboard/load_child_usage_usecase_test.dart: LoadChildUsageUseCase throws when date is empty
+01:59 +734 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/dashboard/load_child_usage_usecase_test.dart: LoadChildUsageUseCase returns ChildUsageData with correct totalMinutes
+01:59 +735 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/dashboard/load_child_usage_usecase_test.dart: LoadChildUsageUseCase returns ChildUsageData with correct usageByApp
+01:59 +736 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/dashboard/load_child_usage_usecase_test.dart: LoadChildUsageUseCase returns ChildUsageData with logs list
+01:59 +737 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/dashboard/load_child_usage_usecase_test.dart: LoadChildUsageUseCase returns empty data when no logs found
+01:59 +738 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/dashboard/load_child_usage_usecase_test.dart: LoadChildUsageUseCase propagates exception from repository
+01:59 +739 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/notification/send_notification_usecase_test.dart: SendNotificationUseCase throws when familyId is empty
+01:59 +740 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/notification/send_notification_usecase_test.dart: SendNotificationUseCase throws when title is empty
+01:59 +741 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/notification/send_notification_usecase_test.dart: SendNotificationUseCase throws when body is empty
+01:59 +742 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/notification/send_notification_usecase_test.dart: SendNotificationUseCase completes successfully with valid parameters
+01:59 +743 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/notification/send_notification_usecase_test.dart: SendNotificationUseCase completes successfully with optional type parameter
+02:00 +744 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/notification/initialize_notifications_usecase_test.dart: InitializeNotificationsUseCase throws when familyId is empty
+02:00 +745 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/notification/initialize_notifications_usecase_test.dart: InitializeNotificationsUseCase calls watchAllFamilyAlerts with familyId
+02:00 +746 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/notification/initialize_notifications_usecase_test.dart: InitializeNotificationsUseCase calls watchPendingRequests with familyId
+02:00 +747 -1: /home/minhduc168/KidGuardian-THPT/test/domain/usecases/notification/initialize_notifications_usecase_test.dart: InitializeNotificationsUseCase propagates exception from alert repository
+02:00 +748 -1: /home/minhduc168/KidGuardian-THPT/test/domain/repositories/alert_repository_test.dart: AlertRepository createKeywordAlert should add document to Firestore
+02:01 +749 -1: /home/minhduc168/KidGuardian-THPT/test/domain/repositories/time_request_edge_cases_test.dart: TimeRequest.fromFirestore Edge Cases & Null Safety Verification Parses complete valid Firestore document correctly
+02:01 +750 -1: /home/minhduc168/KidGuardian-THPT/test/domain/repositories/time_request_edge_cases_test.dart: TimeRequest.fromFirestore Edge Cases & Null Safety Verification Handles missing / null fields with safe fallbacks (BUG-5 & BUG-4 stability)
+02:01 +751 -1: /home/minhduc168/KidGuardian-THPT/test/domain/repositories/time_request_edge_cases_test.dart: TimeRequest.fromFirestore Edge Cases & Null Safety Verification Handles unknown status string safely defaulting to pending
+02:01 +752 -1: /home/minhduc168/KidGuardian-THPT/test/domain/repositories/time_request_edge_cases_test.dart: TimeRequest.fromFirestore Edge Cases & Null Safety Verification Handles lowercase / uppercase / mixed-case status values
+02:01 +753 -1: /home/minhduc168/KidGuardian-THPT/test/domain/repositories/time_request_edge_cases_test.dart: TimeRequest.fromFirestore Edge Cases & Null Safety Verification toMap converts model back to Firestore map properly
+02:01 +754 -1: /home/minhduc168/KidGuardian-THPT/test/platform/accessibility_channel_test.dart: AccessibilityChannel — FIX C1 & C2 startMonitorService() gọi đúng method trên native
+02:02 +755 -1: /home/minhduc168/KidGuardian-THPT/test/platform/accessibility_channel_test.dart: AccessibilityChannel — FIX C1 & C2 stopMonitorService() gọi đúng method trên native
+02:02 +756 -1: /home/minhduc168/KidGuardian-THPT/test/platform/accessibility_channel_test.dart: AccessibilityChannel — FIX C1 & C2 moveToHome() gọi moveToHome thay vì moveTaskToBack
+02:02 +757 -1: /home/minhduc168/KidGuardian-THPT/test/platform/accessibility_channel_test.dart: AccessibilityChannel — FIX C1 & C2 updateBlockedApps() gửi đúng list apps
+02:02 +758 -1: /home/minhduc168/KidGuardian-THPT/test/platform/accessibility_channel_test.dart: AccessibilityChannel — FIX C1 & C2 updateBlockedApps() không throw khi native lỗi
+Failed to update blocked apps: Native error
+02:02 +759 -1: /home/minhduc168/KidGuardian-THPT/test/platform/accessibility_channel_test.dart: AccessibilityChannel — FIX C1 & C2 updateKeywords() gửi đúng keywords
+02:02 +760 -1: /home/minhduc168/KidGuardian-THPT/test/platform/accessibility_channel_test.dart: AccessibilityChannel — FIX C1 & C2 updateAppLimits() gửi đúng map limits
+02:02 +761 -1: /home/minhduc168/KidGuardian-THPT/test/platform/accessibility_channel_permission_test.dart: AccessibilityChannel - Permission & Settings Tests isAccessibilityPermissionGranted returns true when native channel returns true
+02:02 +762 -1: /home/minhduc168/KidGuardian-THPT/test/platform/accessibility_channel_permission_test.dart: AccessibilityChannel - Permission & Settings Tests isAccessibilityPermissionGranted returns false when native channel returns false or throws PlatformException
+Failed to check accessibility permission: Accessibility service check failed
+02:02 +763 -1: /home/minhduc168/KidGuardian-THPT/test/platform/accessibility_channel_permission_test.dart: AccessibilityChannel - Permission & Settings Tests openAccessibilitySettings does not throw when invoked
+02:03 +764 -1: /home/minhduc168/KidGuardian-THPT/test/widget_test.dart: App should build without errors
+02:03 +765 -1: Some tests failed.
+
+Failing tests:
+  /home/minhduc168/KidGuardian-THPT/test/presentation/features/dashboard/bloc/dashboard_bloc_test.dart: DashboardBloc Bug #3 Dashboard Chart Filter allows non-system apps like Chrome and Free Fire when monitoredApps is empty

@@ -5,12 +5,16 @@ import '../../../../core/utils/app_utils.dart';
 import '../../../../domain/entities/daily_summary.dart';
 import '../../../features/auth/bloc/auth_bloc.dart';
 import '../../../features/auth/bloc/auth_state.dart';
+import '../../dashboard/bloc/dashboard_bloc.dart';
+import '../../dashboard/bloc/dashboard_state.dart';
 import '../bloc/summary_bloc.dart';
 import '../bloc/summary_event.dart';
 import '../bloc/summary_state.dart';
 
 class DailySummaryScreen extends StatefulWidget {
-  const DailySummaryScreen({super.key});
+  final String? childUid;
+
+  const DailySummaryScreen({super.key, this.childUid});
 
   @override
   State<DailySummaryScreen> createState() => _DailySummaryScreenState();
@@ -23,13 +27,37 @@ class _DailySummaryScreenState extends State<DailySummaryScreen> {
     _loadSummary();
   }
 
+  String _getTargetChildId(BuildContext context, AuthAuthenticated authState) {
+    if (widget.childUid != null && widget.childUid!.isNotEmpty) {
+      return widget.childUid!;
+    }
+    try {
+      final dashState = context.read<DashboardBloc>().state;
+      if (dashState is DashboardLoaded && dashState.childUids.isNotEmpty) {
+        return dashState.childUids.first;
+      }
+    } catch (_) {}
+    return authState.user.uid;
+  }
+
   void _loadSummary() {
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthAuthenticated && authState.user.familyId != null) {
+      final targetChildUid = _getTargetChildId(context, authState);
+      // Ưu tiên: tạo summary mới cho hôm nay từ raw usage data
       context.read<SummaryBloc>().add(
-            LoadSummaryHistory(familyId: authState.user.familyId!),
+            GenerateSummary(
+              childUid: targetChildUid,
+              familyId: authState.user.familyId!,
+              date: _getTodayString(),
+            ),
           );
     }
+  }
+
+  String _getTodayString() {
+    final now = DateTime.now();
+    return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
   }
 
   @override
@@ -66,6 +94,14 @@ class _DailySummaryScreenState extends State<DailySummaryScreen> {
             );
           }
 
+          if (state is SummaryGenerated) {
+            return _buildSingleSummary(state.summary);
+          }
+
+          if (state is SummaryLoaded) {
+            return _buildSingleSummary(state.summary);
+          }
+
           if (state is SummaryHistoryLoaded) {
             return _buildSummaryList(state.summaries);
           }
@@ -74,6 +110,18 @@ class _DailySummaryScreenState extends State<DailySummaryScreen> {
             child: Text('Chưa có dữ liệu tổng kết'),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildSingleSummary(DailySummary summary) {
+    return RefreshIndicator(
+      onRefresh: () async => _loadSummary(),
+      child: ListView(
+        padding: EdgeInsets.all(16),
+        children: [
+          _SummaryCard(summary: summary),
+        ],
       ),
     );
   }
@@ -230,24 +278,26 @@ class _SummaryCard extends StatelessWidget {
               // Top apps
               if (summary.topApps.isNotEmpty) ...[
                 Text(
-                  'Ứng dụng nhiều nhất:',
+                  'Top 3 ứng dụng sử dụng nhiều nhất ngày:',
                   style: TextStyle(
                     fontSize: 14,
+                    fontWeight: FontWeight.bold,
                     color: AppColors.textSecondary,
                   ),
                 ),
                 SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
-                  children: summary.topApps.map((app) {
+                  children: summary.topApps.take(3).map((app) {
                     final minutes = summary.usageByApp[app] ?? 0;
+                    final displayName = AppUtils.getAppName(app);
                     return Chip(
                       avatar: Icon(
                         AppUtils.getAppIcon(app),
                         size: 18,
                         color: AppUtils.getAppColor(app),
                       ),
-                      label: Text('$app ($minutes phút)'),
+                      label: Text('$displayName ($minutes phút)'),
                       backgroundColor:
                           AppUtils.getAppColor(app).withOpacity(0.1),
                     );

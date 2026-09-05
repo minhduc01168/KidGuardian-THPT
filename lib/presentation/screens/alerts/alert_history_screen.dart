@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:kidguardian/core/utils/app_utils.dart';
 import 'package:kidguardian/domain/repositories/alert_repository.dart';
 import 'package:kidguardian/presentation/blocs/alert_history/alert_history_bloc.dart';
 
@@ -180,7 +181,7 @@ class _AlertCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 4),
-              Text('Ứng dụng: ${alert.packageName}'),
+              Text('Ứng dụng: ${AppUtils.getAppName(alert.packageName)}'),
               if (alert.textContext.isNotEmpty) ...[
                 const SizedBox(height: 4),
                 Text(

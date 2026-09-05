@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/services.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:kidguardian/presentation/blocs/smart_lock/app_monitor_bloc.dart';
 import 'package:kidguardian/domain/usecases/smart_lock/check_app_access_usecase.dart';
@@ -6,6 +7,7 @@ import 'package:kidguardian/domain/usecases/smart_lock/block_app_usecase.dart';
 import 'package:kidguardian/domain/usecases/smart_lock/schedule_checker.dart';
 import 'package:kidguardian/domain/repositories/usage_repository.dart';
 import 'package:kidguardian/data/repositories/smart_lock_repository.dart';
+import 'package:kidguardian/data/models/monitored_app_model.dart';
 import 'package:kidguardian/domain/repositories/alert_repository.dart';
 
 class MockCheckAppAccessUseCase extends Mock implements CheckAppAccessUseCase {}
@@ -31,7 +33,22 @@ void main() {
     mockUsageRepository = MockUsageRepository();
     mockSmartLockRepository = MockSmartLockRepository();
     mockScheduleChecker = MockScheduleChecker();
+    mockScheduleChecker = MockScheduleChecker();
     mockAlertRepository = MockAlertRepository();
+
+    const MethodChannel channel = MethodChannel('com.kidguardian/accessibility');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+      return null;
+    });
+
+    when(() => mockAlertRepository.watchKeywords(any()))
+        .thenAnswer((_) => Stream.value([]));
+    when(() => mockSmartLockRepository.getMonitoredApps(any(), any()))
+        .thenAnswer((_) async => []);
+    // BUG-4 FIX: Stub watchTimeLimits — required after _timeLimitsSubscription added
+    when(() => mockSmartLockRepository.watchTimeLimits(any(), any()))
+        .thenAnswer((_) => Stream.value([]));
 
     bloc = AppMonitorBloc(
       checkAppAccessUseCase: mockCheckAppAccessUseCase,
@@ -60,25 +77,85 @@ void main() {
           isA<AppMonitorRunning>(),
         ]),
       );
-    }, skip: true);
+    });
 
-    test('emits AppBlockedState when app_blocked event is received', () {
+    test('emits AppBlockedState when app_blocked event is received', () async {
       when(() => mockSmartLockRepository.getAppTimeLimits(any(), any()))
           .thenAnswer((_) async => []);
       when(() => mockUsageRepository.getUsageByApp(any(), any()))
           .thenAnswer((_) async => {});
+      when(() => mockSmartLockRepository.getSmartLockSettings(any(), any()))
+          .thenAnswer((_) async => null);
+      when(() => mockSmartLockRepository.getMonitoredApps(any(), any()))
+          .thenAnswer((_) async => const [
+                MonitoredAppModel(
+                  appPackageName: 'com.facebook.katana',
+                  appName: 'Test App',
+                  isMonitored: true,
+                )
+              ]);
+      when(() => mockCheckAppAccessUseCase.execute(
+            familyId: any(named: 'familyId'),
+            childUid: any(named: 'childUid'),
+            appPackageName: any(named: 'appPackageName'),
+          )).thenAnswer((_) async => true);
+      when(() => mockSmartLockRepository.getSchedules(any(), any()))
+          .thenAnswer((_) async => []);
 
-      bloc.add(AppEventReceived({
-        'type': 'app_blocked',
-        'packageName': 'com.test.app',
+      bloc.add(const StartMonitoring('family1', 'child1'));
+      // Chờ một chút để _loadMonitoredApps hoàn tất
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      bloc.add(const AppEventReceived({
+        'type': 'app_event',
+        'eventType': 'opened',
+        'packageName': 'com.facebook.katana',
+      }));
+      bloc.add(const AppEventReceived({
+        'type': 'app_event',
+        'eventType': 'blocked',
+        'packageName': 'com.facebook.katana',
       }));
 
-      expectLater(
+      await expectLater(
         bloc.stream,
         emitsInOrder([
           isA<AppBlockedState>(),
         ]),
       );
+    });
+
+    test('ignores events for com.kidguardian.kidguardian (Bug #2 self-exclusion)', () async {
+      when(() => mockSmartLockRepository.getAppTimeLimits(any(), any()))
+          .thenAnswer((_) async => []);
+      when(() => mockUsageRepository.getUsageByApp(any(), any()))
+          .thenAnswer((_) async => {});
+      when(() => mockSmartLockRepository.getSmartLockSettings(any(), any()))
+          .thenAnswer((_) async => null);
+      when(() => mockSmartLockRepository.getMonitoredApps(any(), any()))
+          .thenAnswer((_) async => []);
+      when(() => mockCheckAppAccessUseCase.execute(
+            familyId: any(named: 'familyId'),
+            childUid: any(named: 'childUid'),
+            appPackageName: any(named: 'appPackageName'),
+          )).thenAnswer((_) async => false); // would normally block
+      when(() => mockSmartLockRepository.getSchedules(any(), any()))
+          .thenAnswer((_) async => []);
+
+      bloc.add(const StartMonitoring('family1', 'child1'));
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      bloc.add(const AppEventReceived({
+        'type': 'app_event',
+        'eventType': 'blocked',
+        'packageName': 'com.kidguardian.kidguardian',
+      }));
+
+      // wait a bit
+      await Future.delayed(const Duration(milliseconds: 50));
+      
+      // Should remain AppMonitorRunning, no AppBlockedState emitted
+      expect(bloc.state, isA<AppMonitorRunning>());
     });
   });
 
@@ -122,14 +199,14 @@ void main() {
       final now = DateTime.now();
       final resetTime = DateTime(now.year, now.month, now.day + 1);
       final state1 = AppBlockedState(
-        appPackageName: 'com.test.app',
+        appPackageName: 'com.facebook.katana',
         appName: 'TestApp',
         limitMinutes: 60,
         usedMinutes: 45,
         resetTime: resetTime,
       );
       final state2 = AppBlockedState(
-        appPackageName: 'com.test.app',
+        appPackageName: 'com.facebook.katana',
         appName: 'TestApp',
         limitMinutes: 60,
         usedMinutes: 45,
@@ -144,14 +221,14 @@ void main() {
       final now = DateTime.now();
       final resetTime = DateTime(now.year, now.month, now.day + 1);
       final state1 = AppBlockedState(
-        appPackageName: 'com.test.app',
+        appPackageName: 'com.facebook.katana',
         appName: 'TestApp',
         limitMinutes: 60,
         usedMinutes: 45,
         resetTime: resetTime,
       );
       final state2 = AppBlockedState(
-        appPackageName: 'com.test.app',
+        appPackageName: 'com.facebook.katana',
         appName: 'TestApp',
         limitMinutes: 60,
         usedMinutes: 60,
@@ -167,7 +244,7 @@ void main() {
       final now = DateTime.now();
       final resetTime = DateTime(now.year, now.month, now.day + 1);
       final state = AppBlockedState(
-        appPackageName: 'com.test.app',
+        appPackageName: 'com.facebook.katana',
         appName: 'TestApp',
         limitMinutes: 60,
         usedMinutes: 60,
@@ -182,7 +259,7 @@ void main() {
       final now = DateTime.now();
       final resetTime = DateTime(now.year, now.month, now.day + 1);
       final state = AppBlockedState(
-        appPackageName: 'com.test.app',
+        appPackageName: 'com.facebook.katana',
         appName: 'TestApp',
         limitMinutes: 0,
         usedMinutes: 0,
@@ -199,7 +276,7 @@ void main() {
       final now = DateTime.now();
       final resetTime = DateTime(now.year, now.month, now.day + 1);
       final state = AppBlockedState(
-        appPackageName: 'com.test.app',
+        appPackageName: 'com.facebook.katana',
         appName: 'TestApp',
         limitMinutes: 60,
         usedMinutes: 60,
@@ -213,7 +290,7 @@ void main() {
       final now = DateTime.now();
       final resetTime = DateTime(now.year, now.month, now.day + 1);
       final state1 = AppBlockedState(
-        appPackageName: 'com.test.app',
+        appPackageName: 'com.facebook.katana',
         appName: 'TestApp',
         limitMinutes: 60,
         usedMinutes: 60,
@@ -222,7 +299,7 @@ void main() {
         scheduleName: 'Giờ ngủ',
       );
       final state2 = AppBlockedState(
-        appPackageName: 'com.test.app',
+        appPackageName: 'com.facebook.katana',
         appName: 'TestApp',
         limitMinutes: 60,
         usedMinutes: 60,
@@ -251,7 +328,7 @@ void main() {
 
       bloc.add(const KeywordDetectedEvent(
         keyword: 'tự tử',
-        packageName: 'com.test.app',
+        packageName: 'com.facebook.katana',
         textContext: 'tôi muốn tự tử',
       ));
       
@@ -261,7 +338,7 @@ void main() {
             familyId: 'family1',
             childUid: 'child1',
             keyword: 'tự tử',
-            packageName: 'com.test.app',
+            packageName: 'com.facebook.katana',
             textContext: 'tôi muốn tự tử',
           )).called(1);
     });

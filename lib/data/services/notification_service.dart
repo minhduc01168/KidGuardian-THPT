@@ -20,6 +20,8 @@ class NotificationService {
   static const String _rejectAction = 'REJECT_REQUEST';
 
   String? _currentUid;
+  String? _registeredToken;   // Guard: token đã được đăng ký lên Firestore
+  bool _isRegistering = false; // Guard: đang trong quá trình ghi, tránh gọi đồng thời
 
   NotificationService({
     FirebaseMessaging? fcm,
@@ -39,11 +41,29 @@ class NotificationService {
   }
 
   Future<void> registerToken(String uid) async {
+    // Guard 1: tránh 2 lần gọi đồng thời (concurrent lock)
+    if (_isRegistering) {
+      debugPrint('FCM token registration already in progress, skipping.');
+      return;
+    }
+
     try {
+      _isRegistering = true;
       _currentUid = uid;
+
       final token = await _fcm.getToken();
       if (token == null) {
         debugPrint('FCM token is null');
+        return;
+      }
+
+      // Guard 2: Idempotency — chỉ ghi Firestore nếu token thực sự thay đổi.
+      // Đây là chốt chặn then chốt: authStateChanges stream phát ra event
+      // mỗi khi doc users/{uid} thay đổi (kể cả khi chính registerToken()
+      // vừa ghi fcmToken) → nếu không có guard này sẽ gây vòng lặp vô hạn
+      // hàng nghìn lần dẫn đến RESOURCE_EXHAUSTED và OOM crash.
+      if (token == _registeredToken) {
+        debugPrint('FCM token unchanged, skipping Firestore write.');
         return;
       }
 
@@ -52,9 +72,12 @@ class NotificationService {
         'fcmTokenUpdatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 
+      _registeredToken = token; // Cập nhật token đã đăng ký thành công
       debugPrint('FCM token registered for user: $uid');
     } catch (e) {
       debugPrint('Error registering FCM token: $e');
+    } finally {
+      _isRegistering = false;
     }
   }
 
@@ -119,7 +142,42 @@ class NotificationService {
     debugPrint('Foreground message: ${message.data}');
     if (message.data['type'] == 'time_request') {
       _showTimeRequestNotification(message.data);
+    } else if (message.data['type'] == 'keyword_alert') {
+      _showKeywordAlertNotification(message.data);
     }
+  }
+
+  Future<void> _showKeywordAlertNotification(Map<String, dynamic> data) async {
+    final keyword = data['keyword'] as String? ?? '';
+    final packageName = data['packageName'] as String? ?? '';
+
+    final androidDetails = AndroidNotificationDetails(
+      _channelId,
+      _channelName,
+      channelDescription: _channelDescription,
+      importance: Importance.high,
+      priority: Priority.high,
+      showWhen: true,
+      autoCancel: true,
+    );
+
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    final details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    await _localNotifications.show(
+      id: (keyword + packageName).hashCode.abs(),
+      title: '⚠️ Cảnh báo từ khóa cấm',
+      body: 'Phát hiện từ khóa "$keyword" khi bé dùng ứng dụng $packageName',
+      notificationDetails: details,
+    );
   }
 
   void _handleMessageOpenedApp(RemoteMessage message) {

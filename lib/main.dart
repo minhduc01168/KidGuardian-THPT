@@ -3,7 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'core/theme/app_theme.dart';
+import 'core/constants/app_strings.dart';
 import 'core/navigation/app_routes.dart';
 import 'data/repositories/auth_repository_impl.dart';
 import 'data/repositories/family_repository_impl.dart';
@@ -26,6 +28,7 @@ import 'presentation/features/auth/bloc/auth_bloc.dart';
 import 'presentation/features/auth/bloc/auth_state.dart';
 import 'presentation/features/auth/bloc/family_bloc.dart';
 import 'presentation/features/auth/screens/role_selection_screen.dart';
+import 'presentation/features/auth/screens/splash_screen.dart';
 import 'presentation/features/dashboard/bloc/dashboard_bloc.dart';
 import 'presentation/features/dashboard/screens/parent_dashboard.dart';
 import 'presentation/features/dashboard/screens/child_dashboard.dart';
@@ -35,6 +38,7 @@ import 'presentation/features/settings/bloc/settings_event.dart';
 import 'presentation/features/settings/bloc/settings_state.dart';
 import 'presentation/features/summary/bloc/summary_bloc.dart';
 import 'presentation/blocs/smart_lock/app_monitor_bloc.dart';
+import 'presentation/blocs/smart_lock/smart_lock_bloc.dart';
 import 'presentation/blocs/notification/notification_bloc.dart';
 import 'presentation/blocs/in_app_notification/in_app_notification_bloc.dart';
 import 'presentation/screens/smart_lock/lock_screen.dart';
@@ -43,6 +47,7 @@ import 'data/repositories/help_repository_impl.dart';
 import 'domain/repositories/alert_repository.dart';
 import 'domain/repositories/notification_repository.dart';
 import 'domain/repositories/time_request_repository.dart';
+import 'domain/repositories/rules_repository.dart';
 import 'domain/repositories/help_repository.dart';
 import 'domain/entities/user.dart';
 import 'presentation/features/help/bloc/help_bloc.dart';
@@ -56,12 +61,26 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  FirebaseFirestore.instance.settings = const Settings(
+    persistenceEnabled: true,
+    cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+  );
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   runApp(const KidGuardianApp());
 }
 
-class KidGuardianApp extends StatelessWidget {
+class KidGuardianApp extends StatefulWidget {
   const KidGuardianApp({super.key});
+
+  @override
+  State<KidGuardianApp> createState() => _KidGuardianAppState();
+}
+
+class _KidGuardianAppState extends State<KidGuardianApp> {
+  bool _parentListenersStarted = false;
+  String? _startedParentFamilyId;
+  bool _childMonitoringStarted = false;
+  String? _startedChildUid;
 
   @override
   Widget build(BuildContext context) {
@@ -98,6 +117,9 @@ class KidGuardianApp extends StatelessWidget {
         RepositoryProvider<TimeRequestRepository>(
           create: (_) => TimeRequestRepositoryImpl(),
         ),
+        RepositoryProvider<RulesRepository>(
+          create: (_) => RulesRepositoryImpl(),
+        ),
         RepositoryProvider<NotificationService>(
           create: (context) => NotificationService(
             timeRequestRepository: context.read<TimeRequestRepository>(),
@@ -129,6 +151,7 @@ class KidGuardianApp extends StatelessWidget {
             create: (context) => DashboardBloc(
               usageRepository: context.read<UsageRepository>(),
               familyRepository: context.read<FamilyRepository>(),
+              smartLockRepository: context.read<SmartLockRepository>(),
             ),
           ),
           BlocProvider<SummaryBloc>(
@@ -152,6 +175,11 @@ class KidGuardianApp extends StatelessWidget {
               smartLockRepository: context.read<SmartLockRepository>(),
               scheduleChecker: ScheduleChecker(),
               alertRepository: context.read<AlertRepository>(),
+            ),
+          ),
+          BlocProvider<SmartLockBloc>(
+            create: (context) => SmartLockBloc(
+              repository: context.read<SmartLockRepository>(),
             ),
           ),
           BlocProvider<NotificationBloc>(
@@ -179,32 +207,26 @@ class KidGuardianApp extends StatelessWidget {
         ],
         child: MultiBlocListener(
           listeners: [
+            BlocListener<AuthBloc, AuthState>(
+              listenWhen: (previous, current) =>
+                  current is AuthUnauthenticated && previous is! AuthUnauthenticated,
+              listener: (context, state) {
+                AppNavigator.navigatorKey.currentState?.popUntil((route) => route.isFirst);
+              },
+            ),
+            BlocListener<AuthBloc, AuthState>(
+              listenWhen: (previous, current) =>
+                  current is AuthAuthenticated && previous is! AuthAuthenticated,
+              listener: (context, state) {
+                AppNavigator.navigatorKey.currentState?.popUntil((route) => route.isFirst);
+              },
+            ),
             BlocListener<AppMonitorBloc, AppMonitorState>(
               listenWhen: (previous, current) => current is AppBlockedState,
               listener: (context, state) {
                 if (state is AppBlockedState) {
-                  final navigator = AppNavigator.navigatorKey.currentState;
-                  if (navigator != null) {
-                    navigator.popUntil((route) {
-                      return route.settings.name != 'lock_screen';
-                    });
-                    navigator.push(
-                      MaterialPageRoute(
-                        settings: const RouteSettings(name: 'lock_screen'),
-                        builder: (_) => LockScreen(
-                          appPackageName: state.appPackageName,
-                          appName: state.appName,
-                          iconUrl: state.iconUrl,
-                          limitMinutes: state.limitMinutes,
-                          usedMinutes: state.usedMinutes,
-                          resetTime: state.resetTime,
-                          familyId: state.familyId,
-                          childUid: state.childUid,
-                          parentUid: state.parentUid,
-                        ),
-                      ),
-                    );
-                  }
+                  // Removed SnackBar popup to avoid duplicates.
+                  // The blocked state is now only reflected in the Child Dashboard list view.
                 }
               },
             ),
@@ -228,7 +250,7 @@ class KidGuardianApp extends StatelessWidget {
             builder: (context, settingsState) {
               return MaterialApp(
                 navigatorKey: AppNavigator.navigatorKey,
-                title: 'KidGuardian',
+                title: AppStrings.appName,
                 theme: AppTheme.lightTheme,
                 darkTheme: AppTheme.darkTheme,
                 themeMode: settingsState.themeMode,
@@ -244,11 +266,20 @@ class KidGuardianApp extends StatelessWidget {
                 ],
                 debugShowCheckedModeBanner: false,
                 home: BlocBuilder<AuthBloc, AuthState>(
+                  buildWhen: (previous, current) {
+                    if (previous.runtimeType != current.runtimeType) return true;
+                    if (previous is AuthAuthenticated && current is AuthAuthenticated) {
+                      return previous.user.uid != current.user.uid || previous.user.role != current.user.role;
+                    }
+                    return false;
+                  },
                   builder: (context, state) {
-                    if (state is AuthAuthenticated) {
+                    if (state is AuthInitial || state is AuthLoading) {
+                      return const SplashScreen();
+                    } else if (state is AuthAuthenticated) {
                       return _buildHomeForRole(state.user, context);
                     }
-                    return RoleSelectionScreen();
+                    return const RoleSelectionScreen();
                   },
                 ),
               );
@@ -261,21 +292,31 @@ class KidGuardianApp extends StatelessWidget {
 
   Widget _buildHomeForRole(User user, BuildContext context) {
     if (user.role == UserRole.parent) {
-      if (user.familyId != null) {
+      if (user.familyId != null && (!_parentListenersStarted || _startedParentFamilyId != user.familyId)) {
+        _parentListenersStarted = true;
+        _startedParentFamilyId = user.familyId;
         WidgetsBinding.instance.addPostFrameCallback((_) {
           context.read<NotificationBloc>().add(
             StartAlertListening(familyId: user.familyId!),
           );
+          context.read<NotificationBloc>().add(
+            StartTimeRequestListening(familyId: user.familyId!, childUids: const []),
+          );
         });
       }
-      return ParentDashboard();
+      return const ParentDashboard();
     } else {
-      if (user.familyId != null) {
+      if (user.familyId != null && (!_childMonitoringStarted || _startedChildUid != user.uid)) {
+        _childMonitoringStarted = true;
+        _startedChildUid = user.uid;
         WidgetsBinding.instance.addPostFrameCallback((_) {
           context.read<AppMonitorBloc>().add(StartMonitoring(user.familyId!, user.uid));
         });
       }
-      return ChildDashboard();
+      return Theme(
+        data: AppTheme.childTheme,
+        child: const ChildDashboard(),
+      );
     }
   }
 }

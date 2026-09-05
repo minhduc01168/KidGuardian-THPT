@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
+import '../../../../domain/entities/user.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final UserRole? initialRole;
+  const LoginScreen({super.key, this.initialRole});
   
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -60,6 +62,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       context.read<AuthBloc>().add(LoginRequested(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
+        role: widget.initialRole,
       ));
     }
   }
@@ -78,7 +81,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthAuthenticated) {
-            Navigator.of(context).popUntil((route) => route.isFirst);
+            // Navigator.popUntil được xử lý tập trung bởi main.dart
           } else if (state is AuthError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -367,7 +370,9 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => RegisterScreen(),
+                                        builder: (context) => RegisterScreen(
+                                          initialRole: widget.initialRole,
+                                        ),
                                       ),
                                     );
                                   },

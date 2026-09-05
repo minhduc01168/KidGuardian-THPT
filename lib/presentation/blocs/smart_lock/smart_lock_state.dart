@@ -78,3 +78,5 @@ class LockHistoryLoaded extends SmartLockState {
   @override
   List<Object> get props => [history];
 }
+
+

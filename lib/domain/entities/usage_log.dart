@@ -23,6 +23,30 @@ class UsageLog extends Equatable {
     required this.date,
   });
 
+  UsageLog copyWith({
+    String? docId,
+    String? childUid,
+    String? familyId,
+    String? appPackage,
+    String? appName,
+    DateTime? startTime,
+    DateTime? endTime,
+    int? durationMinutes,
+    String? date,
+  }) {
+    return UsageLog(
+      docId: docId ?? this.docId,
+      childUid: childUid ?? this.childUid,
+      familyId: familyId ?? this.familyId,
+      appPackage: appPackage ?? this.appPackage,
+      appName: appName ?? this.appName,
+      startTime: startTime ?? this.startTime,
+      endTime: endTime ?? this.endTime,
+      durationMinutes: durationMinutes ?? this.durationMinutes,
+      date: date ?? this.date,
+    );
+  }
+
   @override
   List<Object?> get props => [
         docId,

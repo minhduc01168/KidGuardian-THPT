@@ -4,6 +4,7 @@ import 'package:flutter/painting.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:kidguardian/core/utils/app_utils.dart';
 import 'package:kidguardian/domain/repositories/alert_repository.dart';
 import 'package:kidguardian/domain/repositories/time_request_repository.dart';
 
@@ -69,6 +70,29 @@ class QuickRejectRequest extends NotificationEvent {
   List<Object?> get props => [requestId];
 }
 
+/// FIX C3: Bắt đầu lắng nghe time requests theo realtime (Phương án B - không cần Cloud Functions)
+class StartTimeRequestListening extends NotificationEvent {
+  final String familyId;
+  final List<String> childUids;
+  const StartTimeRequestListening({
+    required this.familyId,
+    required this.childUids,
+  });
+  @override
+  List<Object?> get props => [familyId, childUids];
+}
+
+class StopTimeRequestListening extends NotificationEvent {}
+
+/// Internal event khi phát hiện time request mới
+class _TimeRequestReceived extends NotificationEvent {
+  final TimeRequest request;
+  final String childUid;
+  const _TimeRequestReceived(this.request, this.childUid);
+  @override
+  List<Object?> get props => [request.id];
+}
+
 // States
 abstract class NotificationState extends Equatable {
   const NotificationState();
@@ -79,9 +103,13 @@ abstract class NotificationState extends Equatable {
 class NotificationInitial extends NotificationState {}
 class NotificationListening extends NotificationState {
   final int pendingAlertCount;
-  const NotificationListening({this.pendingAlertCount = 0});
+  final int pendingTimeRequestCount;
+  const NotificationListening({
+    this.pendingAlertCount = 0,
+    this.pendingTimeRequestCount = 0,
+  });
   @override
-  List<Object?> get props => [pendingAlertCount];
+  List<Object?> get props => [pendingAlertCount, pendingTimeRequestCount];
 }
 class NotificationError extends NotificationState {
   final String message;
@@ -96,9 +124,10 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
   final FlutterLocalNotificationsPlugin _notificationsPlugin;
   
   StreamSubscription? _alertSubscription;
+  StreamSubscription? _timeRequestSubscription; // FIX C3
   String? _familyId;
-  String? _childUid;
   Set<String> _notifiedAlertIds = {};
+  Set<String> _notifiedRequestIds = {}; // FIX C3: track để tránh notify trùng lặp
 
   NotificationBloc({
     required this.alertRepository,
@@ -112,6 +141,10 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     on<MarkAlertReviewed>(_onMarkReviewed);
     on<QuickApproveRequest>(_onQuickApprove);
     on<QuickRejectRequest>(_onQuickReject);
+    // FIX C3
+    on<StartTimeRequestListening>(_onStartTimeRequestListening);
+    on<StopTimeRequestListening>(_onStopTimeRequestListening);
+    on<_TimeRequestReceived>(_onTimeRequestReceived);
   }
 
   Future<void> initializeNotifications() async {
@@ -131,11 +164,42 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
         debugPrint('Notification tapped: ${details.payload}');
       },
     );
+    // FIX #3: Tạo các notification channel cần thiết ngay từ khi khởi động
+    // Android sẽ silently drop notification nếu channel chưa được tạo trước
+    await _createNotificationChannels();
+  }
+
+  Future<void> _createNotificationChannels() async {
+    final androidPlugin = _notificationsPlugin
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    if (androidPlugin == null) return;
+
+    // Channel cho cảnh báo từ khoá động và keyword alerts (HIGH priority)
+    await androidPlugin.createNotificationChannel(const AndroidNotificationChannel(
+      'kidguardian_alerts',
+      'Cảnh báo an toàn',
+      description: 'Thông báo cảnh báo từ khoá nguy hiểm và bạo lực',
+      importance: Importance.high,
+      playSound: true,
+      enableVibration: true,
+    ));
+
+    // Channel cho yêu cầu xin thêm thời gian (HIGH priority)
+    await androidPlugin.createNotificationChannel(const AndroidNotificationChannel(
+      'kidguardian_requests',
+      'Yêu cầu thời gian',
+      description: 'Thông báo khi con xin thêm thời gian sử dụng app',
+      importance: Importance.high,
+      playSound: true,
+      enableVibration: true,
+    ));
+
+    debugPrint('NotificationBloc: Notification channels created successfully');
   }
 
   void _onStartListening(StartAlertListening event, Emitter<NotificationState> emit) {
+    if (_alertSubscription != null && _familyId == event.familyId) return;
     _familyId = event.familyId;
-    _childUid = null;
     _notifiedAlertIds = {};
 
     _alertSubscription?.cancel();
@@ -164,22 +228,102 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     _alertSubscription?.cancel();
     _alertSubscription = null;
     _familyId = null;
-    _childUid = null;
     _notifiedAlertIds = {};
     emit(NotificationInitial());
   }
 
+  // ─── FIX C3: Firestore realtime stream cho Time Requests ─────────────────
+
+  void _onStartTimeRequestListening(
+    StartTimeRequestListening event,
+    Emitter<NotificationState> emit,
+  ) {
+    // FIX #2: Guard bug — phải cập nhật _familyId trước khi check
+    if (_timeRequestSubscription != null && _familyId == event.familyId) return;
+    _familyId = event.familyId; // Cập nhật trước khi restart listener
+    _timeRequestSubscription?.cancel();
+    _notifiedRequestIds = {};
+
+    // watchPendingRequests dùng collectionGroup — tự filter theo familyId
+    _timeRequestSubscription = timeRequestRepository
+        .watchPendingRequests(familyId: event.familyId)
+        .listen(
+      (requests) {
+        for (final req in requests) {
+          if (!_notifiedRequestIds.contains(req.id)) {
+            _notifiedRequestIds.add(req.id);
+            debugPrint('[NotificationBloc] New pending time request detected: ${req.id} (${req.appName}, ${req.requestedMinutes}m)');
+            add(_TimeRequestReceived(req, req.childUid));
+          }
+        }
+      },
+      onError: (error) => debugPrint('[NotificationBloc] TimeRequest stream error: $error'),
+    );
+
+    emit(const NotificationListening()); // Emit initial listening state
+  }
+
+  void _onStopTimeRequestListening(
+    StopTimeRequestListening event,
+    Emitter<NotificationState> emit,
+  ) {
+    _timeRequestSubscription?.cancel();
+    _timeRequestSubscription = null;
+    _notifiedRequestIds = {};
+  }
+
+  Future<void> _onTimeRequestReceived(
+    _TimeRequestReceived event,
+    Emitter<NotificationState> emit,
+  ) async {
+    final req = event.request;
+    // FIX: Bỏ qua request quá cũ (> 24 giờ / 1440 phút) khi phụ huynh mở app
+    // Nếu request vẫn đang ở trạng thái pending trong vòng 24h, luồng vẫn cần thông báo cho phụ huynh
+    final ageMinutes = DateTime.now().difference(req.timestamp).inMinutes;
+    if (ageMinutes > 1440) {
+      _notifiedRequestIds.add(req.id); // Ghi nhớ để không notify lần sau
+      debugPrint('[NotificationBloc] TimeRequest ${req.id} is ${ageMinutes}min old (>24h), skipping notification');
+      emit(NotificationListening(
+        pendingAlertCount: _notifiedAlertIds.length,
+        pendingTimeRequestCount: _notifiedRequestIds.length,
+      ));
+      return;
+    }
+    debugPrint('[NotificationBloc] Triggering push notification for request ${req.id}');
+    await _showTimeRequestNotification(
+      id: req.id.hashCode,
+      appName: req.appName,
+      requestedMinutes: req.requestedMinutes,
+      reason: req.reason,
+      payload: 'time_request:${req.id}:${event.childUid}',
+    );
+    emit(NotificationListening(
+      pendingAlertCount: _notifiedAlertIds.length,
+      pendingTimeRequestCount: _notifiedRequestIds.length,
+    ));
+  }
+
   Future<void> _onAlertReceived(AlertReceived event, Emitter<NotificationState> emit) async {
     final alert = event.alert;
-    
+    // FIX #3: Chỉ hiển notification cho keyword_detected, bỏ qua app_blocked (spam)
+    if (alert.type != 'keyword_detected') {
+      emit(NotificationListening(
+        pendingAlertCount: _notifiedAlertIds.length,
+        pendingTimeRequestCount: _notifiedRequestIds.length,
+      ));
+      return;
+    }
     await _showNotification(
       id: alert.id.hashCode,
-      title: 'Cảnh báo an toàn',
-      body: 'Phát hiện từ khóa "${alert.keyword}" trong ứng dụng ${alert.packageName}',
+      title: '⚠️ Cảnh báo từ khoá nguy hiểm',
+      body: 'Phát hiện "${alert.keyword}" trong ${AppUtils.getAppName(alert.packageName)}. Nhấn để xem chi tiết.',
       payload: alert.id,
     );
 
-    emit(NotificationListening(pendingAlertCount: _notifiedAlertIds.length));
+    emit(NotificationListening(
+      pendingAlertCount: _notifiedAlertIds.length,
+      pendingTimeRequestCount: _notifiedRequestIds.length,
+    ));
   }
 
   Future<void> _onMarkReviewed(MarkAlertReviewed event, Emitter<NotificationState> emit) async {
@@ -269,6 +413,40 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     );
   }
 
+  Future<void> _showTimeRequestNotification({
+    required int id,
+    required String appName,
+    required int requestedMinutes,
+    required String reason,
+    String? payload,
+  }) async {
+    // FIX #2: Dùng đúng channel 'kidguardian_requests' cho time requests
+    const androidDetails = AndroidNotificationDetails(
+      'kidguardian_requests',
+      'Yêu cầu thời gian',
+      channelDescription: 'Thông báo khi con xin thêm thời gian sử dụng app',
+      importance: Importance.high,
+      priority: Priority.high,
+      showWhen: true,
+    );
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+    const details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+    await _notificationsPlugin.show(
+      id: id,
+      title: '📱 Con xin thêm thời gian',
+      body: '$appName: xin thêm $requestedMinutes phút. Lý do: ${reason.isNotEmpty ? reason : "Không có"}',
+      notificationDetails: details,
+      payload: payload,
+    );
+  }
+
   Future<void> _showNotification({
     required int id,
     required String title,
@@ -304,6 +482,7 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
   @override
   Future<void> close() {
     _alertSubscription?.cancel();
+    _timeRequestSubscription?.cancel(); // FIX C3
     return super.close();
   }
 }

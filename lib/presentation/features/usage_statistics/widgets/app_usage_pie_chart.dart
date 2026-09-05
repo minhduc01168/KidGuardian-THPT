@@ -45,6 +45,7 @@ class AppUsagePieChart extends StatelessWidget {
                   return PieChartSectionData(
                     color: _colors[index % _colors.length],
                     value: entry.value.toDouble(),
+                    showTitle: percentage >= 5,
                     title: '${percentage.toStringAsFixed(0)}%',
                     radius: 60,
                     titleStyle: const TextStyle(

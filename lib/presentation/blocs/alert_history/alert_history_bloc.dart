@@ -128,7 +128,7 @@ class AlertHistoryBloc extends Bloc<AlertHistoryEvent, AlertHistoryState> {
   }
 
   void _onAlertsUpdated(_AlertsUpdated event, Emitter<AlertHistoryState> emit) {
-    _allAlerts = event.alerts;
+    _allAlerts = event.alerts.where((a) => a.type == 'keyword_detected').toList();
     _emitFiltered(emit);
   }
 

@@ -4,11 +4,13 @@ import '../../../../core/utils/app_utils.dart';
 
 class AppUsageListWidget extends StatelessWidget {
   final Map<String, int> usageByApp;
+  final Map<String, int> appTimeLimits;
   final Function(String appName, int minutes)? onAppTap;
 
   const AppUsageListWidget({
     super.key,
     required this.usageByApp,
+    this.appTimeLimits = const {},
     this.onAppTap,
   });
 
@@ -78,19 +80,17 @@ class AppUsageListWidget extends StatelessWidget {
             separatorBuilder: (context, index) => Divider(height: 1, indent: 72),
             itemBuilder: (context, index) {
               final entry = sortedEntries[index];
-              final percent = totalMinutes > 0
-                  ? (entry.value / totalMinutes * 100)
-                  : 0;
-              final hours = entry.value ~/ 60;
-              final minutes = entry.value % 60;
-              final timeStr = hours > 0
-                  ? '$hours giờ $minutes phút'
-                  : '$minutes phút';
+              final limitMinutes = appTimeLimits[entry.key] ?? 0;
+              final percent = limitMinutes > 0
+                  ? (entry.value / limitMinutes * 100).clamp(0.0, 100.0)
+                  : (totalMinutes > 0 ? (entry.value / totalMinutes * 100) : 0);
+              final timeStr = AppUtils.formatMinutes(entry.value);
 
               return _AppUsageTile(
                 appName: entry.key,
                 minutes: entry.value,
                 timeStr: timeStr,
+                limitMinutes: limitMinutes,
                 percent: percent.toDouble(),
                 rank: index + 1,
                 onTap: onAppTap != null
@@ -113,7 +113,7 @@ class AppUsageListWidget extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    '${totalMinutes ~/ 60} giờ ${totalMinutes % 60} phút',
+                    AppUtils.formatMinutes(totalMinutes),
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -133,6 +133,7 @@ class _AppUsageTile extends StatelessWidget {
   final String appName;
   final int minutes;
   final String timeStr;
+  final int limitMinutes;
   final double percent;
   final int rank;
   final VoidCallback? onTap;
@@ -141,6 +142,7 @@ class _AppUsageTile extends StatelessWidget {
     required this.appName,
     required this.minutes,
     required this.timeStr,
+    this.limitMinutes = 0,
     required this.percent,
     required this.rank,
     this.onTap,
@@ -229,7 +231,9 @@ class _AppUsageTile extends StatelessWidget {
                             value: percent / 100,
                             backgroundColor: AppColors.divider.withOpacity(0.3),
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              AppUtils.getAppColor(appName),
+                              (minutes >= limitMinutes && limitMinutes > 0)
+                                  ? Colors.red.shade700
+                                  : AppUtils.getAppColor(appName),
                             ),
                             minHeight: 6,
                           ),
@@ -255,13 +259,34 @@ class _AppUsageTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  timeStr,
+                  minutes >= limitMinutes && limitMinutes > 0
+                      ? '🔒 Đã khóa'
+                      : timeStr,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
+                    color: minutes >= limitMinutes && limitMinutes > 0
+                        ? Colors.red.shade700
+                        : AppColors.primary,
                   ),
                 ),
+                if (limitMinutes > 0) ...[
+                  SizedBox(height: 2),
+                  Text(
+                    minutes >= limitMinutes && limitMinutes > 0
+                        ? 'Đã hết giờ (${limitMinutes} phút)'
+                        : 'Giới hạn: ${AppUtils.formatMinutes(limitMinutes)}',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: minutes >= limitMinutes
+                          ? Colors.red.shade700
+                          : AppColors.textSecondary,
+                      fontWeight: minutes >= limitMinutes
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                    ),
+                  ),
+                ],
               ],
             ),
 

@@ -6,12 +6,16 @@ import '../../../../core/utils/app_utils.dart';
 import '../../../../domain/entities/weekly_report.dart';
 import '../../../features/auth/bloc/auth_bloc.dart';
 import '../../../features/auth/bloc/auth_state.dart';
+import '../../dashboard/bloc/dashboard_bloc.dart';
+import '../../dashboard/bloc/dashboard_state.dart';
 import '../bloc/report_bloc.dart';
 import '../bloc/report_event.dart';
 import '../bloc/report_state.dart';
 
 class WeeklyReportScreen extends StatefulWidget {
-  const WeeklyReportScreen({super.key});
+  final String? childUid;
+
+  const WeeklyReportScreen({super.key, this.childUid});
 
   @override
   State<WeeklyReportScreen> createState() => _WeeklyReportScreenState();
@@ -24,21 +28,47 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
     _loadReports();
   }
 
+  String _getTargetChildId(BuildContext context, AuthAuthenticated authState) {
+    if (widget.childUid != null && widget.childUid!.isNotEmpty) {
+      return widget.childUid!;
+    }
+    try {
+      final dashState = context.read<DashboardBloc>().state;
+      if (dashState is DashboardLoaded && dashState.childUids.isNotEmpty) {
+        return dashState.childUids.first;
+      }
+    } catch (_) {}
+    return authState.user.uid;
+  }
+
   void _loadReports() {
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthAuthenticated && authState.user.familyId != null) {
+      // FIX #4: Truyền childUid để filter đúng báo cáo của con đang xem
+      final targetChildUid = _getTargetChildId(context, authState);
       context.read<ReportBloc>().add(
-            LoadReportHistory(familyId: authState.user.familyId!),
+            LoadReportHistory(
+              familyId: authState.user.familyId!,
+              childUid: targetChildUid,
+            ),
           );
+    }
+  }
+
+  void _autoGenerateIfEmpty(ReportState state) {
+    // Nếu chưa có báo cáo nào, tự động generate báo cáo tuần hiện tại
+    if (state is ReportHistoryLoaded && state.reports.isEmpty) {
+      _generateReport();
     }
   }
 
   void _generateReport() {
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthAuthenticated && authState.user.familyId != null) {
+      final targetChildUid = _getTargetChildId(context, authState);
       context.read<ReportBloc>().add(
             GenerateWeeklyReport(
-              childUid: authState.user.uid,
+              childUid: targetChildUid,
               familyId: authState.user.familyId!,
             ),
           );
@@ -215,6 +245,11 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
         ),
         body: BlocBuilder<ReportBloc, ReportState>(
           builder: (context, state) {
+            // Tự động generate nếu chưa có báo cáo
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _autoGenerateIfEmpty(state);
+            });
+
             if (state is ReportLoading) {
               return Center(
                 child: CircularProgressIndicator(color: AppColors.primary),
@@ -381,32 +416,17 @@ class _WeeklyReportScreenState extends State<WeeklyReportScreen> {
           SizedBox(height: 24),
 
           // Action buttons
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => _showEmailDialog(report),
-                  icon: Icon(Icons.email_outlined),
-                  label: Text('Gửi email'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.primary,
-                    padding: EdgeInsets.symmetric(vertical: 12),
-                  ),
-                ),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: _loadReports,
+              icon: Icon(Icons.list),
+              label: Text('Xem tất cả các tuần'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                padding: EdgeInsets.symmetric(vertical: 14),
               ),
-              SizedBox(width: 16),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: _loadReports,
-                  icon: Icon(Icons.list),
-                  label: Text('Xem tất cả'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.primary,
-                    padding: EdgeInsets.symmetric(vertical: 12),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
           SizedBox(height: 24),
 

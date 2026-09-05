@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:kidguardian/domain/repositories/time_request_repository.dart';
 import 'package:kidguardian/domain/repositories/rules_repository.dart';
+import 'package:kidguardian/domain/repositories/alert_repository.dart';
 
 // Events
 abstract class TimeRequestEvent extends Equatable {
@@ -147,11 +148,16 @@ class TimeRequestHistoryLoaded extends TimeRequestState {
 class TimeRequestBloc extends Bloc<TimeRequestEvent, TimeRequestState> {
   final TimeRequestRepository repository;
   final RulesRepository? rulesRepository;
+  final AlertRepository? alertRepository;
   StreamSubscription? _requestSubscription;
   List<TimeRequest> _allRequests = [];
   TimeRequestFilterStatus _filterStatus = TimeRequestFilterStatus.all;
 
-  TimeRequestBloc({required this.repository, this.rulesRepository}) : super(TimeRequestInitial()) {
+  TimeRequestBloc({
+    required this.repository, 
+    this.rulesRepository,
+    this.alertRepository,
+  }) : super(TimeRequestInitial()) {
     on<SubmitTimeRequest>(_onSubmitRequest);
     on<LoadTimeRequests>(_onLoadRequests);
     on<LoadPendingRequests>(_onLoadPendingRequests);
@@ -165,6 +171,20 @@ class TimeRequestBloc extends Bloc<TimeRequestEvent, TimeRequestState> {
   Future<void> _onSubmitRequest(SubmitTimeRequest event, Emitter<TimeRequestState> emit) async {
     emit(TimeRequestSubmitting());
     try {
+      // RATE LIMIT: Tối đa 3 lần / giờ / ứng dụng
+      final recentCount = await repository.countRecentRequests(
+        familyId: event.familyId,
+        childUid: event.childUid,
+        appPackageName: event.appPackageName,
+        window: const Duration(hours: 1),
+      );
+
+      if (recentCount >= 3) {
+        emit(const TimeRequestError(
+            'Bạn chỉ được xin thêm giờ tối đa 3 lần/giờ cho ứng dụng này. Vui lòng thử lại sau.'));
+        return;
+      }
+
       final request = TimeRequest(
         id: '',
         familyId: event.familyId,
@@ -186,19 +206,27 @@ class TimeRequestBloc extends Bloc<TimeRequestEvent, TimeRequestState> {
         );
 
         if (shouldAutoApprove) {
-          await repository.submitRequest(request);
-          final submittedRequests = await repository
-              .watchRequests(familyId: event.familyId, childUid: event.childUid)
-              .first;
-          if (submittedRequests.isNotEmpty) {
-            final submittedRequest = submittedRequests.first;
+          final requestId = await repository.submitRequest(request);
+          if (requestId.isNotEmpty) {
             await repository.approveRequest(
               familyId: event.familyId,
               childUid: event.childUid,
-              requestId: submittedRequest.id,
+              requestId: requestId,
               response: 'Tự động duyệt',
             );
-            await rulesRepository!.logAutoApprovedRequest(submittedRequest);
+            await rulesRepository!.logAutoApprovedRequest(
+              TimeRequest(
+                id: requestId,
+                familyId: request.familyId,
+                childUid: request.childUid,
+                appPackageName: request.appPackageName,
+                appName: request.appName,
+                requestedMinutes: request.requestedMinutes,
+                reason: request.reason,
+                status: TimeRequestStatus.approved,
+                timestamp: request.timestamp,
+              )
+            );
             autoApproved = true;
           }
         }
@@ -206,6 +234,20 @@ class TimeRequestBloc extends Bloc<TimeRequestEvent, TimeRequestState> {
 
       if (!autoApproved) {
         await repository.submitRequest(request);
+        
+        // Ghi log alert
+        if (alertRepository != null) {
+          try {
+            await alertRepository!.createTimeRequestAlert(
+              familyId: event.familyId,
+              childUid: event.childUid,
+              packageName: event.appPackageName,
+              requestedMinutes: event.requestedMinutes,
+            );
+          } catch (e) {
+            debugPrint('Error creating time request alert: $e');
+          }
+        }
       }
 
       emit(TimeRequestSubmitted(

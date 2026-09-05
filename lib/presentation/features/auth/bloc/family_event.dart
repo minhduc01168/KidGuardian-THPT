@@ -34,20 +34,7 @@ class GenerateLinkingCodeRequested extends FamilyEvent {
   List<Object?> get props => [familyId];
 }
 
-class CreateChildAccountRequested extends FamilyEvent {
-  final String name;
-  final int age;
-  final String familyId;
 
-  const CreateChildAccountRequested({
-    required this.name,
-    required this.age,
-    required this.familyId,
-  });
-
-  @override
-  List<Object?> get props => [name, age, familyId];
-}
 
 class LinkChildToFamilyRequested extends FamilyEvent {
   final String linkingCode;

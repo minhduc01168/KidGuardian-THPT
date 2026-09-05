@@ -8,7 +8,8 @@ import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
 
 class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key});
+  final UserRole? initialRole;
+  const RegisterScreen({super.key, this.initialRole});
   
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
@@ -23,13 +24,14 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
   
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
-  UserRole _selectedRole = UserRole.parent;
+  late UserRole _selectedRole;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   
   @override
   void initState() {
     super.initState();
+    _selectedRole = widget.initialRole ?? UserRole.parent;
     _animationController = AnimationController(
       vsync: this,
       duration: Duration(milliseconds: 600),
@@ -84,19 +86,19 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
               ),
             );
           } else if (state is AuthAuthenticated) {
-            Navigator.pop(context);
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Row(
                   children: [
                     Icon(Icons.check_circle_outline, color: Colors.white),
                     SizedBox(width: 12),
-                    Expanded(child: Text('Đăng ký thành công!')),
+                    Expanded(child: Text('Đăng ký thành công! Đang đăng nhập...')),
                   ],
                 ),
                 backgroundColor: AppColors.success,
               ),
             );
+            // Navigator.pop(context) được xử lý bởi main.dart
           }
         },
         child: Container(

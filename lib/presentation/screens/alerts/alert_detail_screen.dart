@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:kidguardian/core/utils/app_utils.dart';
 import 'package:kidguardian/domain/repositories/alert_repository.dart';
 import 'package:kidguardian/presentation/blocs/alert_review/alert_review_bloc.dart';
 
@@ -158,7 +159,7 @@ class _AlertDetailContentState extends State<_AlertDetailContent> {
                   ),
                   const Divider(height: 24),
                   _InfoRow(label: 'Từ khóa', value: '"${alert.keyword}"'),
-                  _InfoRow(label: 'Ứng dụng', value: alert.packageName),
+                  _InfoRow(label: 'Ứng dụng', value: AppUtils.getAppName(alert.packageName)),
                   _InfoRow(label: 'Thời gian', value: timeStr),
                   _InfoRow(label: 'Loại', value: alert.type),
                 ],
@@ -268,7 +269,7 @@ class _AlertDetailContentState extends State<_AlertDetailContent> {
                   );
                 },
                 icon: const Icon(Icons.remove_circle_outline),
-                label: const Text('Bỏ qua (False Positive)'),
+                label: const Text('Bỏ qua'),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.orange,
                 ),

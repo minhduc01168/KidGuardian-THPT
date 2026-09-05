@@ -65,7 +65,18 @@ class KeywordManagementError extends KeywordManagementState {
 }
 
 class KeywordManagementBloc extends Bloc<KeywordManagementEvent, KeywordManagementState> {
-  static const _defaultKeywords = ['tự tử', 'đánh nhau', 'cờ bạc', 'ma túy'];
+  static const defaultKeywords = [
+    // Nguy hiểm đến tính mạng
+    'tự tử', 'tự làm hại bản thân', 'nhảy lầu',
+    // Bạo lực
+    'đánh nhau', 'bạo lực', 'đánh hội đồng', 'dao', 'chém',
+    // Chất kích thích / Cờ bạc
+    'ma túy', 'cần sa', 'thuốc lắc', 'cờ bạc', 'cá độ', 'cá cược',
+    // Nội dung người lớn
+    'sex', 'khiêu dâm', 'phim người lớn', '18+',
+    // Lừa đảo / An toàn mạng
+    'lừa đảo', 'hack', 'dâm ô',
+  ];
   final FirebaseFirestore _firestore;
 
   KeywordManagementBloc({FirebaseFirestore? firestore})
@@ -99,7 +110,7 @@ class KeywordManagementBloc extends Bloc<KeywordManagementEvent, KeywordManageme
       if (doc.exists && doc.data()?['keywords'] != null) {
         keywords = List<String>.from(doc.data()!['keywords']);
       } else {
-        keywords = List.from(_defaultKeywords);
+        keywords = List.from(defaultKeywords);
       }
 
       await _syncToNative(keywords);
@@ -149,7 +160,7 @@ class KeywordManagementBloc extends Bloc<KeywordManagementEvent, KeywordManageme
   }
 
   Future<void> _onResetToDefaults(ResetToDefaults event, Emitter<KeywordManagementState> emit) async {
-    final keywords = List<String>.from(_defaultKeywords);
+    final keywords = List<String>.from(defaultKeywords);
     try {
       await _saveKeywords(event.familyId, keywords);
       await _syncToNative(keywords);

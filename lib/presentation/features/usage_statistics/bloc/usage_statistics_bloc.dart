@@ -1,4 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/utils/app_utils.dart';
+import '../../../../data/repositories/smart_lock_repository.dart';
+import '../../../../domain/entities/usage_log.dart';
 import '../../../../domain/repositories/usage_repository.dart';
 import '../utils/usage_statistics_helper.dart';
 import '../utils/usage_exporter.dart';
@@ -8,9 +11,13 @@ import 'usage_statistics_state.dart';
 class UsageStatisticsBloc
     extends Bloc<UsageStatisticsEvent, UsageStatisticsState> {
   final UsageRepository _usageRepository;
+  final SmartLockRepository? _smartLockRepository;
 
-  UsageStatisticsBloc({required UsageRepository usageRepository})
-      : _usageRepository = usageRepository,
+  UsageStatisticsBloc({
+    required UsageRepository usageRepository,
+    SmartLockRepository? smartLockRepository,
+  })  : _usageRepository = usageRepository,
+        _smartLockRepository = smartLockRepository,
         super(UsageStatisticsInitial()) {
     on<LoadUsageStats>(_onLoadUsageStats);
     on<ChangeTimePeriod>(_onChangeTimePeriod);
@@ -22,6 +29,75 @@ class UsageStatisticsBloc
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 
+  static final Set<String> _defaultPopularPackages = {
+    'com.zhiliaoapp.musically',
+    'com.ss.android.ugc.trill',
+    'TikTok',
+    'com.facebook.katana',
+    'Facebook',
+    'com.facebook.orca',
+    'Messenger',
+    'com.google.android.youtube',
+    'YouTube',
+    'com.instagram.android',
+    'Instagram',
+    'com.instagram.barcelona',
+    'Threads',
+    'com.zing.zalo',
+    'Zalo',
+    'com.locket.Locket',
+    'com.locket.locket',
+    'Locket',
+    'com.discord',
+    'Discord',
+    'org.telegram.messenger',
+    'Telegram',
+  };
+
+  Set<String> _buildPackageSet(List<dynamic> apps) {
+    final set = <String>{};
+    for (final app in apps) {
+      final isMonitored = (app.isMonitored ?? true) as bool;
+      if (isMonitored) {
+        final pkg = app.appPackageName as String;
+        set.add(pkg);
+        final name = (app.appName as String?);
+        if (name != null && name.isNotEmpty) set.add(name);
+        set.add(AppUtils.getAppName(pkg));
+      }
+    }
+    return set;
+  }
+
+  Future<Set<String>> _getMonitoredPackages(String? familyId, String childUid) async {
+    if (_smartLockRepository == null || familyId == null) {
+      return _defaultPopularPackages;
+    }
+    try {
+      final configuredApps = await _smartLockRepository!.getMonitoredApps(familyId, childUid);
+      final popularApps = _smartLockRepository!.getPopularMonitoredApps();
+      
+      final Map<String, dynamic> mergedApps = {};
+      for (var app in popularApps) {
+        mergedApps[app.appPackageName] = app;
+      }
+      for (var app in configuredApps) {
+        if (mergedApps.containsKey(app.appPackageName)) {
+           mergedApps[app.appPackageName] = mergedApps[app.appPackageName]!.copyWith(isMonitored: app.isMonitored);
+        }
+      }
+      return _buildPackageSet(mergedApps.values.toList());
+    } catch (e) {
+      return _defaultPopularPackages;
+    }
+  }
+
+  bool _isAppAllowed(String packageOrName, Set<String> monitoredPackages) {
+    if (AppUtils.isSystemOrUnmonitoredApp(packageOrName)) return false;
+    final cleanName = AppUtils.getAppName(packageOrName);
+    return monitoredPackages.contains(packageOrName) || monitoredPackages.contains(cleanName);
+  }
+
   Future<void> _onLoadUsageStats(
     LoadUsageStats event,
     Emitter<UsageStatisticsState> emit,
@@ -31,11 +107,21 @@ class UsageStatisticsBloc
       final startDateStr = _getDateString(event.startDate);
       final endDateStr = _getDateString(event.endDate);
 
-      final logs = await _usageRepository.getUsageByDateRange(
+      final monitoredPackages = await _getMonitoredPackages(event.familyId, event.childUid);
+
+      final logsRaw = await _usageRepository.getUsageByDateRange(
         event.childUid,
         startDateStr,
         endDateStr,
       );
+
+      final List<UsageLog> logs = [];
+      for (final log in logsRaw) {
+        final pkg = log.appPackage.isNotEmpty ? log.appPackage : log.appName;
+        if (_isAppAllowed(pkg, monitoredPackages)) {
+          logs.add(log.copyWith(appName: AppUtils.getAppNameFromLog(log.appPackage, log.appName)));
+        }
+      }
 
       final hourlyUsage = UsageStatisticsHelper.groupByHour(logs);
       final dailyUsage = UsageStatisticsHelper.groupByDay(logs);
@@ -61,6 +147,7 @@ class UsageStatisticsBloc
         startDate: event.startDate,
         endDate: event.endDate,
         logs: logs,
+        familyId: event.familyId,
       ));
     } catch (e) {
       emit(UsageStatisticsError(
@@ -87,6 +174,7 @@ class UsageStatisticsBloc
         startDate: currentState.startDate,
         endDate: currentState.endDate,
         logs: currentState.logs,
+        familyId: currentState.familyId,
       ));
     }
   }
@@ -99,6 +187,7 @@ class UsageStatisticsBloc
       childUid: event.childUid,
       startDate: event.startDate,
       endDate: event.endDate,
+      familyId: event.familyId,
     ));
   }
 
@@ -110,11 +199,21 @@ class UsageStatisticsBloc
       final startDateStr = _getDateString(event.startDate);
       final endDateStr = _getDateString(event.endDate);
 
-      final logs = await _usageRepository.getUsageByDateRange(
+      final monitoredPackages = await _getMonitoredPackages(event.familyId, event.childUid);
+
+      final logsRaw = await _usageRepository.getUsageByDateRange(
         event.childUid,
         startDateStr,
         endDateStr,
       );
+
+      final List<UsageLog> logs = [];
+      for (final log in logsRaw) {
+        final pkg = log.appPackage.isNotEmpty ? log.appPackage : log.appName;
+        if (_isAppAllowed(pkg, monitoredPackages)) {
+          logs.add(log.copyWith(appName: AppUtils.getAppNameFromLog(log.appPackage, log.appName)));
+        }
+      }
 
       final dateRange =
           UsageStatisticsHelper.formatDateRange(event.startDate, event.endDate);

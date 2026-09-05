@@ -1,4 +1,7 @@
+import 'dart:async';
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/app_time_limit_model.dart';
 import '../models/monitored_app_model.dart';
 import '../models/schedule_model.dart';
@@ -24,19 +27,38 @@ class SmartLockRepository {
 
   Future<List<AppTimeLimitModel>> getAppTimeLimits(
     String familyId,
-    String childId,
-  ) async {
+    String childId, {
+    bool forceServer = false, // BUG-1 FIX: force fetch từ server thay vì Firestore local cache
+  }) async {
     final snapshot = await _firestore
         .collection('families')
         .doc(familyId)
         .collection('children')
         .doc(childId)
         .collection('timeLimits')
-        .get();
+        .get(forceServer ? const GetOptions(source: Source.server) : null);
 
     return snapshot.docs
         .map((doc) => AppTimeLimitModel.fromJson(doc.data()))
         .toList();
+  }
+
+  // BUG-4 FIX: Realtime stream để child device biết ngay khi phụ huynh
+  // approve time request và cộng giờ vào timeLimits (không cần đợi 30s timer)
+  Stream<List<AppTimeLimitModel>> watchTimeLimits(
+    String familyId,
+    String childId,
+  ) {
+    return _firestore
+        .collection('families')
+        .doc(familyId)
+        .collection('children')
+        .doc(childId)
+        .collection('timeLimits')
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => AppTimeLimitModel.fromJson(doc.data()))
+            .toList());
   }
 
   Future<void> saveAppTimeLimit(
@@ -44,14 +66,23 @@ class SmartLockRepository {
     String childId,
     AppTimeLimitModel limit,
   ) async {
-    await _firestore
-        .collection('families')
-        .doc(familyId)
-        .collection('children')
-        .doc(childId)
-        .collection('timeLimits')
-        .doc(limit.appPackageName)
-        .set(limit.toJson());
+    try {
+      await _firestore
+          .collection('families')
+          .doc(familyId)
+          .collection('children')
+          .doc(childId)
+          .collection('timeLimits')
+          .doc(limit.appPackageName)
+          .set(limit.toJson())
+          .timeout(
+            const Duration(seconds: 3),
+            onTimeout: () => throw TimeoutException('Offline sync'),
+          );
+    } catch (e) {
+      if (e is TimeoutException) return;
+      rethrow;
+    }
   }
 
   // Pre-defined popular apps list for MVP
@@ -83,13 +114,28 @@ class SmartLockRepository {
         limits: {},
       ),
       const AppTimeLimitModel(
-        appPackageName: 'com.roblox.client',
-        appName: 'Roblox',
+        appPackageName: 'com.instagram.barcelona',
+        appName: 'Threads',
         limits: {},
       ),
       const AppTimeLimitModel(
-        appPackageName: 'com.dts.freefireth',
-        appName: 'Free Fire',
+        appPackageName: 'com.locket.Locket',
+        appName: 'Locket',
+        limits: {},
+      ),
+      const AppTimeLimitModel(
+        appPackageName: 'com.discord',
+        appName: 'Discord',
+        limits: {},
+      ),
+      const AppTimeLimitModel(
+        appPackageName: 'com.facebook.orca',
+        appName: 'Messenger',
+        limits: {},
+      ),
+      const AppTimeLimitModel(
+        appPackageName: 'org.telegram.messenger',
+        appName: 'Telegram',
         limits: {},
       ),
     ];
@@ -101,17 +147,39 @@ class SmartLockRepository {
     String familyId,
     String childId,
   ) async {
-    final snapshot = await _firestore
-        .collection('families')
-        .doc(familyId)
-        .collection('children')
-        .doc(childId)
-        .collection('monitoredApps')
-        .get();
+    final cacheKey = 'monitored_apps_cache_$childId';
+    try {
+      final snapshot = await _firestore
+          .collection('families')
+          .doc(familyId)
+          .collection('children')
+          .doc(childId)
+          .collection('monitoredApps')
+          .get(const GetOptions(source: Source.serverAndCache))
+          .timeout(const Duration(seconds: 5));
 
-    return snapshot.docs
-        .map((doc) => MonitoredAppModel.fromJson(doc.data()))
-        .toList();
+      final apps = snapshot.docs
+          .map((doc) => MonitoredAppModel.fromJson(doc.data()))
+          .toList();
+
+      // Lưu cache vào SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      final String encodedData = jsonEncode(apps.map((a) => a.toJson()).toList());
+      await prefs.setString(cacheKey, encodedData);
+
+      return apps;
+    } catch (e) {
+      // Nếu rớt mạng hoặc timeout, fallback dùng cache local
+      final prefs = await SharedPreferences.getInstance();
+      final cachedString = prefs.getString(cacheKey);
+      if (cachedString != null) {
+        final List<dynamic> decodedList = jsonDecode(cachedString);
+        return decodedList
+            .map((item) => MonitoredAppModel.fromJson(item as Map<String, dynamic>))
+            .toList();
+      }
+      return [];
+    }
   }
 
   Future<void> toggleMonitoredApp(
@@ -120,14 +188,23 @@ class SmartLockRepository {
     String appPackageName,
     bool isMonitored,
   ) async {
-    await _firestore
-        .collection('families')
-        .doc(familyId)
-        .collection('children')
-        .doc(childId)
-        .collection('monitoredApps')
-        .doc(appPackageName)
-        .set({'isMonitored': isMonitored}, SetOptions(merge: true));
+    try {
+      await _firestore
+          .collection('families')
+          .doc(familyId)
+          .collection('children')
+          .doc(childId)
+          .collection('monitoredApps')
+          .doc(appPackageName)
+          .set({'isMonitored': isMonitored}, SetOptions(merge: true))
+          .timeout(
+            const Duration(seconds: 3),
+            onTimeout: () => throw TimeoutException('Offline sync'),
+          );
+    } catch (e) {
+      if (e is TimeoutException) return;
+      rethrow;
+    }
   }
 
   Future<void> addCustomApp(
@@ -135,14 +212,79 @@ class SmartLockRepository {
     String childId,
     MonitoredAppModel app,
   ) async {
-    await _firestore
-        .collection('families')
-        .doc(familyId)
-        .collection('children')
-        .doc(childId)
-        .collection('monitoredApps')
-        .doc(app.appPackageName)
-        .set(app.toJson());
+    try {
+      await _firestore
+          .collection('families')
+          .doc(familyId)
+          .collection('children')
+          .doc(childId)
+          .collection('monitoredApps')
+          .doc(app.appPackageName)
+          .set(app.toJson())
+          .timeout(
+            const Duration(seconds: 3),
+            onTimeout: () => throw TimeoutException('Offline sync'),
+          );
+    } catch (e) {
+      if (e is TimeoutException) return;
+      rethrow;
+    }
+  }
+
+  // --- Installed Apps (Giai đoạn 2) ---
+
+  Future<void> saveInstalledApps(
+    String familyId,
+    String childId,
+    List<Map<String, dynamic>> apps,
+  ) async {
+    try {
+      final collectionRef = _firestore
+          .collection('families')
+          .doc(familyId)
+          .collection('children')
+          .doc(childId)
+          .collection('installedApps');
+
+      // Chia nhỏ thành các batch 500 (giới hạn của Firestore)
+      const int batchSize = 500;
+      for (var i = 0; i < apps.length; i += batchSize) {
+        final batch = _firestore.batch();
+        final end = (i + batchSize < apps.length) ? i + batchSize : apps.length;
+        final chunk = apps.sublist(i, end);
+
+        for (final app in chunk) {
+          batch.set(collectionRef.doc(app['packageName']), app, SetOptions(merge: true));
+        }
+
+        await batch.commit().timeout(
+              const Duration(seconds: 10),
+              onTimeout: () => throw TimeoutException('Offline sync'),
+            );
+      }
+    } catch (e) {
+      if (e is TimeoutException) return;
+      rethrow;
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getInstalledApps(
+    String familyId,
+    String childId,
+  ) async {
+    try {
+      final snapshot = await _firestore
+          .collection('families')
+          .doc(familyId)
+          .collection('children')
+          .doc(childId)
+          .collection('installedApps')
+          .get();
+
+      return snapshot.docs.map((doc) => doc.data()).toList();
+    } catch (e) {
+      return [];
+    }
   }
 
   // Schedule CRUD methods
@@ -188,7 +330,15 @@ class SmartLockRepository {
             .collection('schedules')
             .doc(schedule.id);
 
-    await docRef.set(schedule.toJson());
+    try {
+      await docRef.set(schedule.toJson()).timeout(
+            const Duration(seconds: 3),
+            onTimeout: () => throw TimeoutException('Offline sync'),
+          );
+    } catch (e) {
+      if (e is TimeoutException) return;
+      rethrow;
+    }
   }
 
   Future<void> deleteSchedule(
@@ -196,14 +346,23 @@ class SmartLockRepository {
     String childId,
     String scheduleId,
   ) async {
-    await _firestore
-        .collection('families')
-        .doc(familyId)
-        .collection('children')
-        .doc(childId)
-        .collection('schedules')
-        .doc(scheduleId)
-        .delete();
+    try {
+      await _firestore
+          .collection('families')
+          .doc(familyId)
+          .collection('children')
+          .doc(childId)
+          .collection('schedules')
+          .doc(scheduleId)
+          .delete()
+          .timeout(
+            const Duration(seconds: 3),
+            onTimeout: () => throw TimeoutException('Offline sync'),
+          );
+    } catch (e) {
+      if (e is TimeoutException) return;
+      rethrow;
+    }
   }
 
   // Smart Lock Settings methods
@@ -230,14 +389,23 @@ class SmartLockRepository {
     String childId,
     SmartLockSettingsModel settings,
   ) async {
-    await _firestore
-        .collection('families')
-        .doc(familyId)
-        .collection('children')
-        .doc(childId)
-        .collection('settings')
-        .doc('smartLock')
-        .set(settings.copyWith(updatedAt: DateTime.now()).toJson());
+    try {
+      await _firestore
+          .collection('families')
+          .doc(familyId)
+          .collection('children')
+          .doc(childId)
+          .collection('settings')
+          .doc('smartLock')
+          .set(settings.copyWith(updatedAt: DateTime.now()).toJson())
+          .timeout(
+            const Duration(seconds: 3),
+            onTimeout: () => throw TimeoutException('Offline sync'),
+          );
+    } catch (e) {
+      if (e is TimeoutException) return;
+      rethrow;
+    }
   }
 
   // Lock History methods
@@ -270,13 +438,22 @@ class SmartLockRepository {
     String childId,
     LockHistoryEntryModel entry,
   ) async {
-    await _firestore
-        .collection('families')
-        .doc(familyId)
-        .collection('children')
-        .doc(childId)
-        .collection('lockHistory')
-        .add(entry.toJson());
+    try {
+      await _firestore
+          .collection('families')
+          .doc(familyId)
+          .collection('children')
+          .doc(childId)
+          .collection('lockHistory')
+          .add(entry.toJson())
+          .timeout(
+            const Duration(seconds: 3),
+            onTimeout: () => throw TimeoutException('Offline sync'),
+          );
+    } catch (e) {
+      if (e is TimeoutException) return;
+      rethrow;
+    }
   }
 
   List<MonitoredAppModel> getPopularMonitoredApps() {
@@ -307,13 +484,28 @@ class SmartLockRepository {
         isMonitored: true,
       ),
       const MonitoredAppModel(
-        appPackageName: 'com.roblox.client',
-        appName: 'Roblox',
+        appPackageName: 'com.instagram.barcelona',
+        appName: 'Threads',
         isMonitored: true,
       ),
       const MonitoredAppModel(
-        appPackageName: 'com.dts.freefireth',
-        appName: 'Free Fire',
+        appPackageName: 'com.locket.Locket',
+        appName: 'Locket',
+        isMonitored: true,
+      ),
+      const MonitoredAppModel(
+        appPackageName: 'com.discord',
+        appName: 'Discord',
+        isMonitored: true,
+      ),
+      const MonitoredAppModel(
+        appPackageName: 'com.facebook.orca',
+        appName: 'Messenger',
+        isMonitored: true,
+      ),
+      const MonitoredAppModel(
+        appPackageName: 'org.telegram.messenger',
+        appName: 'Telegram',
         isMonitored: true,
       ),
     ];

@@ -1,4 +1,7 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
+import 'package:rxdart/rxdart.dart';
 
 enum TimeRequestStatus { pending, approved, rejected }
 
@@ -38,7 +41,7 @@ class TimeRequest {
       requestedMinutes: data['requestedMinutes'] ?? 0,
       reason: data['reason'] ?? '',
       status: TimeRequestStatus.values.firstWhere(
-        (s) => s.name == data['status'],
+        (s) => s.name.toLowerCase() == (data['status'] ?? '').toString().toLowerCase(),
         orElse: () => TimeRequestStatus.pending,
       ),
       timestamp: (data['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
@@ -62,12 +65,13 @@ class TimeRequest {
 }
 
 abstract class TimeRequestRepository {
-  Future<void> submitRequest(TimeRequest request);
+  Future<String> submitRequest(TimeRequest request);
   Stream<List<TimeRequest>> watchRequests({required String familyId, required String childUid});
   Stream<List<TimeRequest>> watchPendingRequests({required String familyId});
   Stream<List<TimeRequest>> watchAllRequests({required String familyId});
   Future<void> approveRequest({required String familyId, required String childUid, required String requestId, String? response});
   Future<void> rejectRequest({required String familyId, required String childUid, required String requestId, String? response});
+  Future<int> countRecentRequests({required String familyId, required String childUid, required String appPackageName, required Duration window});
 }
 
 class TimeRequestRepositoryImpl implements TimeRequestRepository {
@@ -77,16 +81,22 @@ class TimeRequestRepositoryImpl implements TimeRequestRepository {
       : _firestore = firestore ?? FirebaseFirestore.instance;
 
   @override
-  Future<void> submitRequest(TimeRequest request) async {
+  Future<String> submitRequest(TimeRequest request) async {
     try {
-      await _firestore
+      final docRef = await _firestore
           .collection('families')
           .doc(request.familyId)
           .collection('children')
           .doc(request.childUid)
           .collection('timeRequests')
-          .add(request.toMap());
+          .add(request.toMap())
+          .timeout(
+            const Duration(seconds: 3),
+            onTimeout: () => throw TimeoutException('Offline sync'),
+          );
+      return docRef.id;
     } catch (e) {
+      if (e is TimeoutException) return ''; // Proceed since data is cached locally
       throw Exception('Failed to submit time request: $e');
     }
   }
@@ -111,26 +121,87 @@ class TimeRequestRepositoryImpl implements TimeRequestRepository {
 
   @override
   Stream<List<TimeRequest>> watchPendingRequests({required String familyId}) {
-    return _firestore
-        .collectionGroup('timeRequests')
-        .where('familyId', isEqualTo: familyId)
-        .where('status', isEqualTo: 'pending')
-        .orderBy('timestamp', descending: true)
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs.map((doc) => TimeRequest.fromFirestore(doc)).toList();
+    // FIX: Sử dụng RAM Filtering thay vì collectionGroup + where + orderBy
+    // để tránh lỗi FAILED_PRECONDITION do thiếu Composite Index trên Firestore.
+    return watchAllRequests(familyId: familyId).asyncMap((requests) async {
+      final now = DateTime.now();
+      final pendingRequests = <TimeRequest>[];
+
+      for (final req in requests) {
+        if (req.status == TimeRequestStatus.pending) {
+          final age = now.difference(req.timestamp);
+          if (age.inHours >= 24) {
+            // Midnight Purge: Tự động từ chối nếu request quá 24h
+            try {
+              await rejectRequest(
+                familyId: req.familyId,
+                childUid: req.childUid,
+                requestId: req.id,
+                response: 'Từ chối tự động (Quá 24h)',
+              );
+            } catch (e) {
+              debugPrint('[watchPendingRequests] Auto-reject failed: $e');
+            }
+          } else {
+            pendingRequests.add(req);
+          }
+        }
+      }
+      return pendingRequests;
     });
   }
 
   @override
   Stream<List<TimeRequest>> watchAllRequests({required String familyId}) {
     return _firestore
-        .collectionGroup('timeRequests')
-        .where('familyId', isEqualTo: familyId)
-        .orderBy('timestamp', descending: true)
+        .collection('families')
+        .doc(familyId)
         .snapshots()
-        .map((snapshot) {
-      return snapshot.docs.map((doc) => TimeRequest.fromFirestore(doc)).toList();
+        .switchMap((familySnapshot) {
+      final familyData = familySnapshot.data() ?? {};
+      final List<dynamic> rawChildUids = familyData['childUids'] ?? [];
+      final Set<String> childUids = rawChildUids.map((e) => e.toString()).toSet();
+
+      return _firestore
+          .collection('families')
+          .doc(familyId)
+          .collection('children')
+          .snapshots()
+          .switchMap((childrenSnapshot) {
+        final allChildUids = Set<String>.from(childUids);
+        for (final doc in childrenSnapshot.docs) {
+          allChildUids.add(doc.id);
+        }
+
+        if (allChildUids.isEmpty) {
+          return Stream.value(<TimeRequest>[]);
+        }
+
+        final streams = allChildUids.map((childUid) {
+          return _firestore
+              .collection('families')
+              .doc(familyId)
+              .collection('children')
+              .doc(childUid)
+              .collection('timeRequests')
+              .snapshots()
+              .map((snapshot) {
+            return snapshot.docs.map((doc) => TimeRequest.fromFirestore(doc)).toList();
+          }).handleError((error) {
+            debugPrint('[watchAllRequests] Error reading timeRequests for $childUid: $error');
+            return <TimeRequest>[];
+          });
+        }).toList();
+
+        return Rx.combineLatestList(streams).map((listOfLists) {
+          final combined = listOfLists.expand((list) => list).toList();
+          combined.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+          return combined.take(50).toList();
+        });
+      });
+    }).handleError((error) {
+      debugPrint('[watchAllRequests] switchMap outer error: $error');
+      return <TimeRequest>[];
     });
   }
 
@@ -142,18 +213,68 @@ class TimeRequestRepositoryImpl implements TimeRequestRepository {
     String? response,
   }) async {
     try {
-      await _firestore
+      final reqDocRef = _firestore
           .collection('families')
           .doc(familyId)
           .collection('children')
           .doc(childUid)
           .collection('timeRequests')
-          .doc(requestId)
-          .update({
+          .doc(requestId);
+
+      final reqSnap = await reqDocRef.get();
+      if (reqSnap.exists) {
+        final reqData = reqSnap.data() ?? {};
+        final appPackageName = reqData['appPackageName'] as String? ?? '';
+        final requestedMinutes = reqData['requestedMinutes'] as int? ?? 0;
+        final appName = reqData['appName'] as String? ?? '';
+
+        if (appPackageName.isNotEmpty && requestedMinutes > 0) {
+          final limitRef = _firestore
+              .collection('families')
+              .doc(familyId)
+              .collection('children')
+              .doc(childUid)
+              .collection('timeLimits')
+              .doc(appPackageName);
+
+          final limitSnap = await limitRef.get();
+          const dayKeys = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+          final dayOfWeek = dayKeys[DateTime.now().weekday - 1];
+
+          if (limitSnap.exists) {
+            final limitData = limitSnap.data() ?? {};
+            final Map<String, dynamic> limits = Map<String, dynamic>.from(limitData['limits'] ?? {});
+            final int currentLimit = (limits[dayOfWeek] as int?) ?? (limits['everyday'] as int?) ?? 60;
+            limits[dayOfWeek] = currentLimit + requestedMinutes;
+            await limitRef.set({
+              'appPackageName': appPackageName,
+              'appName': appName.isNotEmpty ? appName : (limitData['appName'] ?? appPackageName),
+              'limits': limits,
+              'isBlocked': false,
+            }, SetOptions(merge: true));
+          } else {
+            await limitRef.set({
+              'appPackageName': appPackageName,
+              'appName': appName,
+              'limits': {
+                dayOfWeek: 60 + requestedMinutes,
+              },
+              'isBlocked': false,
+            });
+          }
+          debugPrint('[approveRequest] Added $requestedMinutes mins to $appPackageName limit ($dayOfWeek)');
+        }
+      }
+
+      await reqDocRef.update({
         'status': 'approved',
         'parentResponse': response ?? 'Đã chấp nhận',
-      });
+      }).timeout(
+        const Duration(seconds: 3),
+        onTimeout: () => throw TimeoutException('Offline sync'),
+      );
     } catch (e) {
+      if (e is TimeoutException) return;
       throw Exception('Failed to approve request: $e');
     }
   }
@@ -176,9 +297,47 @@ class TimeRequestRepositoryImpl implements TimeRequestRepository {
           .update({
         'status': 'rejected',
         'parentResponse': response ?? 'Đã từ chối',
-      });
+      }).timeout(
+        const Duration(seconds: 3),
+        onTimeout: () => throw TimeoutException('Offline sync'),
+      );
     } catch (e) {
+      if (e is TimeoutException) return;
       throw Exception('Failed to reject request: $e');
+    }
+  }
+
+  @override
+  Future<int> countRecentRequests({
+    required String familyId,
+    required String childUid,
+    required String appPackageName,
+    required Duration window,
+  }) async {
+    try {
+      final since = DateTime.now().subtract(window);
+      final snapshot = await _firestore
+          .collection('families')
+          .doc(familyId)
+          .collection('children')
+          .doc(childUid)
+          .collection('timeRequests')
+          .where('appPackageName', isEqualTo: appPackageName)
+          .get();
+      
+      int count = 0;
+      for (final doc in snapshot.docs) {
+        final data = doc.data();
+        final timestamp = (data['timestamp'] as Timestamp?)?.toDate();
+        if (timestamp != null && timestamp.isAfter(since)) {
+          count++;
+        }
+      }
+      return count;
+    } catch (e) {
+      debugPrint('[countRecentRequests] Error counting recent requests: $e');
+      // Trả về 0 nếu lỗi, hoặc ném exception tùy thiết kế. Hiện tại an toàn là 0
+      return 0;
     }
   }
 }

@@ -4,17 +4,9 @@ import 'package:kidguardian/domain/repositories/alert_repository.dart';
 import 'package:kidguardian/domain/repositories/time_request_repository.dart';
 import 'package:kidguardian/domain/usecases/notification/initialize_notifications_usecase.dart';
 
-abstract class _AlertRepositoryWithStream implements AlertRepository {
-  Stream<List<AlertModel>> getAlertsStream(String familyId);
-}
+class MockAlertRepository extends Mock implements AlertRepository {}
 
-abstract class _TimeRequestRepositoryWithStream implements TimeRequestRepository {
-  Stream<List<TimeRequest>> getRequestsStream(String familyId);
-}
-
-class MockAlertRepository extends Mock implements _AlertRepositoryWithStream {}
-
-class MockTimeRequestRepository extends Mock implements _TimeRequestRepositoryWithStream {}
+class MockTimeRequestRepository extends Mock implements TimeRequestRepository {}
 
 void main() {
   late InitializeNotificationsUseCase useCase;
@@ -40,30 +32,30 @@ void main() {
       );
     });
 
-    test('calls getAlertsStream with familyId', () async {
-      when(() => mockAlertRepository.getAlertsStream(any()))
+    test('calls watchAllFamilyAlerts with familyId', () async {
+      when(() => mockAlertRepository.watchAllFamilyAlerts(familyId: any(named: 'familyId')))
           .thenAnswer((_) => const Stream.empty());
-      when(() => mockTimeRequestRepository.getRequestsStream(any()))
+      when(() => mockTimeRequestRepository.watchPendingRequests(familyId: any(named: 'familyId')))
           .thenAnswer((_) => const Stream.empty());
 
       await useCase.execute(familyId: 'fam1');
 
-      verify(() => mockAlertRepository.getAlertsStream('fam1')).called(1);
+      verify(() => mockAlertRepository.watchAllFamilyAlerts(familyId: 'fam1')).called(1);
     });
 
-    test('calls getRequestsStream with familyId', () async {
-      when(() => mockAlertRepository.getAlertsStream(any()))
+    test('calls watchPendingRequests with familyId', () async {
+      when(() => mockAlertRepository.watchAllFamilyAlerts(familyId: any(named: 'familyId')))
           .thenAnswer((_) => const Stream.empty());
-      when(() => mockTimeRequestRepository.getRequestsStream(any()))
+      when(() => mockTimeRequestRepository.watchPendingRequests(familyId: any(named: 'familyId')))
           .thenAnswer((_) => const Stream.empty());
 
       await useCase.execute(familyId: 'fam1');
 
-      verify(() => mockTimeRequestRepository.getRequestsStream('fam1')).called(1);
+      verify(() => mockTimeRequestRepository.watchPendingRequests(familyId: 'fam1')).called(1);
     });
 
     test('propagates exception from alert repository', () async {
-      when(() => mockAlertRepository.getAlertsStream(any()))
+      when(() => mockAlertRepository.watchAllFamilyAlerts(familyId: any(named: 'familyId')))
           .thenThrow(Exception('Stream error'));
 
       expect(

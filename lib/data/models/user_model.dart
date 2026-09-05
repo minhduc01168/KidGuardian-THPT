@@ -24,6 +24,26 @@ class UserModel extends User {
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }
+
+  UserModel copyWith({
+    String? uid,
+    String? email,
+    String? displayName,
+    UserRole? role,
+    String? familyId,
+    String? linkedTo,
+    DateTime? createdAt,
+  }) {
+    return UserModel(
+      uid: uid ?? this.uid,
+      email: email ?? this.email,
+      displayName: displayName ?? this.displayName,
+      role: role ?? this.role,
+      familyId: familyId ?? this.familyId,
+      linkedTo: linkedTo ?? this.linkedTo,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
   
   Map<String, dynamic> toMap() {
     return {

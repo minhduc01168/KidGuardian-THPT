@@ -8,9 +8,10 @@ import '../../../../domain/repositories/family_repository.dart';
 import '../../auth/bloc/auth_bloc.dart';
 import '../../auth/bloc/auth_event.dart';
 import '../../auth/bloc/auth_state.dart';
-import '../../auth/screens/create_child_screen.dart';
+
 import '../../auth/screens/profile_screen.dart';
 import '../../report/screens/weekly_report_screen.dart';
+import '../../report/screens/monthly_report_screen.dart';
 import '../../settings/screens/app_settings_screen.dart';
 import '../../summary/screens/daily_summary_screen.dart';
 import '../../../screens/smart_lock/blocked_apps_screen.dart';
@@ -23,6 +24,11 @@ import '../../help/bloc/help_bloc.dart';
 import '../../family/screens/family_management_screen.dart';
 import '../../../screens/smart_lock/time_limit_screen.dart';
 import '../../../screens/smart_lock/smart_lock_settings_screen.dart';
+import '../../../blocs/smart_lock/smart_lock_bloc.dart';
+import '../../../../data/repositories/smart_lock_repository.dart';
+import '../../../screens/interaction/time_request_approval_screen.dart';
+import '../../../screens/settings/keyword_management_screen.dart';
+import '../../../screens/alerts/alert_history_screen.dart';
 import '../../../blocs/in_app_notification/in_app_notification_bloc.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../bloc/dashboard_event.dart';
@@ -233,33 +239,43 @@ class _ParentDashboardState extends State<ParentDashboard> {
             // Welcome card
             Container(
               width: double.infinity,
-              padding: EdgeInsets.all(20),
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [AppColors.primary, AppColors.primaryDark],
+                  colors: [AppColors.primary.withOpacity(0.85), AppColors.primaryDark],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withOpacity(0.25),
+                    blurRadius: 10,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
-                  Text(
-                    'Xin chào, ${user.displayName}!',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                  Expanded(
+                    child: Text(
+                      'Xin chào, ${user.displayName}! 👋',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        height: 1.2,
+                      ),
                     ),
                   ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Tổng quan sử dụng hôm nay',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.white70,
+                  Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      shape: BoxShape.circle,
                     ),
+                    child: const Icon(Icons.person_outline_rounded, size: 24, color: Colors.white),
                   ),
                 ],
               ),
@@ -272,17 +288,17 @@ class _ParentDashboardState extends State<ParentDashboard> {
                 Expanded(
                   child: _SummaryCard(
                     title: 'Hôm nay',
-                    value: '${state.totalMinutesToday} phút',
-                    icon: Icons.today,
+                    minutes: state.totalMinutesToday,
+                    icon: Icons.today_rounded,
                     color: AppColors.primary,
                   ),
                 ),
-                SizedBox(width: 16),
+                const SizedBox(width: 16),
                 Expanded(
                   child: _SummaryCard(
                     title: 'Hôm qua',
-                    value: '${state.totalMinutesYesterday} phút',
-                    icon: Icons.history,
+                    minutes: state.totalMinutesYesterday,
+                    icon: Icons.history_rounded,
                     color: AppColors.textSecondary,
                   ),
                 ),
@@ -293,28 +309,40 @@ class _ParentDashboardState extends State<ParentDashboard> {
             // Change indicator
             if (state.totalMinutesYesterday > 0)
               Container(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 decoration: BoxDecoration(
                   color: state.percentChangeFromYesterday > 0
                       ? AppColors.error.withOpacity(0.1)
                       : AppColors.success.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(100),
                 ),
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      state.percentChangeFromYesterday > 0
-                          ? Icons.trending_up
-                          : Icons.trending_down,
-                      color: state.percentChangeFromYesterday > 0
-                          ? AppColors.error
-                          : AppColors.success,
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: state.percentChangeFromYesterday > 0
+                            ? AppColors.error.withOpacity(0.2)
+                            : AppColors.success.withOpacity(0.2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        state.percentChangeFromYesterday > 0
+                            ? Icons.arrow_upward_rounded
+                            : Icons.arrow_downward_rounded,
+                        color: state.percentChangeFromYesterday > 0
+                            ? AppColors.error
+                            : AppColors.success,
+                        size: 16,
+                      ),
                     ),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 12),
                     Text(
                       '${state.percentChangeFromYesterday > 0 ? "+" : ""}${state.percentChangeFromYesterday}% so với hôm qua',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
+                        fontSize: 14,
                         color: state.percentChangeFromYesterday > 0
                             ? AppColors.error
                             : AppColors.success,
@@ -328,6 +356,7 @@ class _ParentDashboardState extends State<ParentDashboard> {
             // App usage list
             AppUsageListWidget(
               usageByApp: state.usageByApp,
+              appTimeLimits: state.appTimeLimits,
               onAppTap: (appName, minutes) {
                 if (state.childUids.isNotEmpty) {
                   Navigator.push(
@@ -365,10 +394,17 @@ class _ParentDashboardState extends State<ParentDashboard> {
               children: [
                 Expanded(
                   child: _QuickActionCard(
-                    icon: Icons.person_add,
-                    title: 'Thêm con',
+                    icon: Icons.qr_code,
+                    title: 'Mã liên kết',
                     color: AppColors.childPrimary,
-                    onTap: () => _navigateToCreateChild(context, user),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => FamilyManagementScreen(user: user),
+                        ),
+                      );
+                    },
                   ),
                 ),
                 SizedBox(width: 16),
@@ -378,10 +414,11 @@ class _ParentDashboardState extends State<ParentDashboard> {
                     title: 'Tổng kết',
                     color: AppColors.primary,
                     onTap: () {
+                      final targetId = state.childUids.isNotEmpty ? state.childUids.first : null;
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => DailySummaryScreen(),
+                          builder: (context) => DailySummaryScreen(childUid: targetId),
                         ),
                       );
                     },
@@ -399,16 +436,24 @@ class _ParentDashboardState extends State<ParentDashboard> {
                     color: AppColors.warning,
                     onTap: () {
                       if (user.familyId != null) {
+                        final targetId = state.childUids.isNotEmpty ? state.childUids.first : user.uid;
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => SmartLockSettingsScreen(
-                              familyId: user.familyId!,
-                              childId: user.uid,
-                              childName: user.displayName,
+                            builder: (_) => BlocProvider(
+                              create: (_) => SmartLockBloc(
+                                repository: SmartLockRepository(),
+                              ),
+                              child: SmartLockSettingsScreen(
+                                familyId: user.familyId!,
+                                childId: targetId,
+                                childName: user.displayName,
+                              ),
                             ),
                           ),
                         );
+                      } else {
+                        _showSetupFamilyDialog(context);
                       }
                     },
                   ),
@@ -420,10 +465,11 @@ class _ParentDashboardState extends State<ParentDashboard> {
                     title: 'Báo cáo tuần',
                     color: AppColors.accent,
                     onTap: () {
+                      final targetId = state.childUids.isNotEmpty ? state.childUids.first : null;
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => WeeklyReportScreen(),
+                          builder: (context) => WeeklyReportScreen(childUid: targetId),
                         ),
                       );
                     },
@@ -441,14 +487,24 @@ class _ParentDashboardState extends State<ParentDashboard> {
                     color: AppColors.error,
                     onTap: () {
                       if (user.familyId != null) {
+                        final childUids = context.read<DashboardBloc>().state is DashboardLoaded
+                            ? (context.read<DashboardBloc>().state as DashboardLoaded).childUids
+                            : <String>[];
+                        if (childUids.isEmpty) {
+                          _showSetupFamilyDialog(context);
+                          return;
+                        }
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => NotificationCenterScreen(
+                            builder: (_) => AlertHistoryScreen(
                               familyId: user.familyId!,
+                              childUid: childUids.first,
                             ),
                           ),
                         );
+                      } else {
+                        _showSetupFamilyDialog(context);
                       }
                     },
                   ),
@@ -456,25 +512,48 @@ class _ParentDashboardState extends State<ParentDashboard> {
                 SizedBox(width: 16),
                 Expanded(
                   child: _QuickActionCard(
-                    icon: Icons.lock,
-                    title: 'Khóa ứng dụng',
-                    color: AppColors.warning,
+                    icon: Icons.timer,
+                    title: 'Yêu cầu',
+                    color: AppColors.accent,
                     onTap: () {
                       if (user.familyId != null) {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => SmartLockSettingsScreen(
+                            builder: (_) => TimeRequestApprovalScreen(
                               familyId: user.familyId!,
-                              childId: user.uid,
-                              childName: user.displayName,
                             ),
                           ),
                         );
+                      } else {
+                        _showSetupFamilyDialog(context);
                       }
                     },
                   ),
                 ),
+              ],
+            ),
+            SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: _QuickActionCard(
+                    icon: Icons.calendar_month,
+                    title: 'Báo cáo tháng',
+                    color: AppColors.primaryDark,
+                    onTap: () {
+                      final targetId = state.childUids.isNotEmpty ? state.childUids.first : null;
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MonthlyReportScreen(childUid: targetId),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                SizedBox(width: 16),
+                Expanded(child: SizedBox()),
               ],
             ),
             SizedBox(height: 16),
@@ -488,21 +567,50 @@ class _ParentDashboardState extends State<ParentDashboard> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              SizedBox(height: 16),
-              ...state.recentLogs.take(5).map((log) => Card(
-                    child: ListTile(
-                      leading: Icon(
-                        AppUtils.getAppIcon(log.appName),
-                        color: AppUtils.getAppColor(log.appName),
+              SizedBox(height: 12),
+              Card(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: state.recentLogs.length > 5 ? 5 : state.recentLogs.length,
+                  separatorBuilder: (context, index) => const Divider(height: 1, indent: 48),
+                  itemBuilder: (context, index) {
+                    final log = state.recentLogs[index];
+                    final localStartTime = log.startTime.toLocal();
+                    final timeFormatted = '${localStartTime.hour.toString().padLeft(2, '0')}:${localStartTime.minute.toString().padLeft(2, '0')}';
+                    final cleanName = AppUtils.getAppName(log.appName);
+                    return ListTile(
+                      dense: true,
+                      visualDensity: VisualDensity.compact,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                      leading: Container(
+                        width: 28,
+                        height: 28,
+                        decoration: BoxDecoration(
+                          color: AppUtils.getAppColor(cleanName).withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Icon(
+                          AppUtils.getAppIcon(cleanName),
+                          color: AppUtils.getAppColor(cleanName),
+                          size: 16,
+                        ),
                       ),
-                      title: Text(log.appName),
-                      subtitle: Text('${log.durationMinutes} phút'),
-                      trailing: Text(
-                        '${log.startTime.hour}:${log.startTime.minute.toString().padLeft(2, '0')}',
-                        style: TextStyle(color: AppColors.textSecondary),
+                      title: Text(
+                        cleanName,
+                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                  )),
+                      subtitle: Text(
+                        'lúc $timeFormatted • ${AppUtils.formatMinutes(log.durationMinutes)}',
+                        style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                      ),
+                    );
+                  },
+                ),
+              ),
             ],
           ],
         ),
@@ -530,6 +638,41 @@ class _ParentDashboardState extends State<ParentDashboard> {
               'Đăng xuất',
               style: TextStyle(color: AppColors.error),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSetupFamilyDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        icon: Icon(Icons.family_restroom, size: 48, color: AppColors.primary),
+        title: Text('Chưa thiết lập gia đình'),
+        content: Text(
+          'Bạn cần liên kết tài khoản con để sử dụng tính năng này.\n\n'
+          'Vào "Quản lý gia đình" để lấy mã liên kết và chia sẻ cho con.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text('Đã hiểu'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              final authState = context.read<AuthBloc>().state;
+              if (authState is AuthAuthenticated) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => FamilyManagementScreen(user: authState.user),
+                  ),
+                );
+              }
+            },
+            child: Text('Quản lý gia đình'),
           ),
         ],
       ),
@@ -592,44 +735,50 @@ class _ParentDashboardState extends State<ParentDashboard> {
                 subtitle: Text('Đặt giới hạn sử dụng theo ứng dụng'),
                 trailing: Icon(Icons.chevron_right),
                 onTap: () {
-                  if (user.familyId != null) {
-                    final childUids = context.read<DashboardBloc>().state is DashboardLoaded
-                        ? (context.read<DashboardBloc>().state as DashboardLoaded).childUids
-                        : <String>[];
-                    if (childUids.isNotEmpty) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => TimeLimitScreen(
-                            familyId: user.familyId!,
-                            childId: childUids.first,
-                          ),
-                        ),
-                      );
-                    }
+                  if (user.familyId == null) {
+                    _showSetupFamilyDialog(context);
+                    return;
                   }
+                  final childUids = context.read<DashboardBloc>().state is DashboardLoaded
+                      ? (context.read<DashboardBloc>().state as DashboardLoaded).childUids
+                      : <String>[];
+                  if (childUids.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Vui lòng thêm tài khoản con trước')),
+                    );
+                    return;
+                  }
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => TimeLimitScreen(
+                        familyId: user.familyId!,
+                        childId: childUids.first,
+                      ),
+                    ),
+                  );
                 },
               ),
             ),
             Card(
               child: ListTile(
-                leading: Icon(Icons.lock_clock, color: AppColors.error),
-                title: Text('Khóa ứng dụng'),
-                subtitle: Text('Khóa ngay lập tức các ứng dụng'),
+                leading: Icon(Icons.security, color: AppColors.error),
+                title: Text('Quản lý từ khóa cấm'),
+                subtitle: Text('Thêm, sửa, xóa từ khóa cần theo dõi'),
                 trailing: Icon(Icons.chevron_right),
                 onTap: () {
-                  if (user.familyId != null) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => SmartLockSettingsScreen(
-                          familyId: user.familyId!,
-                          childId: user.uid,
-                          childName: user.displayName,
-                        ),
-                      ),
-                    );
+                  if (user.familyId == null) {
+                    _showSetupFamilyDialog(context);
+                    return;
                   }
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => KeywordManagementScreen(
+                        familyId: user.familyId!,
+                      ),
+                    ),
+                  );
                 },
               ),
             ),
@@ -676,6 +825,7 @@ class _ParentDashboardState extends State<ParentDashboard> {
                       builder: (context) => UsageStatisticsScreen(
                         childUid: childUids.first,
                         childName: 'Con',
+                        familyId: user.familyId,
                       ),
                     ),
                   );
@@ -724,21 +874,7 @@ class _ParentDashboardState extends State<ParentDashboard> {
             },
           ),
         ),
-        Card(
-          child: ListTile(
-            leading: Icon(Icons.family_restroom),
-            title: Text('Quản lý gia đình'),
-            trailing: Icon(Icons.chevron_right),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => FamilyManagementScreen(user: user),
-                ),
-              );
-            },
-          ),
-        ),
+
         Card(
           child: ListTile(
             leading: Icon(Icons.help),
@@ -779,33 +915,6 @@ class _ParentDashboardState extends State<ParentDashboard> {
     );
   }
 
-  void _navigateToCreateChild(BuildContext context, User user) async {
-    final familyRepo = context.read<FamilyRepository>();
-    final family = await familyRepo.getFamilyByParent(user.uid);
-
-    if (context.mounted) {
-      if (family != null) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => CreateChildScreen(familyId: family.familyId),
-          ),
-        );
-      } else {
-        final newFamily = await familyRepo.createFamily(user.uid);
-        if (context.mounted) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) =>
-                  CreateChildScreen(familyId: newFamily.familyId),
-            ),
-          );
-        }
-      }
-    }
-  }
-
   Widget _buildEmptyDashboard(User user) {
     return SingleChildScrollView(
       padding: EdgeInsets.all(16),
@@ -836,7 +945,7 @@ class _ParentDashboardState extends State<ParentDashboard> {
                 ),
                 SizedBox(height: 8),
                 Text(
-                  'Chào mừng bạn đến với KidGuardian',
+                  'Chào mừng bạn đến với ${AppStrings.appName}',
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.white70,
@@ -858,10 +967,17 @@ class _ParentDashboardState extends State<ParentDashboard> {
             children: [
               Expanded(
                 child: _QuickActionCard(
-                  icon: Icons.person_add,
-                  title: 'Thêm con',
+                  icon: Icons.qr_code,
+                  title: 'Mã liên kết',
                   color: AppColors.childPrimary,
-                  onTap: () => _navigateToCreateChild(context, user),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => FamilyManagementScreen(user: user),
+                      ),
+                    );
+                  },
                 ),
               ),
               SizedBox(width: 16),
@@ -875,13 +991,20 @@ class _ParentDashboardState extends State<ParentDashboard> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => SmartLockSettingsScreen(
-                            familyId: user.familyId!,
-                            childId: user.uid,
-                            childName: user.displayName,
+                          builder: (_) => BlocProvider(
+                            create: (_) => SmartLockBloc(
+                              repository: SmartLockRepository(),
+                            ),
+                            child: SmartLockSettingsScreen(
+                              familyId: user.familyId!,
+                              childId: user.uid,
+                              childName: user.displayName,
+                            ),
                           ),
                         ),
                       );
+                    } else {
+                      _showSetupFamilyDialog(context);
                     }
                   },
                 ),
@@ -928,44 +1051,69 @@ class _ParentDashboardState extends State<ParentDashboard> {
 
 class _SummaryCard extends StatelessWidget {
   final String title;
-  final String value;
+  final int minutes;
   final IconData icon;
   final Color color;
 
   const _SummaryCard({
     required this.title,
-    required this.value,
+    required this.minutes,
     required this.icon,
     required this.color,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Icon(icon, size: 32, color: color),
-            SizedBox(height: 8),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 14,
-                color: AppColors.textSecondary,
-              ),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(7),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
             ),
-            SizedBox(height: 4),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
+            child: Icon(icon, size: 20, color: color),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w500,
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 2),
+          TweenAnimationBuilder<int>(
+            tween: IntTween(begin: 0, end: minutes),
+            duration: const Duration(seconds: 1),
+            curve: Curves.easeOutCubic,
+            builder: (context, value, child) {
+              return Text(
+                '$value phút',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+              );
+            },
+          ),
+        ],
       ),
     );
   }
@@ -986,29 +1134,54 @@ class _QuickActionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: EdgeInsets.all(20),
-          child: Column(
-            children: [
-              Icon(
-                icon,
-                size: 40,
-                color: color,
-              ),
-              SizedBox(height: 12),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.1),
+            blurRadius: 15,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(20),
+          highlightColor: color.withOpacity(0.05),
+          splashColor: color.withOpacity(0.1),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    icon,
+                    size: 32,
+                    color: color,
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 12),
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

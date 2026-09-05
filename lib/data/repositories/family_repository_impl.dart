@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 import '../../domain/entities/family.dart';
+import '../../domain/entities/user.dart';
 import '../../domain/repositories/family_repository.dart';
 import '../models/family_model.dart';
 
@@ -32,11 +33,12 @@ class FamilyRepositoryImpl implements FamilyRepository {
     await _firestore
         .collection('families')
         .doc(familyId)
-        .set(family.toMap());
+        .set(family.toMap())
+        .timeout(const Duration(seconds: 5), onTimeout: () => null);
 
     await _firestore.collection('users').doc(parentUid).update({
       'familyId': familyId,
-    });
+    }).timeout(const Duration(seconds: 5), onTimeout: () => null);
 
     return family;
   }
@@ -59,7 +61,8 @@ class FamilyRepositoryImpl implements FamilyRepository {
           .collection('families')
           .where('parentUid', isEqualTo: parentUid)
           .limit(1)
-          .get();
+          .get()
+          .timeout(const Duration(seconds: 5));
 
       if (query.docs.isEmpty) return null;
       return FamilyModel.fromFirestore(query.docs.first);
@@ -83,7 +86,7 @@ class FamilyRepositoryImpl implements FamilyRepository {
     await _firestore.collection('families').doc(familyId).update({
       'linkingCode': linkingCode,
       'updatedAt': FieldValue.serverTimestamp(),
-    });
+    }).timeout(const Duration(seconds: 5), onTimeout: () => null);
 
     return linkingCode;
   }
@@ -95,11 +98,18 @@ class FamilyRepositoryImpl implements FamilyRepository {
     await familyRef.update({
       'childUids': FieldValue.arrayUnion([childUid]),
       'updatedAt': FieldValue.serverTimestamp(),
-    });
+    }).timeout(const Duration(seconds: 5), onTimeout: () => null);
+
+    // Bổ sung tạo document thực thể trong subcollection 'children'
+    // Đảm bảo Firestore snapshots() nhận diện document khi lắng nghe stream real-time
+    await familyRef.collection('children').doc(childUid).set({
+      'childUid': childUid,
+      'createdAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true)).timeout(const Duration(seconds: 5), onTimeout: () => null);
 
     await _firestore.collection('users').doc(childUid).update({
       'familyId': familyId,
-    });
+    }).timeout(const Duration(seconds: 5), onTimeout: () => null);
 
     final doc = await familyRef.get();
     return FamilyModel.fromFirestore(doc);
@@ -126,12 +136,46 @@ class FamilyRepositoryImpl implements FamilyRepository {
     await _firestore.collection('families').doc(familyId).update({
       'childUids': FieldValue.arrayRemove([childUid]),
       'updatedAt': FieldValue.serverTimestamp(),
-    });
+    }).timeout(const Duration(seconds: 5), onTimeout: () => null);
 
     await _firestore.collection('users').doc(childUid).update({
       'familyId': FieldValue.delete(),
       'linkedTo': FieldValue.delete(),
-    });
+    }).timeout(const Duration(seconds: 5), onTimeout: () => null);
+  }
+
+  @override
+  Future<List<User>> getChildrenByFamily(String familyId) async {
+    try {
+      final familyDoc = await _firestore.collection('families').doc(familyId).get();
+      if (!familyDoc.exists) return [];
+
+      final family = FamilyModel.fromFirestore(familyDoc);
+      final List<User> children = [];
+
+      for (final childUid in family.childUids) {
+        final doc = await _firestore.collection('users').doc(childUid).get();
+        if (doc.exists) {
+          final data = doc.data()!;
+          children.add(User(
+            uid: doc.id,
+            email: data['email'] ?? '',
+            displayName: data['displayName'] ?? '',
+            role: UserRole.child,
+            familyId: data['familyId'],
+            linkedTo: data['linkedTo'],
+            createdAt: data['createdAt'] != null
+                ? (data['createdAt'] as Timestamp).toDate()
+                : DateTime.now(),
+          ));
+        }
+      }
+
+      return children;
+    } catch (e) {
+      print('Error getting children: $e');
+      return [];
+    }
   }
 
   String _generateLinkingCode() {

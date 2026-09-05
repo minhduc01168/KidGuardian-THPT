@@ -3,6 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../data/services/notification_service.dart';
 import '../../../../domain/repositories/auth_repository.dart';
 import '../../../../domain/repositories/family_repository.dart';
+import '../../../../domain/entities/user.dart';
+import '../../../../data/models/user_model.dart';
+import 'package:kidguardian/core/error/app_exception.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
@@ -12,6 +15,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final NotificationService _notificationService;
   StreamSubscription? _authSubscription;
   
+  /// Flag để block stream khi đang xử lý registration.
+  /// Tránh race condition: authStateChanges stream emit AuthAuthenticated
+  /// trước khi createFamily() hoàn thành.
+  bool _isHandlingRegistration = false;
+
   AuthBloc({
     required AuthRepository authRepository,
     required FamilyRepository familyRepository,
@@ -42,8 +50,35 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     try {
       print('Attempting login for: ${event.email}');
-      final user = await _authRepository.login(event.email, event.password);
+      var user = await _authRepository.login(event.email, event.password, event.role);
       print('Login successful for user: ${user.uid}');
+      
+      // Restore or auto-create family for parent
+      if (user.role == UserRole.parent && user.familyId == null) {
+        print('Parent has no familyId in user doc, checking existing families...');
+        final existingFamily = await _familyRepository.getFamilyByParent(user.uid);
+        
+        if (existingFamily != null) {
+          print('Found existing family: ${existingFamily.familyId}. Restoring link...');
+          await _authRepository.updateProfile(user.uid, familyId: existingFamily.familyId);
+          if (user is UserModel) {
+            user = (user as UserModel).copyWith(familyId: existingFamily.familyId);
+          } else {
+            final updatedUser = await _authRepository.getCurrentUser();
+            if (updatedUser != null) user = updatedUser;
+          }
+        } else {
+          print('No family found, auto-creating...');
+          final family = await _familyRepository.createFamily(user.uid);
+          print('Family created: ${family.familyId}, linking code: ${family.linkingCode}');
+          if (user is UserModel) {
+            user = (user as UserModel).copyWith(familyId: family.familyId);
+          } else {
+            final updatedUser = await _authRepository.getCurrentUser();
+            if (updatedUser != null) user = updatedUser;
+          }
+        }
+      }
       
       // Register notification token (non-blocking)
       _notificationService.registerToken(user.uid).catchError((e) {
@@ -51,6 +86,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       });
       
       emit(AuthAuthenticated(user: user));
+    } on AppException catch (e) {
+      print('Login error: ${e.message}');
+      emit(AuthError(message: e.message));
     } catch (e) {
       final errorMessage = e.toString().replaceAll('Exception: ', '');
       print('Login error: $errorMessage');
@@ -62,6 +100,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     RegisterRequested event,
     Emitter<AuthState> emit,
   ) async {
+    // Đặt flag TRƯỚC KHI emit AuthLoading để block stream
+    _isHandlingRegistration = true;
     emit(AuthLoading());
     try {
       print('Attempting registration for: ${event.email}');
@@ -73,13 +113,50 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       );
       print('Registration successful for user: ${user.uid}');
       
+      // Restore or auto-create family cho parent NGAY SAU registration
+      var finalUser = user;
+      if (user.role == UserRole.parent && user.familyId == null) {
+        print('Parent registered, checking existing families...');
+        final existingFamily = await _familyRepository.getFamilyByParent(user.uid);
+        
+        if (existingFamily != null) {
+          print('Found existing family: ${existingFamily.familyId}. Restoring link...');
+          await _authRepository.updateProfile(user.uid, familyId: existingFamily.familyId);
+          if (user is UserModel) {
+            finalUser = (user as UserModel).copyWith(familyId: existingFamily.familyId);
+          } else {
+            final updatedUser = await _authRepository.getCurrentUser();
+            if (updatedUser != null) finalUser = updatedUser;
+          }
+        } else {
+          print('No family found, auto-creating...');
+          final family = await _familyRepository.createFamily(user.uid);
+          print('Family created successfully for user: ${user.uid}');
+          if (user is UserModel) {
+            finalUser = (user as UserModel).copyWith(familyId: family.familyId);
+          } else {
+            final updatedUser = await _authRepository.getCurrentUser();
+            if (updatedUser != null) finalUser = updatedUser;
+          }
+        }
+      }
+      
+      // Tháo flag TRƯỚC KHI emit để stream hoạt động bình thường trở lại
+      _isHandlingRegistration = false;
+      
       // Register notification token (non-blocking)
-      _notificationService.registerToken(user.uid).catchError((e) {
+      _notificationService.registerToken(finalUser.uid).catchError((e) {
         print('Failed to register notification token: $e');
       });
       
-      emit(AuthAuthenticated(user: user));
+      // Emit trực tiếp thay vì chờ stream (stream có thể đã bị miss)
+      emit(AuthAuthenticated(user: finalUser));
+    } on AppException catch (e) {
+      _isHandlingRegistration = false;
+      print('Registration error: ${e.message}');
+      emit(AuthError(message: e.message));
     } catch (e) {
+      _isHandlingRegistration = false;
       final errorMessage = e.toString().replaceAll('Exception: ', '');
       print('Registration error: $errorMessage');
       emit(AuthError(message: errorMessage));
@@ -102,6 +179,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       await _authRepository.resetPassword(event.email);
       emit(AuthPasswordResetSent());
+    } on AppException catch (e) {
+      emit(AuthError(message: e.message));
     } catch (e) {
       emit(AuthError(message: e.toString().replaceAll('Exception: ', '')));
     }
@@ -111,10 +190,24 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthStateChanged event,
     Emitter<AuthState> emit,
   ) {
+    // Block stream nếu đang xử lý registration để tránh race condition:
+    // Firebase Auth tạo user → stream emit ngay → AuthAuthenticated trước khi
+    // createFamily() chạy xong → families collection không được tạo.
+    if (_isHandlingRegistration) {
+      print('AuthStateChanged blocked: registration in progress');
+      return;
+    }
+    
     if (event.user != null) {
+      // Tránh double-emit nếu đã AuthAuthenticated với cùng user uid (ví dụ từ _onLoginRequested/Register)
+      if (state is AuthAuthenticated && (state as AuthAuthenticated).user.uid == event.user!.uid) {
+        print('AuthStateChanged blocked: already authenticated for ${event.user!.uid}');
+        return;
+      }
       _notificationService.registerToken(event.user!.uid);
       emit(AuthAuthenticated(user: event.user!));
     } else {
+      if (state is AuthUnauthenticated) return;
       emit(AuthUnauthenticated());
     }
   }
@@ -139,6 +232,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       } else {
         emit(AuthError(message: 'Không thể liên kết tài khoản'));
       }
+    } on AppException catch (e) {
+      emit(AuthError(message: e.message));
     } catch (e) {
       emit(AuthError(message: e.toString().replaceAll('Exception: ', '')));
     }
@@ -157,6 +252,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       } else {
         emit(AuthError(message: 'Không thể cập nhật thông tin'));
       }
+    } on AppException catch (e) {
+      emit(AuthError(message: e.message));
     } catch (e) {
       emit(AuthError(message: e.toString().replaceAll('Exception: ', '')));
     }

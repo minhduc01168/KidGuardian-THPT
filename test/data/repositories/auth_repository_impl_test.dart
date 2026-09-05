@@ -171,7 +171,7 @@ void main() {
         expect(
           () => repository.login('test@test.com', 'password123'),
           throwsA(predicate((e) =>
-              e is Exception && e.toString().contains('Không tìm thấy tài khoản'))),
+              e is Exception && e.toString().contains('Thông tin đăng nhập không chính xác'))),
         );
       });
 
@@ -203,7 +203,7 @@ void main() {
         expect(
           () => repository.login('invalid', 'password'),
           throwsA(predicate((e) =>
-              e is Exception && e.toString().contains('Email không hợp lệ'))),
+              e is Exception && e.toString().contains('Định dạng Email không hợp lệ'))),
         );
       });
     });
@@ -249,7 +249,7 @@ void main() {
         expect(
           () => repository.register('existing@test.com', 'password', 'Name', domain.UserRole.parent),
           throwsA(predicate((e) =>
-              e is Exception && e.toString().contains('Email đã được sử dụng'))),
+              e is Exception && e.toString().contains('Email này đã được đăng ký'))),
         );
       });
 
@@ -265,7 +265,7 @@ void main() {
         expect(
           () => repository.register('test@test.com', '123', 'Name', domain.UserRole.parent),
           throwsA(predicate((e) =>
-              e is Exception && e.toString().contains('Mật khẩu quá yếu'))),
+              e is Exception && e.toString().contains('Mật khẩu quá yếu (cần tối thiểu 6 ký tự)'))),
         );
       });
 
@@ -281,47 +281,6 @@ void main() {
         expect(
           () => repository.register('test@test.com', 'password123', 'Name', domain.UserRole.parent),
           throwsA(isA<Exception>()),
-        );
-      });
-    });
-
-    group('createChildAccount', () {
-      test('should create child account and return child user', () async {
-        final mockCredential = MockUserCredential();
-        final mockFirebaseUser = MockFirebaseUser();
-
-        when(() => mockAuth.createUserWithEmailAndPassword(
-              email: any(named: 'email'),
-              password: any(named: 'password'),
-            )).thenAnswer((_) async => mockCredential);
-        when(() => mockCredential.user).thenReturn(mockFirebaseUser);
-        when(() => mockFirebaseUser.uid).thenReturn('child-uid');
-        when(() => mockFirebaseUser.updateDisplayName('Child Name'))
-            .thenAnswer((_) async {});
-        when(() => mockUserDoc.set(any())).thenAnswer((_) async {});
-
-        final result = await repository.createChildAccount('Child Name', 10, 'family-1');
-
-        expect(result, isNotNull);
-        expect(result.uid, 'child-uid');
-        expect(result.displayName, 'Child Name');
-        expect(result.role, domain.UserRole.child);
-        expect(result.familyId, 'family-1');
-      });
-
-      test('should throw Vietnamese message on auth exception', () async {
-        when(() => mockAuth.createUserWithEmailAndPassword(
-              email: any(named: 'email'),
-              password: any(named: 'password'),
-            )).thenThrow(firebase.FirebaseAuthException(
-          code: 'email-already-in-use',
-          message: 'Email already in use',
-        ));
-
-        expect(
-          () => repository.createChildAccount('Child', 10, 'family-1'),
-          throwsA(predicate((e) =>
-              e is Exception && e.toString().contains('Email đã được sử dụng'))),
         );
       });
     });
@@ -357,7 +316,7 @@ void main() {
         expect(
           () => repository.resetPassword('invalid'),
           throwsA(predicate((e) =>
-              e is Exception && e.toString().contains('Không tìm thấy tài khoản'))),
+              e is Exception && e.toString().contains('Thông tin đăng nhập không chính xác'))),
         );
       });
     });

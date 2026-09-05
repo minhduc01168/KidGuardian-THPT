@@ -137,3 +137,5 @@ class LoadLockHistory extends SmartLockEvent {
   @override
   List<Object> get props => [familyId, childId];
 }
+
+

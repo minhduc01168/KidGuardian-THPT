@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
@@ -11,7 +13,11 @@ import 'package:kidguardian/domain/repositories/usage_repository.dart';
 import 'package:kidguardian/domain/repositories/alert_repository.dart';
 import 'package:kidguardian/data/repositories/smart_lock_repository.dart';
 import 'package:kidguardian/data/models/smart_lock_settings_model.dart';
+import 'package:kidguardian/data/models/monitored_app_model.dart';
+import 'package:kidguardian/core/utils/app_utils.dart';
 import 'package:intl/intl.dart';
+import 'package:installed_apps/installed_apps.dart';
+import 'package:installed_apps/app_info.dart';
 
 // Events
 abstract class AppMonitorEvent extends Equatable {
@@ -125,17 +131,6 @@ class AppBlockedState extends AppMonitorState {
       ];
 }
 
-// P9: App name mapping for common apps
-const _appNameMap = {
-  'com.zhiliaoapp.musically': 'TikTok',
-  'com.facebook.katana': 'Facebook',
-  'com.google.android.youtube': 'YouTube',
-  'com.instagram.android': 'Instagram',
-  'com.zing.zalo': 'Zalo',
-  'com.roblox.client': 'Roblox',
-  'com.dts.freefireth': 'Free Fire',
-};
-
 class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
   final CheckAppAccessUseCase checkAppAccessUseCase;
   final BlockAppUseCase blockAppUseCase;
@@ -145,6 +140,9 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
   final AlertRepository alertRepository;
 
   StreamSubscription? _accessibilitySubscription;
+  StreamSubscription? _keywordsSubscription;
+  // BUG-4 FIX: Listener realtime cho timeLimits — force re-check ngay khi PH approve
+  StreamSubscription? _timeLimitsSubscription;
   // P2: Timer for continuous time checking
   Timer? _limitCheckTimer;
   String? _familyId;
@@ -155,6 +153,55 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
   // P11: Cache last known limits
   bool _isMonitoring = false;
   SmartLockSettingsModel? _settings;
+  List<MonitoredAppModel> _monitoredApps = [];
+
+  Future<void> _loadMonitoredApps() async {
+    if (_familyId == null || _childUid == null) return;
+    try {
+      _monitoredApps = await smartLockRepository.getMonitoredApps(_familyId!, _childUid!);
+      // FIX #1+#5 Native: Push monitored package list xuống Kotlin để filter tại tầng native
+      final monitoredPackages = _monitoredApps
+          .where((a) => a.isMonitored)
+          .map((a) => a.appPackageName)
+          .toSet();
+          
+      monitoredPackages.addAll(AppUtils.getHardcodedSocialApps());
+      
+      await AccessibilityChannel.updateMonitoredPackages(monitoredPackages.toList());
+      debugPrint('AppMonitorBloc: Pushed ${monitoredPackages.length} monitored packages to native');
+    } catch (e) {
+      debugPrint('AppMonitorBloc._loadMonitoredApps error: $e');
+    }
+  }
+
+  bool _isAppAllowedToLog(String packageName) {
+    // Luôn chặn app hệ thống trước tiên
+    if (AppUtils.isSystemOrUnmonitoredApp(packageName)) return false;
+    // Nếu danh sách chưa có (chưa chọn whitelist/blacklist riêng) → cho phép tất cả các app người dùng
+    if (_monitoredApps.isEmpty) return true;
+    // Nếu đã cấu hình: App phải được phép (isMonitored = true) hoặc là app mới chưa có trong list (mặc định true)
+    final found = _monitoredApps.where((a) => a.appPackageName == packageName);
+    if (found.isEmpty) return true;
+    return found.first.isMonitored;
+  }
+
+  // P12: Cooldown map to prevent spamming createAppBlockedAlert (5 mins per app)
+  final Map<String, DateTime> _lastAlertSentMap = {};
+
+  Future<void> _sendBlockedAlertIfNeeded(String packageName, String reason) async {
+    if (_familyId == null || _childUid == null) return;
+    final lastSent = _lastAlertSentMap[packageName];
+    final now = DateTime.now();
+    if (lastSent == null || now.difference(lastSent).inMinutes >= 5) {
+      _lastAlertSentMap[packageName] = now;
+      await alertRepository.createAppBlockedAlert(
+        familyId: _familyId!,
+        childUid: _childUid!,
+        packageName: packageName,
+        reason: reason,
+      );
+    }
+  }
 
   AppMonitorBloc({
     required this.checkAppAccessUseCase,
@@ -170,12 +217,18 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
     on<CheckCurrentAppLimit>(_onCheckCurrentAppLimit);
   }
 
-  void _onStartMonitoring(StartMonitoring event, Emitter<AppMonitorState> emit) {
+  Future<void> _onStartMonitoring(StartMonitoring event, Emitter<AppMonitorState> emit) async {
+    if (_isMonitoring && _familyId == event.familyId && _childUid == event.childUid) return;
     _familyId = event.familyId;
     _childUid = event.childUid;
     _isMonitoring = true;
 
     _loadSettings();
+    await _loadMonitoredApps();
+
+    // Khởi động MonitorForegroundService & đồng bộ offline log SAU KHI đã đẩy monitoredPackages xuống Kotlin
+    AccessibilityChannel.startMonitorService();
+    _syncOfflineLogs();
 
     _accessibilitySubscription?.cancel();
     _accessibilitySubscription = AccessibilityChannel.accessibilityEvents.listen((data) {
@@ -190,15 +243,100 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
       }
     });
 
+    _keywordsSubscription?.cancel();
+    _keywordsSubscription = alertRepository.watchKeywords(_familyId!).listen((keywords) {
+      AccessibilityChannel.updateKeywords(keywords);
+    });
+
     // P2: Start periodic limit check every 30 seconds
     _limitCheckTimer?.cancel();
     _limitCheckTimer = Timer.periodic(const Duration(seconds: 30), (_) {
       if (_isMonitoring) {
         add(const CheckCurrentAppLimit());
+        _syncOfflineLogs();
       }
     });
 
+    _syncInstalledApps();
+
+    // BUG-4 FIX: Lắng nghe realtime timeLimits — khi phụ huynh approve time request,
+    // child device sẽ re-check ngay lập tức thay vì đợi 30 giây timer
+    _timeLimitsSubscription?.cancel();
+    _timeLimitsSubscription = smartLockRepository
+        .watchTimeLimits(_familyId!, _childUid!)
+        .listen((_) async {
+      if (_isMonitoring) {
+        debugPrint('AppMonitorBloc: timeLimits updated (parent may have approved), force re-check');
+        // BUG-1 FIX: Đợi 1s để đảm bảo cache Firestore đã đồng bộ hoàn toàn trước khi use case đọc lại
+        await Future.delayed(const Duration(seconds: 1));
+        if (!isClosed) {
+          add(const CheckCurrentAppLimit());
+        }
+      }
+    }, onError: (e) {
+      debugPrint('AppMonitorBloc._timeLimitsSubscription error: $e');
+    });
+
     emit(AppMonitorRunning());
+  }
+
+  Future<void> _syncInstalledApps() async {
+    if (_familyId == null || _childUid == null) return;
+    try {
+      // Trì hoãn 2 giây để đảm bảo ChildDashboard đã mount hoàn tất trước khi gọi Native Plugin Android
+      await Future.delayed(const Duration(seconds: 2));
+      final List<AppInfo> apps = await InstalledApps.getInstalledApps(
+        excludeSystemApps: true,
+        excludeNonLaunchableApps: true,
+        withIcon: false,
+      );
+
+      final filteredApps = apps
+          .where((app) => !AppUtils.isSystemOrUnmonitoredApp(app.packageName))
+          .toList();
+
+      final List<Map<String, dynamic>> appDataList = filteredApps.map((app) {
+        // BUG-5 FIX: Fallback về packageName nếu app.name null hoặc rỗng
+        // tránh "Ứng dụng không xác định" trên màn hình phụ huynh
+        final appName = (app.name != null && app.name!.isNotEmpty)
+            ? app.name!
+            : app.packageName;
+        return {
+          'packageName': app.packageName,
+          'appName': appName,
+          'versionName': app.versionName ?? '',
+        };
+      }).toList();
+
+      // Sắp xếp theo packageName để đảm bảo thứ tự nhất quán khi tạo hash
+      appDataList.sort((a, b) => (a['packageName'] as String).compareTo(b['packageName'] as String));
+      final String currentAppsHash = jsonEncode(appDataList);
+
+      final prefs = await SharedPreferences.getInstance();
+      final String cacheKeyHash = 'last_synced_apps_hash_${_childUid}';
+      final String cacheKeyTime = 'last_synced_time_${_childUid}';
+
+      final String? cachedHash = prefs.getString(cacheKeyHash);
+      final int? cachedTime = prefs.getInt(cacheKeyTime);
+      final int nowMs = DateTime.now().millisecondsSinceEpoch;
+
+      // Chỉ đồng bộ lên Firestore nếu danh sách app thay đổi HOẶC đã qua 24 giờ (86400000 ms) kể từ lần sync cuối
+      final bool hasChanged = cachedHash != currentAppsHash;
+      final bool isExpired = cachedTime == null || (nowMs - cachedTime) > 86400000;
+
+      if (!hasChanged && !isExpired) {
+        debugPrint('AppMonitorBloc._syncInstalledApps: Danh sách ứng dụng không đổi và chưa quá 24h, bỏ qua ghi Firestore để tiết kiệm Quota.');
+        return;
+      }
+
+      await smartLockRepository.saveInstalledApps(_familyId!, _childUid!, appDataList);
+
+      await prefs.setString(cacheKeyHash, currentAppsHash);
+      await prefs.setInt(cacheKeyTime, nowMs);
+      debugPrint('AppMonitorBloc._syncInstalledApps: Đồng bộ danh sách ${appDataList.length} ứng dụng lên Firestore thành công.');
+    } catch (e) {
+      debugPrint('AppMonitorBloc._syncInstalledApps error: $e');
+    }
   }
 
   Future<void> _loadSettings() async {
@@ -214,10 +352,22 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
   Future<void> _onCheckCurrentAppLimit(CheckCurrentAppLimit event, Emitter<AppMonitorState> emit) async {
     if (_currentAppPackage == null || _familyId == null || _childUid == null) return;
 
-    // Check if Smart Lock is enabled
+    // P13: Tự động ghi log định kỳ mỗi 1 phút (>= 60s) khi con sử dụng ứng dụng liên tục
+    // Giúp phụ huynh và bé cập nhật số liệu thời gian gần như lập tức kể cả khi Smart Lock tắt
+    if (_currentAppStartTime != null) {
+      final elapsedSeconds = DateTime.now().difference(_currentAppStartTime!).inSeconds;
+      if (elapsedSeconds >= 60) {
+        debugPrint('[Debug Write] AppMonitorBloc: App $_currentAppPackage đã mở liên tục $elapsedSeconds giây -> trigger periodic _logCurrentAppUsage()');
+        _logCurrentAppUsage();
+        _currentAppStartTime = DateTime.now();
+      }
+    }
+
+    // Check if Smart Lock is enabled for blocking
     if (_settings != null && !_settings!.isEnabled) return;
 
     try {
+
       // Check time limits
       final isAllowed = await checkAppAccessUseCase.execute(
         familyId: _familyId!,
@@ -229,8 +379,12 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
         // P5: Log usage before blocking
         _logCurrentAppUsage();
         await blockAppUseCase.execute(appPackageName: _currentAppPackage!);
-        // D1: Tell native to move task to back
-        await AccessibilityChannel.moveTaskToBack();
+        // FIX Bug 5: dùng moveToHome() thay cho deprecated moveTaskToBack()
+        await AccessibilityChannel.moveToHome();
+        
+        // Ghi alert có cooldown
+        await _sendBlockedAlertIfNeeded(_currentAppPackage!, 'time_limit');
+
         final blockedState = await _buildBlockedState(_currentAppPackage!, blockReason: 'time_limit');
         emit(blockedState);
         return;
@@ -242,7 +396,12 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
       if (activeSchedule != null) {
         _logCurrentAppUsage();
         await blockAppUseCase.execute(appPackageName: _currentAppPackage!);
-        await AccessibilityChannel.moveTaskToBack();
+        // FIX Bug 5: dùng moveToHome() thay cho deprecated moveTaskToBack()
+        await AccessibilityChannel.moveToHome();
+        
+        // Ghi alert có cooldown
+        await _sendBlockedAlertIfNeeded(_currentAppPackage!, 'schedule (${activeSchedule.name})');
+
         final blockedState = await _buildBlockedState(
           _currentAppPackage!,
           blockReason: 'schedule',
@@ -250,7 +409,15 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
           scheduleEndTime: scheduleChecker.getScheduleEndTime(activeSchedule, DateTime.now()),
         );
         emit(blockedState);
+        return;
       }
+
+      // BUG-1 FIX: Bỏ chặn (unblock) nếu ứng dụng đã được duyệt thời gian
+      await blockAppUseCase.unblockApp(appPackageName: _currentAppPackage!);
+      if (state is AppBlockedState) {
+        emit(AppMonitorRunning());
+      }
+
     } catch (e) {
       // P8: Log error for debugging
       debugPrint('AppMonitorBloc._onCheckCurrentAppLimit error: $e');
@@ -261,19 +428,19 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
     final type = event.event['type'];
     final packageName = event.event['packageName'] as String?;
 
-    if (packageName == null) return;
-
-    if (type == 'app_blocked') {
-      // D1: Re-show lock screen when user returns to app
-      final blockedState = await _buildBlockedState(packageName);
-      emit(blockedState);
-      return;
-    }
+    if (packageName == null || !_isAppAllowedToLog(packageName)) return;
+    // BUG-2 FIX: Bảo vệ tuyệt đối tầng Flutter — không bao giờ emit AppBlockedState cho chính KidGuardian
+    if (packageName == 'com.kidguardian.kidguardian') return;
 
     if (type == 'app_event') {
-      final eventType = event.event['event_type'];
+      final eventType = event.event['eventType'] ?? event.event['event_type'];
 
-      if (eventType == 'opened') {
+      if (eventType == 'blocked') {
+        // D1: Re-show lock screen when user returns to app
+        final blockedState = await _buildBlockedState(packageName);
+        emit(blockedState);
+        return;
+      } else if (eventType == 'opened') {
         // Log previous app if exists
         _logCurrentAppUsage();
 
@@ -297,8 +464,12 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
               // P5: Log usage before blocking
               _logCurrentAppUsage();
               await blockAppUseCase.execute(appPackageName: packageName);
-              // D1: Tell native to move task to back
-              await AccessibilityChannel.moveTaskToBack();
+              // FIX Bug 5: dùng moveToHome() thay cho deprecated moveTaskToBack()
+              await AccessibilityChannel.moveToHome();
+              
+              // Ghi alert có cooldown
+              await _sendBlockedAlertIfNeeded(packageName, 'time_limit');
+
               final blockedState = await _buildBlockedState(packageName, blockReason: 'time_limit');
               emit(blockedState);
               return;
@@ -310,7 +481,12 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
             if (activeSchedule != null) {
               _logCurrentAppUsage();
               await blockAppUseCase.execute(appPackageName: packageName);
-              await AccessibilityChannel.moveTaskToBack();
+              // FIX Bug 5: dùng moveToHome() thay cho deprecated moveTaskToBack()
+              await AccessibilityChannel.moveToHome();
+              
+              // Ghi alert có cooldown
+              await _sendBlockedAlertIfNeeded(packageName, 'schedule (${activeSchedule.name})');
+
               final blockedState = await _buildBlockedState(
                 packageName,
                 blockReason: 'schedule',
@@ -335,10 +511,23 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
     }
   }
 
+  // P12b: Cooldown map để ngăn spam createKeywordAlert (10 phút/keyword)
+  final Map<String, DateTime> _lastKeywordAlertMap = {};
+
   Future<void> _onKeywordDetected(KeywordDetectedEvent event, Emitter<AppMonitorState> emit) async {
     if (_familyId == null || _childUid == null) return;
     if (event.keyword.isEmpty || event.packageName.isEmpty) return;
-    
+
+    // Cooldown 10 phút/keyword: ngăn spam nếu trẻ gõ cùng từ khóa liên tiếp
+    final cooldownKey = '${event.keyword}_${event.packageName}';
+    final lastSent = _lastKeywordAlertMap[cooldownKey];
+    final now = DateTime.now();
+    if (lastSent != null && now.difference(lastSent).inMinutes < 10) {
+      debugPrint('AppMonitorBloc: Keyword alert cooldown active for "${event.keyword}", skipping write.');
+      return;
+    }
+    _lastKeywordAlertMap[cooldownKey] = now;
+
     try {
       await alertRepository.createKeywordAlert(
         familyId: _familyId!,
@@ -364,7 +553,7 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
     String? scheduleName,
     DateTime? scheduleEndTime,
   }) async {
-    final appName = _appNameMap[packageName] ?? packageName;
+    final appName = AppUtils.getAppName(packageName);
     final now = DateTime.now();
     // P1: Use add() instead of day+1 to avoid Dec 31 crash
     final resetTime = scheduleEndTime ?? DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
@@ -430,25 +619,70 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
     }
   }
 
+  Future<void> _syncOfflineLogs() async {
+    if (_familyId == null || _childUid == null) return;
+    try {
+      final offlineLogs = await AccessibilityChannel.getAndClearOfflineUsageLogs();
+      if (offlineLogs.isNotEmpty) {
+        debugPrint('[Offline Sync] AppMonitorBloc: Tìm thấy ${offlineLogs.length} log sử dụng lúc tắt UI');
+        for (final item in offlineLogs) {
+          final packageName = item['packageName'] as String? ?? '';
+          if (AppUtils.isSystemOrUnmonitoredApp(packageName)) continue;
+          if (!_isAppAllowedToLog(packageName)) {
+            debugPrint('[Offline Sync] Bỏ qua app không được giám sát (Closed-by-Default): $packageName');
+            continue;
+          }
+          final startTimeMs = item['startTime'] as int? ?? 0;
+          final endTimeMs = item['endTime'] as int? ?? 0;
+          final durationSec = item['durationSeconds'] as int? ?? 0;
+          if (packageName.isNotEmpty && startTimeMs > 0 && durationSec >= 5) {
+            final startTime = DateTime.fromMillisecondsSinceEpoch(startTimeMs);
+            final endTime = endTimeMs > 0 ? DateTime.fromMillisecondsSinceEpoch(endTimeMs) : startTime.add(Duration(seconds: durationSec));
+            final durationMinutes = (durationSec / 60).ceil();
+            final log = UsageLog(
+              docId: '',
+              childUid: _childUid!,
+              familyId: _familyId!,
+              appPackage: packageName,
+              appName: AppUtils.getAppName(packageName),
+              startTime: startTime,
+              endTime: endTime,
+              durationMinutes: durationMinutes,
+              date: DateFormat('yyyy-MM-dd').format(startTime),
+            );
+            debugPrint('[Offline Sync] Đồng bộ log: $packageName ($durationMinutes phút)');
+            await usageRepository.logUsage(log);
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('[Offline Sync] Lỗi khi đồng bộ log offline: $e');
+    }
+  }
+
   void _logCurrentAppUsage() {
     if (_currentAppPackage != null && _currentAppStartTime != null && _childUid != null && _familyId != null) {
+      if (!_isAppAllowedToLog(_currentAppPackage!)) return;
       final now = DateTime.now();
       final durationSeconds = now.difference(_currentAppStartTime!).inSeconds;
       final durationMinutes = (durationSeconds / 60).ceil();
 
-      if (durationSeconds >= 30) {
+      if (durationSeconds >= 5) {
+        debugPrint('[Debug Write] AppMonitorBloc: Ghi nhận app $_currentAppPackage dùng $durationMinutes phút ($durationSeconds giây)');
         final log = UsageLog(
           docId: '',
           childUid: _childUid!,
           familyId: _familyId!,
           appPackage: _currentAppPackage!,
-          appName: _appNameMap[_currentAppPackage!] ?? _currentAppPackage!,
+          appName: AppUtils.getAppName(_currentAppPackage!),
           startTime: _currentAppStartTime!,
           endTime: now,
           durationMinutes: durationMinutes,
           date: DateFormat('yyyy-MM-dd').format(now),
         );
         usageRepository.logUsage(log);
+      } else {
+        debugPrint('[Debug Write] AppMonitorBloc: Bỏ qua log app $_currentAppPackage do thời gian quá ngắn ($durationSeconds s < 5s)');
       }
     }
   }
@@ -457,7 +691,10 @@ class AppMonitorBloc extends Bloc<AppMonitorEvent, AppMonitorState> {
   Future<void> close() {
     _isMonitoring = false;
     _accessibilitySubscription?.cancel();
+    _keywordsSubscription?.cancel();
     _limitCheckTimer?.cancel();
+    // BUG-4 FIX: Cancel timeLimits subscription
+    _timeLimitsSubscription?.cancel();
     _logCurrentAppUsage();
     return super.close();
   }

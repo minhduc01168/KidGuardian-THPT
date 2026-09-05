@@ -1,0 +1,3362 @@
+-140335
+-254000
+0
+0
+ĐẠI HỌC BÁCH KHOA HÀ NỘI
+TRƯỜNG ĐIỆN – ĐIỆN TỬ
+***** 
+□&□
+ *****
+BÁO CÁO BÀI TẬP LỚN
+PHÂN TÍCH & THIẾT KẾ HƯỚNG ĐỐI TƯỢNG
+ĐỀ TÀI
+:
+ 
+Phần mềm quản lý trung tâm ngoại ngữ
+Mã lớp:
+142
+082
+Nhóm: 
+12
+Sinh viên
+:
+Nguyễn Minh Đức 20192780
+Lê Vũ Bảo Trung 20193153
+Lê Ngọc Đức Nhật 2019
+3045
+Hà Nội,
+ 05
+ 
+/202
+3
+MỤC LỤC
+ TOC \o "1-3" \h \z \u 
+DANH MỤC HÌNH VẼ
+…………………………………………………
+..
+…
+…
+ PAGEREF _Toc134300697 \h 
+3
+DANH MỤC BẢNG BIỂU
+………………
+…
+………………………………
+…
+.
+5
+LỜI MỞ ĐẦU
+……
+……………………………………………………...
+…
+.
+.….
+6
+CHƯƠNG 1. THU THẬP YÊU CẦU
+7
+1.1.
+Các kỹ thuật được sử dụng
+7
+1.2.
+Phân loại yêu cầu
+9
+1.2.1.
+Yêu cầu về phần cứng
+9
+1.2.2.
+Yêu cầu về phần mềm
+9
+1.2.3.
+Yêu cầu về dữ liệu
+9
+1.2.4.
+Yêu cầu về người dùng
+9
+1.2.5.
+Yêu cầu phi chức năng
+10
+CHƯƠNG 2. PHÂN TÍCH HỆ THỐNG
+11
+2.1.
+Biểu đồ ca sử dụng
+11
+2.1.1.
+Biểu đồ ca sử dụng tổng quát
+11
+2.1.2.
+Biểu đồ ca sử dụng (phân rã)
+11
+2.1.3.
+   
+ 
+Đặc tả
+ các
+ 
+usecase
+…………………………………………………
+..
+.
+15
+2.2.
+Biểu đồ hoạt động
+………………………………………………….
+32
+2.3.
+Biểu đồ tuần tự
+……………………………………………………...
+41
+2.
+4
+.
+Phân tích dữ liệu
+………………………………………………….
+ PAGEREF _Toc134300715 \h 
+46
+CHƯƠNG 3. THIẾT KẾ HỆ THỐNG
+48
+3.1.
+Kiến trúc hệ thống
+48
+3.2.
+Các mục tiêu thiết kế
+48
+3.3.
+Thiết kế lớp
+49
+3.
+4
+.
+Thiết kế cơ sở dữ liệu
+49
+3.
+4
+.1.
+Chuyển mô hình thực thể liên kết về mô hình quan hệ
+49
+3.
+4
+.2.
+Chuẩn hóa cơ sở dữ liệu
+50
+3.
+4
+.3.
+Sơ đồ thực thể liên kết sau chuẩn hóa
+51
+3.
+4
+.4.
+Từ điển dữ liệu
+52
+3.
+5
+.
+Thiết kế một số mẫu biểu báo cáo đầu ra (nếu có)
+56
+3.
+5
+.1.
+Mẫu biểu Hóa đơn
+56
+3.
+5
+.2.
+Mẫu biểu Phiếu nhập
+56
+CHƯƠNG 4.  TRIỂN KHAI VÀ ĐÁNH GIÁ HỆ THỐNG
+57
+4.1.
+Kết quả chạy thử
+57
+4.2.
+Đánh giá hệ thống
+60
+KẾT LUẬN
+61
+TÀI LIỆU THAM KHẢO
+……………………………………………………
+62
+DANH MỤC HÌNH VẼ
+Hình 2.1 
+Biểu đồ case tổng quát
+ 
+………………………………………
+………...8
+Hình 
+2.2 
+Biểu đồ ca Quản lý học viên
+…………………………………………………9
+Hình 2.3
+ 
+Biểu đồ ca Quản lý 
+giáo
+ viên
+………………………………………………9
+Hình 2.4
+ 
+Biểu đồ ca Quản lý 
+khóa học………………………………………………
+10
+Hình 2.5
+ 
+Biểu đồ ca Quản lý 
+lớp 
+học
+.
+………………………………………………
+10
+Hình 2.6
+ 
+Biểu đồ ca Quản lý 
+điểm
+…………………………………………………
+…11
+Hình 2.7
+ 
+Biểu đồ ca Quản lý 
+tài khoản
+……………………………………………
+…11
+Hình 2.8
+ 
+Biểu đồ hoạt động quá trình Đăng ký
+ 
+………………………………..2
+9
+Hình 2.9
+ 
+Biểu đồ hoạt động quá trình Đăng nhập
+………………………………….30
+Hình 2.10
+ 
+Biểu đồ hoạt động quá trình Đ
+ổi mật khẩu…………………………….30
+Hình 2.11
+ 
+Biểu đồ hoạt động quá trình Quản lí khóa học
+………………………..31
+Hình 2.12
+ 
+Biểu đồ hoạt động quá trình 
+Tìm kiếm 
+khóa học
+………………………32
+Hình 2.13
+ 
+Biểu đồ hoạt động quá trình 
+Quản lý lớp học
+………………………….33
+Hình 2.14
+ 
+Biểu đồ hoạt động quá trình 
+Quản lý học viên
+………………………….34
+Hình 2.15
+ 
+Biểu đồ hoạt động quá trình 
+Quản lý giáo viê
+n………………………..35
+Hình 2.16 
+Biểu đồ hoạt động quá trình Quản lý điểm
+…………………………….36
+Hình
+ 
+2.17
+ 
+Biểu đồ hoạt động quá trình Quản lý tài khoản
+………………………...37
+Hình 2.18 
+Biểu đồ tuần tự cho ca sử dụng “Đăng ký”
+……………………………
+ 
+38
+Hình 2.19 
+Biểu đồ tuần tự cho ca sử dụng “ Đăng nhập”
+……………………
+..
+….39
+Hình 2.20 
+Biểu đồ tuần tự cho ca sử dụng “ Đ
+ổi mật kh
+ẩu
+”
+……………………
+..
+.
+41
+Hình 2.21 
+Biểu đồ tuần tự cho ca sử dụng “ 
+Thêm học viên
+”
+…………………
+….
+42
+Hình 2.22 
+Biểu đồ tuần tự cho ca sử dụng “ 
+Sửa hồ sơ học viên
+”
+……………
+.
+….
+43
+Hình 2.23 
+Biểu đồ tuần tự cho ca sử dụng “ 
+Xóa học viên
+”
+…………………
+..
+….
+44
+Hình 2.24 
+Biểu đồ tuần tự cho ca sử dụng “ 
+Tìm kiếm học viên
+”
+……………
+….
+45
+Hình 2.25 
+Sơ đồ mô hình thực thể liên kết 
+…………………………………………..45
+Hình 4.1 Giao diện trang đăng nhập……………………………………………58
+Hình 4.2 Giao diện trang đăng 
+kí
+…………………
+…………………………….58
+Hình 4.3 Giao diện trang 
+quản lí Giảng viên
+……
+..
+…………………………….59
+Hình 4.4 Giao diện trang 
+quản lí Học viên
+………
+.
+…………………………….59
+Hình 4.5 Giao diện trang 
+quản lí Khóa học
+…………………………
+………
+.
+….60
+Hình 4.6 Giao diện trang 
+quản lí Lớp học
+………
+...
+…………………………….60
+Hình 4.7 Giao diện trang 
+Dashboard……………..
+…………………………….60
+DANH MỤC BẢNG BIỂU
+ TOC \h \z \c "Bảng 4." 
+Bảng 
+1
+. 1 
+Mô tả dữ liệu
+8
+Bảng 2. 1 Xây dựng mô hình thực thể và liên kết……………………………....9
+Bảng 3. 1 Chuẩn hóa dữ liệu về 3NF…………………………………………...11
+Bảng 
+3
+. 2 Các thuộc tính bảng 
+Người dùng
+ PAGEREF _Toc532136926 \h 
+52
+Bảng 
+3
+. 3 Các thuộc tính bảng 
+HocVien
+ PAGEREF _Toc532136927 \h 
+53
+Bảng 
+3
+. 4 Các thuộc tính bảng 
+GiaoVien
+ PAGEREF _Toc532136928 \h 
+53
+Bảng 
+3
+. 5 Các thuộc tính bảng 
+KhoaHoc
+ PAGEREF _Toc532136929 \h 
+54
+Bảng 
+3
+. 6 Các thuộc tính bảng 
+LopHoc
+ PAGEREF _Toc532136930 \h 
+54
+Bảng 
+3
+. 7 Các thuộc tính bảng 
+NgayHoc
+ PAGEREF _Toc532136931 \h 
+55
+Bảng 
+3
+. 8 Các thuộc tính bảng 
+DangKyHoc
+ PAGEREF _Toc532136932 \h 
+55
+Bảng 3. 9 Các thuộc tính bảng CaHoc…………………………………………16
+Bảng 3. 10
+ 
+Các thuộc tính bảng 
+KetQua………………………………………..16
+LỜI 
+MỞ ĐẦU
+Trong quá trình thực hiện dự án phần mềm, giai đoạn phân tích thiết kế hệ thống là
+giai đoạn rất quan trọng. Để có được cái nhìn tổng quan, đánh giá kế hoạch, cũng như
+mô tả khái quát về các chức năng trong hệ thống, chúng ta cần phải tiến hành xác định
+kế hoạch và phân tích chung về hệ thống. Để có được hệ thống hoàn chỉnh đưa vào
+ứng dụng, chúng ta cần thiết kế về chức năng, cơ sở dữ liệu, giao diện, Chính vì vậy
+phân tích thiết kế hệ thống là quy trình không thể thiếu. Và 
+p
+hân tích thiết kế hệ thống
+hướng đối tượng là một trong những cách phân tích thiết kế hệ thống với những ưu
+điểm vượt trội so với các cách còn lại.
+Để tìm hiểu và vận dụng kiến thức về phân tích thiết kế hướng đối tượng, nhóm em
+quyết định thực hiện đề tài “
+Ph
+ần mềm quản lí
+ 
+cho Trung tâm 
+ngoại ngữ
+”
+ 
+ để bước
+ 
+đầu có những kiến thức cơ bản về lĩnh vực này. Trong quá trình thực hiện đề tài không
+ 
+thể tránh khỏi những sai sót, nhóm em rất mong được thầy và các bạn góp ý để đề tài
+ 
+của nhóm em có thể hoàn thiện hơn.
+Cuối cùng, chúng em xin chân thành cảm ơn 
+cô
+ 
+Ts
+ 
+Nguyễn Thị Kim Thoa
+đã có những bài giảng và hướng dẫn bổ ích trong quá trình học tập để chúng em có thể
+hoàn thành đề tài, 
+đồng
+ thời có được những kiến thức của môn học
+.
+CHƯƠNG
+ 
+1.
+ 
+THU THẬP
+ YÊU CẦU
+Các kỹ thuật được sử dụng
+Kỹ thuật phỏng vấn
+Phỏng vấn quản lý trung tâm
+STT
+Câu
+ hỏi
+Câu
+ trả lời
+1
+Hệ
+ thống dành cho đ
+ối
+ tượng 
+người dùng
+?
+Quản lý, giảng viên, 
+học viên và người quản trị 
+2
+Hệ
+ thống quản lý những đối tượng nào?
+Hệ thống quản lý 
+giáo
+ viên, học 
+viên
+, 
+khóa học, 
+lớp 
+học.
+ 
+ 
+3
+Hệ
+ thống quản lý 
+giáo
+ viên như thế nào? 
+Hệ thống lưu toàn bộ hồ sơ của 
+giáo
+ viên. Thông tin 
+giáo
+ viên 
+gồm: Mã số 
+giáo
+ viên, tên
+ 
+giáo
+ viên
+, ngày tháng năm sinh,
+ giới tính 
+giáo
+ viên
+, số điện thoại, địa chỉ, 
+trạng thái
+. 
+Công việc này được thực hiện bởi người quản trị. 
+Có thể cập nhật thông tin 
+giáo
+ viên hoặc xóa bỏ 
+giáo
+ viên khỏi hệ 
+thống. 
+ 
+Hệ thống g
+hi nhận thông tin 
+lớp dạy của 
+giáo
+ 
+viên.
+4
+Hệ
+ thống quản lý học viên 
+như thế nào?
+Hệ thống lưu toàn bộ hồ sơ của 
+học
+ viên. Thông tin giảng viên gồm: Mã số 
+học
+ 
+viên,
+ tên
+ học viên
+, ngày tháng năm sinh, 
+giới tính học viên
+, số điện thoại, địa chỉ
+ học viên
+. 
+Công việc này được thực hiện bởi người quản trị. Có thể cập nhật thông tin 
+học 
+viên hoặc xóa bỏ 
+học
+ viên khỏi hệ thống. 
+ Hệ thống ghi nhận thông tin 
+lớp
+ học của học
+ viên.
+5
+Hệ
+ thống quản lý 
+khóa
+ học như thế nào?
+Hệ thống lưu toàn 
+bộ thông tin 
+khóa
+ học
+. Thông tin 
+khóa
+ học
+ gồm: Mã số 
+khóa
+ học
+, tên
+ 
+khóa
+ học
+,
+ 
+số buổi
+,
+ học phí,
+ 
+mô tả khóa 
+học, trạng thái
+.
+Công việc này được thực hiện bởi người quản trị. Có thể cập nhật thông tin 
+khóa học
+ hoặc xóa bỏ 
+khóa học
+ khỏi hệ thống.
+6
+Hệ
+ thống quản lý lớp học như thế nào?
+Hệ thống lưu toàn 
+bộ thông tin lớp học
+. Thông tin 
+lớp học
+ gồm: Mã số 
+lớp học
+, tên
+ lớp học
+,
+ 
+ngày bắt đầu
+,
+ ngày 
+kết thúc
+, 
+sĩ
+ số 
+lớp, mã ngày học, ngày học
+, 
+mã ca học, 
+giờ học, 
+trạng thái
+.
+Công việc này được thực hiện bởi người quản trị. Có thể cập nhật thông tin lớp học hoặc xóa bỏ lớp học khỏi hệ thống. 
+Có thể thực hiện
+ thông báo đến toàn 
+lớp, tính
+ kết quả học tập của 
+lớp. Có thể thực hiện c
+huyển 
+lớp.
+ Lưu trữ thông tin học viên bảo lưu và sắp xếp chuyển lớp khi học viên đi học lại
+7
+Hệ
+ thống quản lý đăng ký học?
+Hệ thống lưu và cập nhật thông tin đăng ký học. Thông tin đăng ký học: 
+mã học viên, mã lớp
+ học
+, trạng thái đóng học phí.
+8
+Hệ
+ thống quản lý kết quả học tập học viên?
+Hệ thống lưu và cập nhật thông tin kết quả học tập. Thông tin kết quả: mã 
+lớp học
+, mã 
+học viên
+, 
+điểm
+.
+9
+Hệ
+ thống có cần các chức năng tìm kiếm hay không? Ai được tìm những gì?
+Quản lý được tìm kiếm: hồ sơ thông tin 
+giáo
+ viên và học viên. 
+Giáo
+ viên được tìm kiếm: thông tin học viên lớp phụ trách. Học viên được tìm kiếm: Thông tin 
+giáo
+ viên, học phí của lớp học, kết quả học tập, ca học.  
+10 
+Hệ
+ thống có cần các chức năng báo cáo thống kê hay không?
+Theo từng giai đoạn tùy chọn, quản lý sẽ lập các báo cáo, thống kê về danh sách học viên, danh sách 
+giáo
+ viên, danh sách các lớp học. Ngoài ra có thể tự lập báo cáo để theo dõi tình hình của trung tâm. 
+11
+Hệ
+ thống được hiển thị bằng những ngôn ngữ nào?
+Hệ thống có thể hiện thị bằng tiếng Anh hoặc tiếng Việt.
+12
+Hệ
+ thống cần yêu cầu bảo mật như thế nào?
+Mỗi tài khoản người dùng sẽ có những quyền hạn cụ thể. Người dùng chỉ thực hiện được những chức năng gắn với quyền hạn của mình.
+13
+Hệ
+ thống cần được triển khai trên nền tảng web, ứng dụng trên máy tính hay ứng dụng trên điện thoại?
+Hệ thống cần triển khai thành ứng dụng trên nền tảng web có thể truy cập trên máy tính và điện thoại. 
+14
+Hệ
+ thống cần đáp ứng tối đa bao nhiêu truy cập một lúc
+Thường
+ thì trung tâm không có quá nhiều người truy cập vào hệ thống cùng một lúc. Số lượng khoảng vài trăm người truy cập đồng thời. 
+15
+Yêu
+ cầu về ngôn ngữ lập trình, hệ quản trị cơ sở dữ liệu để triển khai hệ thống này?
+Hệ thống cần được thực hiện bằng ngôn ngữ lập trình Java, hệ quản trị cơ sở dữ liệu SQLServer.
+16
+Yêu
+ cầu về phần cứng của hệ thống?
+Hệ thống cần kết nối với máy in để thực hiện in phiếu khi thực hiện thu học phí của học viên. 
+Phân loại yêu cầu
+Yêu cầu về phần cứng
+Máy
+ tính: 
+RAM 
+tối thiểu 4 GB, ổ 
+cứng
+ tối thiểu
+ 128GB 
+SSD,
+ 
+…
+Điện thoại: 
+ROM tối thiểu 
+32 GB, RAM tối thiểu 2 GB, …
+Hệ thống cần kết nối với máy in để thực hiện in phiếu khi thực hiện thu học phí của học viên.
+Yêu cầu về phần mềm
+Hệ thống triển khai trên nền tảng web có thể truy cập trên máy tính và điện thoại.
+Hệ thống triển
+ khai
+ bằng ngôn ngữ lập trình Java, hệ quản trị cơ sở dữ liệu 
+PostgreSQL
+.
+Yêu cầu về dữ liệu
+Bảng 1. 
+ SEQ Bảng_4. \* ARABIC 
+1
+ 
+Mô tả dữ liệu
+Tên dữ liệu
+Mô tả
+Lớp
+ học
+Mã số 
+lớp học
+, tên
+ lớp học
+,
+ ngày bắt đầu, ngày kết thúc, 
+sĩ
+ số lớp, mã ngày học, ngày học, mã ca học, giờ học
+, trạng
+ thái
+.
+Khóa
+ học
+Mã số khóa học, tên khóa học, số buổi, học phí, mô tả khóa học, trạng thái.
+Học
+ viên
+Mã số học viên, tên học viên, ngày tháng năm sinh, giới tính học viên, số điện thoại, địa chỉ học viên.
+Giáo
+ viên
+Mã số 
+giáo
+ viên, tên 
+giáo
+ viên, ngày tháng năm sinh, giới tính 
+giáo
+ viên, số điện thoại, địa chỉ, trạng thái.
+Đăng ký 
+mã học viên, mã lớp
+ học
+, trạng thái đóng học phí.
+Kết quả
+Mã lớp học, mã học viên, 
+điểm.
+Yêu cầu về 
+người 
+dùng
+Học
+ viên:
+ thay đổi thông tin cá nhân, tìm kiếm thông tin 
+giáo
+ viên, tra cứu học phí của lớp học, xem điểm số.
+Giáo
+ viên:
+ thay đổi thông tin cá nhân, tìm kiếm thông tin 
+học viên lớp phụ trách
+.
+ 
+Admin: 
+Quản lý 
+giáo
+ 
+viên, quản lý học viên, quản lý khóa học, quản lý 
+lớp
+ 
+học.
+Yêu cầu phi chức năng
+Hệ thống phục vụ vài 
+trăm
+ người truy nhập cùng lúc
+Giao diện thân thiện với người dùng.....
+Phần mềm được trình bày đơn giản, gọn gàng mà không mất đi tính thẩm mỹ, thu hút sự chú ý của khách hàng
+Đảm bảo tính bảo mật thông tin cá nhân cho khách hàng
+Hiệu suất: Hệ thống hoạt động ổn định, thông tin tới khách hàng nhanh và chinh xác
+CHƯƠNG 
+2.
+ PHÂN TÍCH HỆ THỐN
+G
+Biểu đồ ca sử dụng
+Biểu đồ ca sử dụng tổng quát
+Hình 
+2.1 Biểu đồ case tổng quát
+Biểu đồ ca sử dụng (phân rã)
+Vẽ các biểu đồ ca sử dụng
+ con
+ để làm rõ biểu đồ tổng quát
+2
+.1.2.1 Phân rã usecase “Quản lý học viên”
+Hình 2.2 Biểu đồ ca
+ Quản lý học viên
+2
+.1.2.
+2
+ Phân rã usecase “Quản lý giáo viên”
+Hình 2.
+3
+ Biểu đồ ca Quản lý 
+giáo
+ viên
+2
+.1.2.
+3
+ Phân rã usecase “Quản lý khóa học”
+Hình 2.
+4
+ Biểu đồ ca Quản lý 
+khóa học
+2
+.1.2.
+4
+ Phân rã usecase “Quản lý lớp học”
+Hình 2.
+5
+ Biểu đồ ca Quản lý 
+lớp học
+2
+.1.2.
+5
+ Phân rã usecase “Quản lý điểm”
+Hình 2.
+6
+ Biểu đồ ca Quản lý 
+điểm
+2
+.1.2.
+6
+ Phân rã usecase “Quản lý tài khoản”
+Hình 2.
+7
+ Biểu đồ ca Quản lý 
+tài khoản
+Có bảng mô tả các ca sử dụng
+2.1.3 
+Đặc tả các usecase
+Usecase 
+“ Đăng ký”
+Mã Use case 
+UC01
+Tên Usecase
+Đăng ký 
+Tác nhân
+Khách
+Mục đích sử dụng
+Đăng ký để tạ tài khoản người dùng mới 
+Sự kiện kích hoạt
+Khách click 
+vào button 
+“ Đăng ký”
+Điều kiện tiên quyết 
+Không
+Luồng sự kiện chính
+Khách 
+chọn chức năng đăng 
+ký.
+Hệ thống hiển thị màn hình 
+đăng 
+ký.
+ 
+Khách nhập thông 
+tin 
+Khách yêu cầu đăng 
+ký.
+Hệ thống kiểm tra 
+xem khách đã nhập hợp lệ các tường bắt buộc 
+nhập hay chưa. Kiểm tra email đã tồn tại hay chưa. 
+Hệ thống 
+tạo tài khoản. Trả về thông báo 
+thành công.
+ 
+Luồng sự kiện thay thế
+5.1 
+Hệ thống thông báo lỗi: Cần 
+nhập các 
+trường
+ bắt buộc nhập 
+nếu khách nhập 
+thiếu.
+5.2 Hệ thống thông báo lỗi: 
+Các trường nhập không đúng định 
+dạng.
+ 
+ 
+5.3 
+Hệ thống thông báo lỗi: Email đã tồn 
+tại.
+ 
+6
+.
+1
+ 
+H
+ệ thống
+ tạo tài 
+khoản lỗi, thông báo lỗi.
+ 
+ 
+Điều kiện kết thúc 
+Khách đăng ký thành công 
+tài khoản, hệ thống đã lưu tài khoản mới sẵn sàng 
+đăng nhập. 
+ 
+Bảng đặc tả usecase “ Đăng ký”
+Mã Use case 
+UC02
+Tên Usecase
+Đăng nhập
+Tác nhân
+Khách
+Mục đích sử dụng
+Xác thực người dùng cho phép người dùng sử dụng các chức năng của tác nhân “Người
+ 
+sử dụng”
+Sự kiện kích hoạt
+Khách click button “Đăng nhập”
+Điều kiện tiên quyết 
+Không
+Luồng sự kiện chính
+Khách chọn chức năng Đăng nhập
+Hệ thống Hiển thị màn hình đăng nhập
+ 
+Khách nhập email và mật khẩu 
+Khách yêu cầu đăng nhập
+Hệ thống kiểm tra tính hợp lệ và đầy đủ của các trường khách
+ 
+nhập
+Hệ thống Kiểm tra tài khoản tồn tại hay không
+Hệ thống Kiểm tra tài khoản tồn tại hay không
+Hệ thống Chuyển hướng đến màn hình “
+Trang chủ
+”
+Luồng sự kiện thay thế
+5.1 
+Hệ thống thông báo lỗi: Khách cần nhập các trường bắt buộc
+ 
+nhập nếu nhập thiếu
+6.1 
+Hệ thống thông báo lỗi: Email và/hoặc mật khẩu chưa đúng nếu
+ 
+không tìm thấy email và mật khẩu trong hệ thống
+Điều kiện kết thúc 
+Hệ thống lưu thông tin đăng nhập của người sử dụng, tạo lập một phiên hoạt động, lưu
+ 
+trạng thái, cho phép người sử dụng có thể sử dụng các chức năng với vai trò của họ.
+Bảng 
+đặc tả usecase “Đăng nhập”
+Mã Use case 
+UC03
+Tên Usecase
+Đổi mật khẩu
+Tác nhân
+Người dùng 
+Mục đích sử dụng
+Tăng khả năng bảo mật khi người dùng có khả năng bị lộ mật khẩu cũ
+Sự kiện kích hoạt
+Người dùng click button “ Đổi mật khẩu” 
+Điều kiện tiên quyết 
+Tài khoản 
+người dùng đã tồn tại
+Luồng sự kiện chính
+Người dùng 
+t
+hực hiện việc đăng nhập 
+Người dùng
+ đăng nhập thành công, nhập mật khẩu mới
+Hệ thống k
+iểm tra tính hợp lệ của mật khẩu mới
+Hệ thống 
+kiểm tra
+ hợp lệ thì cập nhật mật khẩu cho người dùng.
+Luồng sự kiện thay thế
+2.1 
+Hệ 
+thống thông báo lỗi:
+ đăng nhập thất bại, 
+tài khoản không tồn tại hoặc thông tin sai. 
+3.1 
+Hệ thống 
+thông báo lỗi: Mật khẩu mới không hợp lệ 
+Điều kiện kết thúc 
+C
+ập nhật thành công mật khẩu cho người 
+dùng.
+Bảng đặc tả usecase “ Đổi mật khẩu”
+Mã Use case 
+UC04
+Tên Usecase
+Thêm học viên 
+Tác nhân
+Admin
+Mục đích sử dụng
+Thực hiện thêm học viên khi có người dùng mới đăng ký 
+lớp học 
+Sự kiện kích hoạt
+Click vào button “ thêm học viên” ở giao diện quản lý học viên
+Điều kiện tiên quyết 
+M
+ã số học viên chưa có trong 
+cơ sở dữ liệu
+Luồng sự kiện chính
+Người dùng thực hiện đăng nhập vào hệ thống với quyền Admin 
+Admin n
+hập vào thông tin học viên muốn thêm
+Hệ thống k
+iểm tra thông tin nhập vào có thỏa điều kiện không
+Hệ thống kiểm tra
+ thỏa
+ mãn
+ thì thêm học viên vào 
+cơ sở dữ liệu
+Luồng sự kiện thay thế
+1.1 Hệ thống thông báo lỗi: đăng nhập thất bại, tài khoản không tồn tại hoặc thông tin sai. 
+3.1 
+Hệ thống thông báo lỗi: thông tin 
+nhập vào không hợp lệ
+Điều kiện kết thúc 
+T
+hêm thành công học viên
+ vào cơ sở dữ liệu, hệ thống hiển thị thông báo thêm thành 
+công.
+ 
+Bảng đặc tả usecase “ Thêm học viên”
+Mã Use case 
+UC05
+Tên Usecase
+Xóa học viên 
+Tác nhân
+Admin
+Mục đích sử dụng
+Để xóa hồ sơ học viên khỏi hệ thống
+Sự kiện kích hoạt
+Click vào button “ xóa học viên” ở giao diện quản lý học viên
+Điều kiện tiên quyết 
+H
+ồ sơ học viên phải tồn tại trong 
+cơ 
+sở
+ dữ liệu
+Luồng sự kiện chính
+Người dùng thực hiện đăng nhập vào hệ thống với quyền Admin 
+Admin n
+hập thông tin muốn tìm hồ sơ của học viên
+Hệ thống k
+iểm tra có hồ sơ nào thỏa 
+mãn 
+thông tin nhập không
+Hệ thống 
+kiểm tra
+ thỏa
+ mãn
+ thì xuất ra hồ sơ thỏa 
+mãn theo 
+yêu cầu.
+Admin thực hiện
+ xóa hồ sơ học viên khỏi 
+danh sách học viên.
+Hệ thống hiển thị thông báo cho 
+admin
+ xác nhận thực hiện việc xóa.
+Admin xác nhân hành động xóa.
+Hệ thống tiến hành xóa học viên đó và thông báo 
+xóa thành công.
+Luồng sự kiện thay thế
+1.1 Hệ thống thông báo lỗi: đăng nhập thất bại, tài khoản không tồn tại hoặc thông tin sai. 
+3.1 Hệ thống thông báo lỗi: thông tin nhập vào không hợp 
+lệ.
+4
+.1 Hệ thống thông báo lỗi: 
+không tìm 
+thấy thông tin học viên cần tìm.
+Điều kiện kết thúc 
+Hệ thống 
+hiện thị thông báo 
+xóa thành công hồ sơ học 
+viên.
+Bảng đặc tả usecase “ Xóa học viên”
+Mã Use case 
+UC06
+Tên Usecase
+Sửa hồ sơ học viên
+Tác nhân
+H
+ọc viên
+Mục đích sử dụng
+Sử dụng để cho học viên cập nhật thông tin hồ sơ của học viên khi có thay 
+đ
+ổi
+ mới.
+ 
+Sự kiện kích hoạt
+Click vào button “ 
+cập nhật thông tin
+” ở giao diện quản lý học viên
+Điều kiện tiên quyết 
+Hồ sơ học viên phải tồn tại trong cơ sở dữ liệu
+Luồng sự kiện chính
+Người dùng thực hiện đăng nhập vào hệ thống với quyền học viên. 
+Học viên
+ 
+vào mục
+ 
+hồ sơ học 
+viên.
+Hệ thống 
+hiển thị thông tin học viên.
+Học viên n
+hập thông tin cần cập 
+nhật.
+Hệ thống 
+kiểm tra thông tin nhập có hợp lệ
+Hệ thống kiểm tra
+ hợp lệ thì 
+đưa ra thông báo hỏi học viên có muốn lưu không?
+Học viên chọn lưu thông tin để 
+cập nhật thông tin hồ sơ học viên
+ vào cơ sở dữ liệu
+Luồng sự kiện thay thế
+1.1 Hệ thống thông báo lỗi: đăng nhập thất bại, tài khoản không tồn tại hoặc thông tin sai. 
+6
+.1 Hệ thống thông báo lỗi: thông tin nhập vào không hợp lệ.
+7
+.1 
+Học viên chọn hủy
+: 
+không thực hiện việc câp nhật thông tin
+.
+Điều kiện kết thúc 
+Hệ thống hiển thị thông báo 
+cập nhật thành công hồ sơ học viên vào 
+cơ
+ sở dữ liệu. 
+Bảng đặc tả usecase “ Sửa hồ sơ học viên”
+Mã Use case 
+UC07
+Tên Usecase
+Tìm kiếm hồ sơ học viên 
+Tác nhân
+Người
+ dùng 
+Mục đích sử dụng
+Sử
+ dụng dể tìm kiếm thông tin hồ sơ của học viên khi cần thiết 
+Sự kiện kích hoạt
+Click vào 
+biểu tượng tìm kiếm
+ ở giao diện quản lý học viên
+Điều kiện tiên quyết 
+Hồ sơ học viên phải tồn tại trong cơ sở dữ liệu
+Luồng sự kiện chính
+Người dùng thực hiện đăng nhập vào hệ 
+thống.
+Người dùng
+ n
+hập thông tin muốn tìm
+ trong
+ hồ sơ của học viên
+Hệ thống k
+iểm tra có
+ 
+hồ sơ nào thỏa 
+mãn 
+thông tin nhập không
+Hệ thống kiểm tra
+ thỏa
+ mãn
+ thì xuất ra hồ sơ thỏa 
+mãn theo 
+yêu cầu.
+Luồng sự kiện thay thế
+1.1 Hệ thống thông báo lỗi: đăng nhập thất bại, tài khoản không tồn tại hoặc thông tin sai. 
+3.1 Hệ thống thông báo lỗi: thông tin nhập vào không hợp lệ.
+4.1 Hệ thống thông báo lỗi: không tìm thấy thông tin học viên cần tìm.
+Điều kiện kết thúc 
+Hệ thống hiển thị
+ hồ sơ của học viên
+ tìm thấy
+.
+Bảng đặc tả usecase “ Tìm kiếm hồ sơ học viên”
+Mã Use case 
+UC0
+8
+Tên Usecase
+In danh sách học viên
+Tác nhân
+Admin
+Mục đích sử dụng
+In 
+ra danh sách học viên đang tham gia học tập tại trung tâm gồm số lượng và các thông tin cơ bản của học viên. 
+Sự kiện kích hoạt
+Thực hiện kết nối với máy in và c
+lick vào button thực hiện lệnh in ở giao diện quản lý học viên.
+Điều kiện tiên quyết 
+H
+ồ sơ học viên phải tồn tài trong 
+cơ sở dữ liệu
+Luồng sự kiện chính
+Người dùng thực hiện đăng nhập vào hệ thống với quyền Admin 
+Admin n
+hập thông tin 
+muốn in 
+cho danh sách trong hồ sơ học viên.
+Hệ thống k
+iểm tra thông tin nhập vào
+ có hợp 
+lệ
+ hay 
+không.
+Hệ thống kiểm tra kết nối của máy tính với máy in.
+Hệ thống 
+thực hiện in 
+danh sách 
+khi các điều kiện trên được đáp ứng.
+Luồng sự kiện thay thế
+1.1 Hệ thống thông báo lỗi: đăng nhập thất bại, tài khoản không tồn tại hoặc thông tin sai. 
+3.1 Hệ thống thông báo lỗi: thông tin nhập vào không hợp lệ.
+4.1 Hệ thống thông báo lỗi: không tìm thấy 
+máy in được kết nối 
+đ
+ể thực hiện in
+.
+Điều kiện kết thúc 
+Thưc hiện 
+in thành công danh sách học 
+viên.
+Bảng đặc tả usecase 
+“ 
+In danh sách hoc viên”
+Mã Use case 
+UC
+09
+Tên Usecase
+Thêm giáo viên 
+Tác nhân
+Admin
+Mục đích sử dụng
+Thực hiện thêm giáo viên khi có người dùng mới 
+tham gia giảng dạy
+ 
+Sự kiện kích hoạt
+Click vào button “ thêm 
+giáo
+ viên” ở giao diện quản lý 
+giáo
+ viên
+Điều kiện tiên quyết 
+M
+ã số 
+giáo
+ viên chưa có trong 
+cơ sở dữ liệu
+Luồng sự kiện chính
+Người dùng thực hiện đăng nhập vào hệ thống với quyền Admin 
+Admin n
+hập vào thông tin 
+giáo
+ viên muốn thêm
+Hệ thống k
+iểm tra thông tin nhập vào có thỏa điều kiện không
+Hệ thống kiểm tra
+ thỏa
+ mãn
+ thì thêm 
+giáo
+ viên vào 
+cơ sở dữ liệu
+Luồng sự kiện thay thế
+1.1 Hệ thống thông báo lỗi: đăng nhập thất bại, tài khoản không tồn tại hoặc thông tin sai. 
+3.1 Hệ thống thông báo lỗi: thông tin nhập vào không hợp lệ
+Điều kiện kết thúc 
+T
+hêm thành công 
+giáo
+ viên
+ vào cơ sở dữ liệu, hệ thống hiển thị thông báo thêm thành công. 
+Bảng đặc tả usecase “ Thêm 
+giáo
+ viên”
+Mã Use case 
+UC1
+0
+Tên Usecase
+Xóa 
+giáo
+ viên 
+Tác nhân
+Admin
+Mục đích sử dụng
+Để xóa hồ sơ 
+giáo
+ viên khỏi hệ thống
+ khi giáo viên thực hiện nghỉ việc.
+Sự kiện kích hoạt
+Click vào button “ xóa 
+giáo
+ viên” ở giao diện quản lý 
+giáo
+ viên
+Điều kiện tiên quyết 
+H
+ồ sơ 
+giáo
+ viên phải tồn tại trong 
+cơ sở dữ liệu
+Luồng sự kiện chính
+Người dùng thực hiện đăng nhập vào hệ thống với quyền Admin 
+Admin n
+hập thông tin muốn tìm hồ sơ của 
+giáo
+ viên
+Hệ thống k
+iểm tra có hồ sơ nào thỏa 
+mãn 
+thông tin nhập không
+Hệ thống kiểm tra
+ thỏa
+ mãn
+ thì xuất ra hồ sơ thỏa 
+mãn theo 
+yêu cầu.
+Admin thực hiện
+ xóa hồ sơ 
+giáo
+ viên khỏi 
+danh sách 
+giáo
+ viên.
+Hệ thống hiển thị thông báo cho admin xác nhận thực hiện việc xóa.
+Admin xác nhân hành động xóa.
+Hệ thống tiến hành xóa 
+giáo
+ viên đó và thông báo xóa thành công.
+Luồng sự kiện thay thế
+1.1 Hệ thống thông báo lỗi: đăng nhập thất bại, tài khoản không tồn tại hoặc thông tin sai. 
+3.1 Hệ thống thông báo lỗi: thông tin nhập vào không hợp lệ.
+4.1 Hệ thống thông báo lỗi: không tìm thấy thông tin 
+giáo
+ viên cần tìm.
+Điều kiện kết thúc 
+Hệ thống hiện thị thông báo 
+xóa thành công hồ sơ 
+giáo
+ 
+viên.
+Bảng đặc tả usecase “ Xóa 
+giáo
+ viên”
+Mã Use case 
+UC1
+1
+Tên Usecase
+Sửa hồ sơ 
+giáo
+ viên
+Tác nhân
+Giáo
+ viên
+Mục đích sử dụng
+Sử dụng để cho 
+giáo
+ viên cập nhật thông tin hồ sơ của 
+giáo
+ viên khi có thay đổi mới. 
+Sự kiện kích hoạt
+Click vào button “ 
+cập nhật thông tin
+” ở giao diện quản lý 
+giáo
+ viên
+Điều kiện tiên quyết 
+Hồ sơ 
+giáo
+ viên phải tồn tại trong cơ sở dữ liệu
+Luồng sự kiện chính
+Người dùng thực hiện đăng nhập vào hệ thống với quyền 
+giáo
+ viên. 
+Giáo
+ viên vào mục
+ 
+hồ sơ 
+giáo
+ viên.
+Hệ thống hiển thị thông tin 
+giáo
+ viên.
+Giáo
+ viên n
+hập thông tin cần cập 
+nhật.
+Hệ thống 
+kiểm tra thông tin nhập có hợp lệ
+ không?
+Hệ thống kiểm tra
+ hợp lệ thì 
+đưa ra thông báo hỏi 
+giáo
+ viên có muốn lưu không?
+Giáo
+ viên chọn lưu thông tin để 
+cập nhật thông tin hồ sơ 
+giáo
+ viên
+ vào cơ sở dữ liệu
+Luồng sự kiện thay thế
+1.1 Hệ thống thông báo lỗi: đăng nhập thất bại, tài khoản không tồn tại hoặc thông tin sai. 
+6
+.1 Hệ thống thông báo lỗi: thông tin nhập vào không hợp lệ.
+7
+.1 
+Giáo
+ viên chọn hủy
+: 
+không thực hiện việc câp nhật thông tin
+.
+Điều kiện kết thúc 
+Hệ thống hiển thị thông báo 
+cập nhật thành công hồ sơ học viên vào 
+cơ
+ sở dữ liệu. 
+Bảng đặc tả usecase “ Sửa hồ sơ 
+giáo
+ viên”
+Mã Use case 
+UC1
+2
+Tên Usecase
+Tìm kiếm hồ sơ 
+giáo
+ viên 
+Tác nhân
+Người
+ dùng 
+Mục đích sử dụng
+Sử
+ dụng dể tìm kiếm thông tin hồ sơ của 
+giáo
+ viên khi cần thiết 
+Sự kiện kích hoạt
+Click vào 
+biểu tượng tìm kiếm
+ ở giao diện quản lý học viên
+Điều kiện tiên quyết 
+Hồ sơ 
+giáo
+ viên phải tồn tại trong cơ sở dữ liệu
+Luồng sự kiện chính
+Người dùng thực hiện đăng nhập vào hệ thống.
+Người dùng n
+hập thông tin muốn tìm
+ trong
+ hồ sơ của 
+giáo
+ viên
+Hệ thống k
+iểm tra có
+ 
+hồ sơ nào thỏa 
+mãn 
+thông tin nhập không
+Hệ thống kiểm tra
+ thỏa
+ mãn
+ thì xuất ra hồ sơ thỏa 
+mãn theo 
+yêu cầu.
+Luồng sự kiện thay thế
+1.1 Hệ thống thông báo lỗi: đăng nhập thất bại, tài khoản không tồn tại hoặc thông tin sai. 
+3.1 Hệ thống thông báo lỗi: thông tin nhập vào không hợp lệ.
+4.1 Hệ thống thông báo lỗi: không tìm thấy thông tin 
+giáo
+ viên cần tìm.
+Điều kiện kết thúc 
+Hệ thống hiển thị
+ hồ sơ của 
+giáo
+ viên
+ tìm thấy
+.
+Bảng đặc tả usecase “ Tìm kiếm hồ sơ 
+giáo
+ viên”
+Mã Use case 
+UC1
+3
+Tên Usecase
+Thống kê 
+số lớp dạy
+Tác nhân
+Admin
+Mục đích sử dụng
+Thống kê số lượng lớp
+ mà 
+giáo viên đó đang dạy phục vụ tính lương 
+Sự kiện kích hoạt
+Click vào button thực hiện thống kê ở giao diện quản lý 
+giáo
+ viên.
+Điều kiện tiên quyết 
+D
+anh sách lớp đang dạy phải tồn tại
+Luồng sự kiện chính
+Người dùng thực hiện đăng nhập vào hệ thống với quyền Admin 
+Admin n
+hập thông tin 
+giáo viên 
+cần thống kê số lượng 
+lớp dạy.
+Hệ thống k
+iểm tra thông tin nhập vào
+ có hợp lệ hay không
+Hệ thống kiểm tra thông tin thỏa mãn 
+thì thống kê số lượng 
+lớp giáo viên đó 
+dạy.
+Luồng sự kiện thay thế
+1.1 Hệ thống thông báo lỗi: đăng nhập thất bại, tài khoản không tồn tại hoặc thông tin sai. 
+3.1 Hệ thống thông báo lỗi: thông tin nhập vào không hợp lệ.
+4.1 Hệ thống thông báo lỗi: không tìm thấy thông tin 
+giáo viên
+ cần thống kê số lượng 
+lớp dạy
+.
+Điều kiện kết thúc 
+Hệ thống hiện thị 
+thống kê thành công số lượng 
+lớp 
+mà giáo viên đó dạy
+.
+Bảng đặc tả usecase 
+“ Thống kê 
+số
+ 
+lớp
+ dạy
+”
+Mã Use case 
+UC1
+4
+Tên Usecase
+Thêm khóa học 
+Tác nhân
+Admin
+Mục đích sử dụng
+Thực hiện thêm khóa học khi trung tâm có mở khóa học mới. 
+Sự kiện kích hoạt
+Click vào button “ thêm 
+khóa học
+” ở giao diện quản lý 
+khóa học.
+Điều kiện tiên quyết 
+M
+ã số 
+khóa học
+ chưa có trong 
+cơ sở dữ liệu
+Luồng sự kiện chính
+Người dùng thực hiện đăng nhập vào hệ thống với quyền Admin 
+Admin n
+hập vào thông tin 
+khóa học
+ muốn thêm
+Hệ thống k
+iểm tra thông tin nhập vào có thỏa điều kiện không
+Hệ thống kiểm tra
+ thỏa
+ mãn
+ thì thêm 
+khóa học 
+vào 
+cơ sở dữ liệu
+Luồng sự kiện thay thế
+1.1 Hệ thống thông báo lỗi: đăng nhập thất bại, tài khoản không tồn tại hoặc thông tin sai. 
+3.1 Hệ thống thông báo lỗi: thông tin nhập vào không hợp lệ
+Điều kiện kết thúc 
+T
+hêm thành công 
+khóa học
+ vào cơ sở dữ liệu, hệ thống hiển thị thông báo thêm thành công. 
+Bảng đặc tả usecase “ Thêm 
+khóa học
+”
+Mã Use case 
+UC1
+5
+Tên Usecase
+Xóa 
+khóa học
+ 
+Tác nhân
+Admin
+Mục đích sử dụng
+Để xóa
+ khóa học
+ khỏi hệ thống khi 
+trung tâm không còn triển khai 
+giảng dạy.
+Sự kiện kích hoạt
+Click vào button “ xóa 
+khóa học
+” ở giao diện quản lý 
+khóa học.
+Điều kiện tiên quyết 
+H
+ồ sơ 
+khóa học
+ phải tồn tại trong 
+cơ sở dữ 
+liệu.
+Luồng sự kiện chính
+Người dùng thực hiện đăng nhập vào hệ thống với quyền Admin 
+Admin n
+hập thông tin muốn tìm 
+về khóa học.
+Hệ thống k
+iểm tra có 
+khóa học
+ nào thỏa 
+mãn 
+thông tin nhập 
+không?
+Hệ thống kiểm tra
+ thỏa
+ mãn
+ thì xuất ra
+ thông tin khóa học
+ thỏa 
+mãn theo 
+yêu cầu.
+Admin thực hiện
+ xóa 
+khóa học
+ khỏi 
+danh sách 
+khóa học
+.
+Hệ thống hiển thị thông báo cho admin xác nhận thực hiện việc xóa.
+Admin xác nhân hành động xóa.
+Hệ thống tiến hành xóa 
+khóa học
+ đó và thông báo xóa thành công.
+Luồng sự kiện thay thế
+1.1 Hệ thống thông báo lỗi: đăng nhập thất bại, tài khoản không tồn tại hoặc thông tin sai. 
+3.1 Hệ thống thông báo lỗi: thông tin nhập vào không hợp lệ.
+4.1 Hệ thống thông báo lỗi: không tìm thấy thông tin 
+khóa học
+ cần tìm.
+Điều kiện kết thúc 
+Hệ thống hiện thị thông báo 
+xóa thành công 
+khóa học
+.
+Bảng đặc tả usecase “ Xóa 
+khóa học
+”
+Mã Use case 
+UC1
+6
+Tên Usecase
+Sửa 
+khóa học
+Tác nhân
+Admin
+Mục đích sử dụng
+Sử dụng để cho 
+admin
+ cập nhật thông tin của 
+khóa học
+ khi có thay đổi mới. 
+Sự kiện kích hoạt
+Click vào button “ 
+cập nhật thông tin
+” ở giao diện quản lý 
+khóa học.
+Điều kiện tiên quyết 
+Khóa học
+ phải tồn tại trong cơ sở dữ liệu
+Luồng sự kiện chính
+Người dùng thực hiện đăng nhập vào hệ thống với quyền 
+admin
+. 
+Admin
+ vào mục 
+khóa học
+.
+Hệ thống hiển thị thông tin 
+danh sách khóa học
+.
+Admin
+ n
+hập thông tin cần cập 
+nhật.
+Hệ thống 
+kiểm tra thông tin nhập có hợp lệ
+ không?
+Hệ thống kiểm tra
+ hợp lệ thì 
+đưa ra thông báo hỏi 
+admin
+ có muốn lưu không?
+Admin
+ chọn lưu thông tin để 
+cập nhật thông tin hồ sơ 
+khóa học
+ vào cơ sở dữ liệu
+Luồng sự kiện thay thế
+1.1 Hệ thống thông báo lỗi: đăng nhập thất bại, tài khoản không tồn tại hoặc thông tin sai. 
+6
+.1 Hệ thống thông báo lỗi: thông tin nhập vào không hợp lệ.
+7
+.1
+ Admin
+ chọn hủy
+: 
+không thực hiện việc câp nhật thông tin
+.
+Điều kiện kết thúc 
+Hệ thống hiển thị thông báo 
+cập nhật thành công hồ sơ 
+khóa học
+ vào 
+cơ
+ sở dữ liệu. 
+Bảng đặc tả usecase “ Sửa 
+khóa học
+”
+Mã Use case 
+UC1
+7
+Tên Usecase
+Tìm kiếm 
+khóa học
+ 
+Tác nhân
+Khách
+Mục đích sử dụng
+Sử
+ dụng 
+đ
+ể tìm kiếm thông tin 
+của khóa học
+ khi cần thiết
+ trước khi đăng ký.
+ 
+Sự kiện kích hoạt
+Click vào 
+biểu tượng tìm kiếm
+ ở giao diện quản lý 
+khóa học
+Điều kiện tiên quyết 
+Khóa học
+ phải tồn tại trong cơ sở dữ liệu
+Luồng sự kiện chính
+Khách
+ nhập thông tin muốn tìm 
+về khóa học.
+Hệ thống kiểm tra 
+có khóa học 
+nào thỏa mãn thông tin nhập 
+không?
+Hệ thống kiểm tra
+ thỏa
+ mãn
+ thì xuất ra
+ khóa học 
+thỏa 
+mãn theo 
+yêu cầu.
+Luồng sự kiện thay thế
+1.1 Hệ thống thông báo lỗi: đăng nhập thất bại, tài khoản không tồn tại hoặc thông tin sai. 
+3.1 Hệ thống thông báo lỗi: thông tin nhập vào không hợp lệ.
+4.1 Hệ thống thông báo lỗi: không tìm thấy thông tin 
+khóa học
+ cần tìm.
+Điều kiện kết thúc 
+Hệ thống hiển thị
+ 
+khóa học
+ tìm thấy
+.
+Bảng đặc tả usecase “ Tìm kiếm 
+khóa học
+”
+Mã Use case 
+UC1
+8
+Tên Usecase
+In danh sách khóa học
+Tác nhân
+Admin
+Mục đích sử dụng
+In ra danh sách 
+khóa học
+ đang 
+giảng dạy
+ tại trung tâm gồm số lượng và các thông tin cơ bản của 
+khóa 
+học. 
+Sự kiện kích hoạt
+Thực hiện kết nối với máy in và click vào button thực hiện lệnh in ở giao diện quản lý
+ khóa học
+.
+Điều kiện tiên quyết 
+Danh sách khóa học
+ phải tồn tài trong 
+cơ sở dữ liệu
+Luồng sự kiện chính
+Người dùng thực hiện đăng nhập vào hệ thống với quyền Admin 
+Admin n
+hập thông tin 
+muốn in 
+trong khóa học
+.
+Hệ thống k
+iểm tra thông tin nhập vào
+ có hợp lệ hay 
+không?
+Hệ thống kiểm tra kết nối của máy tính với máy in.
+Hệ thống thực hiện in danh sách khi các điều kiện trên được đáp ứng.
+Luồng sự kiện thay thế
+1.1 Hệ thống thông báo lỗi: đăng nhập thất bại, tài khoản không tồn tại hoặc thông tin sai. 
+3.1 Hệ thống thông báo lỗi: thông tin nhập vào không hợp lệ.
+4.1 Hệ thống thông báo lỗi: không tìm thấy máy in được kết nối để thực hiện in.
+Điều kiện kết thúc 
+Thưc hiện 
+in thành công danh sách 
+khóa 
+học
+.
+Bảng đặc tả usecase 
+“ 
+In danh sách 
+khóa 
+học”
+Mã Use case 
+UC
+19
+Tên Usecase
+Thêm 
+lớp
+ 
+học 
+Tác nhân
+Admin
+Mục đích sử dụng
+Thực hiện thêm 
+lớp
+ học khi 
+số lượng học viên đăng ký 1
+ khóa học
+ đủ để mở lớp
+. 
+Sự kiện kích hoạt
+Click vào button “ thêm
+ lớp
+ học” ở giao diện quản lý 
+lớp
+ học.
+Điều kiện tiên quyết 
+M
+ã số 
+lớp
+ học
+ chưa có trong 
+cơ sở dữ liệu
+Luồng sự kiện chính
+Người dùng thực hiện đăng nhập vào hệ thống với quyền Admin 
+Admin n
+hập vào thông tin 
+lớp
+ học
+ muốn thêm
+Hệ thống k
+iểm tra thông tin nhập vào có thỏa điều kiện không
+Hệ thống kiểm tra
+ thỏa
+ mãn
+ thì thêm 
+lớp
+ học 
+vào 
+cơ sở dữ liệu
+Luồng sự kiện thay thế
+1.1 Hệ thống thông báo lỗi: đăng nhập thất bại, tài khoản không tồn tại hoặc thông tin sai. 
+3.1 Hệ thống thông báo lỗi: thông tin nhập vào không hợp lệ
+Điều kiện kết thúc 
+T
+hêm thành công 
+lớp
+ học vào cơ sở dữ liệu, hệ thống hiển thị thông báo thêm thành công. 
+Bảng đặc tả usecase “ Thêm 
+lớp
+ học”
+Mã Use case 
+UC2
+0
+Tên Usecase
+Xóa 
+lớp
+ học 
+Tác nhân
+Admin
+Mục đích sử dụng
+Để xóa 
+lớp
+ học khỏi hệ thống khi 
+xảy ra lỗi thông tin ở việc tạo
+.
+Sự kiện kích hoạt
+Click vào button “ xóa 
+lớp
+ học” ở giao diện quản lý 
+lớp
+ học.
+Điều kiện tiên quyết 
+H
+ồ sơ 
+lớp
+ học
+ phải tồn tại trong 
+cơ sở dữ liệu.
+Luồng sự kiện chính
+Người dùng thực hiện đăng nhập vào hệ thống với quyền Admin 
+Admin nhập thông tin muốn tìm về 
+lớp
+ học.
+Hệ thống k
+iểm tra có 
+lớp
+ học
+ nào thỏa 
+mãn 
+thông tin nhập 
+không?
+Hệ thống kiểm tra
+ thỏa
+ mãn
+ thì xuất ra
+ thông tin 
+lớp
+ học
+ thỏa 
+mãn theo 
+yêu cầu.
+Admin thực hiện
+ xóa 
+lớp
+ học
+ khỏi 
+danh sách 
+lớp
+ học.
+Hệ thống hiển thị thông báo cho admin xác nhận thực hiện việc xóa.
+Admin xác nhân hành động xóa.
+Hệ thống tiến hành xóa 
+lớp
+ học đó và thông báo xóa thành công.
+Luồng sự kiện thay thế
+1.1 Hệ thống thông báo lỗi: đăng nhập thất bại, tài khoản không tồn tại hoặc thông tin sai. 
+3.1 Hệ thống thông báo lỗi: thông tin nhập vào không hợp lệ.
+4.1 Hệ thống thông báo lỗi: không tìm thấy thông tin 
+lớp
+ học cần tìm.
+Điều kiện kết thúc 
+Hệ thống hiện thị thông báo 
+xóa thành công 
+lớp
+ học.
+Bảng đặc tả usecase “ Xóa 
+lớp
+ học”
+Mã Use case 
+UC2
+1
+Tên Usecase
+Sửa 
+thông tin lớp
+ học
+Tác nhân
+Admin
+Mục đích sử dụng
+Sử dụng để cho admin cập nhật thông tin của 
+lớp
+ học khi có thay đổi mới. 
+Sự kiện kích hoạt
+Click vào button “ 
+cập nhật thông tin
+” ở giao diện quản lý 
+lớp
+ học.
+Điều kiện tiên quyết 
+Lớp
+ học
+ phải tồn tại trong cơ sở dữ liệu
+Luồng sự kiện chính
+Người dùng thực hiện đăng nhập vào hệ thống với quyền admin. 
+Admin vào mục 
+lớp
+ học
+ bên trong khóa học
+.
+Hệ thống hiển thị thông tin danh sách 
+lớp
+ học.
+Admin n
+hập thông tin cần cập 
+nhật.
+Hệ thống 
+kiểm tra thông tin nhập có hợp lệ
+ không?
+Hệ thống kiểm tra
+ hợp lệ thì 
+đưa ra thông báo hỏi admin có muốn lưu không?
+Admin chọn lưu thông tin để 
+cập nhật thông tin 
+lớp
+ học vào cơ sở dữ liệu
+Luồng sự kiện thay thế
+1.1 Hệ thống thông báo lỗi: đăng nhập thất bại, tài khoản không tồn tại hoặc thông tin sai. 
+6
+.1 Hệ thống thông báo lỗi: thông tin nhập vào không hợp lệ.
+7
+.1
+ Admin chọn hủy
+: 
+không thực hiện việc câp nhật thông tin
+.
+Điều kiện kết thúc 
+Hệ thống hiển thị thông báo 
+cập nhật thành công 
+thông tin lớp
+ học
+ vào 
+cơ
+ sở dữ liệu. 
+Bảng đặc tả usecase “ Sửa 
+lớp
+ học”
+Mã Use case 
+UC2
+2
+Tên Usecase
+Tìm kiếm 
+lớp
+ học 
+Tác nhân
+Khách
+Mục đích sử dụng
+Sử
+ dụng để tìm kiếm thông tin của 
+lớp
+ học khi cần thiết trước khi đăng ký. 
+Sự kiện kích hoạt
+Click vào 
+biểu tượng tìm kiếm
+ ở giao diện quản lý 
+lớp
+ học
+Điều kiện tiên quyết 
+Lớp
+ học
+ phải tồn tại trong cơ sở dữ liệu
+Luồng sự kiện chính
+Khách nhập thông tin muốn tìm về 
+lớp
+ học.
+Hệ thống kiểm tra 
+có 
+lớp
+ học 
+nào thỏa mãn thông tin nhập 
+không?
+Hệ thống kiểm tra
+ thỏa
+ mãn
+ thì xuất ra
+ 
+lớp
+ học 
+thỏa 
+mãn theo 
+yêu cầu.
+Luồng sự kiện thay thế
+1.1 Hệ thống thông báo lỗi: đăng nhập thất bại, tài khoản không tồn tại hoặc thông tin sai. 
+3.1 Hệ thống thông báo lỗi: thông tin nhập vào không hợp lệ.
+4.1 Hệ thống thông báo lỗi: không tìm thấy thông tin 
+lớp
+ học cần tìm.
+Điều kiện kết thúc 
+Hệ thống hiển thị
+ 
+lớp
+ học tìm thấy
+.
+Bảng đặc tả usecase “ Tìm kiếm 
+lớp
+ học”
+Mã Use case 
+UC2
+3
+Tên Usecase
+In danh sách 
+lớp
+ học
+Tác nhân
+Admin, giáo viên
+Mục đích sử dụng
+In ra danh sách 
+lớp
+ học giảng dạy tại trung tâm gồm số lượng và các thông tin cơ bản của 
+lớp 
+học. 
+Sự kiện kích hoạt
+Thực hiện kết nối với máy in và click vào button thực hiện lệnh in ở giao diện quản lý 
+lớp
+ học.
+Điều kiện tiên quyết 
+Danh sách 
+lớp
+ học
+ phải tồn tài trong 
+cơ sở dữ liệu
+Luồng sự kiện chính
+Người dùng thực hiện đăng nhập vào hệ thống với quyền Admin 
+Admin n
+hập thông tin 
+muốn in trong 
+lớp
+ học.
+Hệ thống k
+iểm tra thông tin nhập vào
+ có hợp lệ hay không?
+Hệ thống kiểm tra kết nối của máy tính với máy in.
+Hệ thống thực hiện in danh sách khi các điều kiện trên được đáp ứng.
+Luồng sự kiện thay thế
+1.1 Hệ thống thông báo lỗi: đăng nhập thất bại, tài khoản không tồn tại hoặc thông tin sai. 
+3.1 Hệ thống thông báo lỗi: thông tin nhập vào không hợp lệ.
+4.1 Hệ thống thông báo lỗi: không tìm thấy máy in được kết nối để thực hiện in.
+Điều kiện kết thúc 
+Thưc hiện 
+in thành công danh sách 
+lớp
+ 
+học
+.
+Bảng đặc tả usecase 
+“ 
+In danh sách 
+lớp
+ 
+học
+”
+Mã Use case 
+UC2
+4
+Tên Usecase
+Thêm điểm học viên
+Tác nhân
+Giáo viên, admin
+Mục đích sử dụng
+Thực hiện thêm điểm học tập của học viên vào hệ thống
+Sự kiện kích hoạt
+Click vào mục điểm học tập của học viên và ấn button “lưu điểm”
+Điều kiện tiên quyết 
+Đ
+iểm 
+của học viên 
+chưa có trong 
+cơ sở dữ liệu.
+Luồng sự kiện chính
+Người dùng thực hiện đăng nhập vào hệ
+ 
+thống với quyền 
+giáo viên/a
+dmin 
+Giáo viên/Admin n
+hập vào thông tin 
+điểm
+ của
+ học viên
+ muốn 
+thêm.
+Hệ thống k
+iểm tra thông tin 
+điểm 
+nhập vào có thỏa điều kiện 
+không?
+Hệ thống kiểm tra hợp lệ 
+thì thêm 
+điểm của học viên
+ vào 
+hệ thống
+.
+Luồng sự kiện thay thế
+1.1 Hệ thống thông báo lỗi: đăng nhập thất bại, tài khoản không tồn tại hoặc thông tin sai. 
+4
+.1 Hệ thống thông báo lỗi: thông tin nhập vào không hợp lệ.
+Điều kiện kết thúc 
+Thêm thành công điểm của học viên, hệ thống hiển thị điểm của học viên vừa thêm.
+Bảng đặc tả usecase 
+“ 
+Thêm điểm học viên”
+Mã Use case 
+UC2
+5
+Tên Usecase
+Xem
+ điểm học viên 
+Tác nhân
+Admin, giáo viên, học viên
+Mục đích sử dụng
+Sử
+ dụng để 
+xem
+ thông tin
+ về điểm học tập
+ 
+của học viên ở các
+ lớp học khi cần thiết. 
+Sự kiện kích hoạt
+Click vào
+ mục “ điểm học tập” 
+ở giao diện quản lý 
+điểm học viên.
+Điều kiện tiên quyết 
+Đ
+iểm của học viên phải có trong 
+cơ sở dữ liệu.
+Luồng sự kiện chính
+Người dùng thực hiện đăng nhập vào hệ thống với quyền học viên/giáo viên/ Admin.
+Học viên
+ vào mục điểm học tập của lớp học để xem điểm
+G
+iáo viên/admin
+ nhập thông tin 
+học viên
+ muốn xem điểm
+.
+Hệ thống kiểm tra 
+có thông tin học viên
+ 
+nào thỏa mãn thông tin nhập 
+không?
+Hệ thống kiểm tra
+ thỏa
+ mãn
+ thì xuất ra
+ 
+điểm của
+ học
+ viên
+ 
+thỏa 
+mãn theo 
+yêu cầu.
+Luồng sự kiện thay thế
+1.1 Hệ thống thông báo lỗi: đăng nhập thất bại, tài khoản không tồn tại hoặc thông tin sai. 
+3.1 Hệ thống thông báo lỗi: thông tin nhập vào không hợp lệ.
+4.1 Hệ thống thông báo lỗi: không tìm thấy thông tin học
+ viên
+ cần tìm.
+Điều kiện kết thúc 
+Hệ thống hiển thị
+ 
+điểm của
+ học
+ viên
+ tìm thấy
+.
+Bảng đặc tả usecase “ 
+Xem điểm của học viên
+”
+Mã Use case 
+UC2
+6
+Tên Usecase
+Sửa 
+điểm học viên
+Tác nhân
+Admin, giáo viên
+Mục đích sử dụng
+Sử dụng để cho
+ giáo viên
+ cập nhật 
+điểm
+ của học
+ viên 
+ khi có thay đổi mới
+ về điểm
+. 
+Sự kiện kích hoạt
+Click vào button “ 
+cập nhật 
+điểm
+” ở giao diện quản lý 
+điểm
+.
+Điều kiện tiên quyết 
+Điểm học viên
+ phải tồn tại trong cơ sở dữ liệu
+Luồng sự kiện chính
+Người dùng thực hiện đăng nhập vào hệ thống với quyền 
+giáo viên/admin
+. 
+Giáo 
+viên/Admin nhập thông tin học viên muốn xem điểm
+.
+Hệ thống hiển thị thông tin 
+điểm của
+ học
+ viên cần tìm
+.
+Giáo viên/ Admin 
+n
+hập 
+điểm mới
+ 
+của học viên cần
+ cập 
+nhật.
+Hệ thống 
+kiểm tra thông tin
+ điểm
+ nhập
+ vào
+ có hợp lệ
+ không?
+Hệ thống kiểm tra
+ hợp lệ thì 
+đưa ra thông báo hỏi 
+giáo viên/
+admin có muốn lưu không?
+Giáo viên/
+Admin chọn lưu thông tin để 
+cập nhật 
+điểm của học viên
+ vào cơ sở dữ 
+liệu.
+Luồng sự kiện thay thế
+1.1 Hệ thống thông báo lỗi: đăng nhập thất bại, tài khoản không tồn tại hoặc thông tin sai. 
+6
+.1 Hệ thống thông báo lỗi: thông tin nhập vào không hợp lệ.
+7
+.1
+ 
+Giáo viên/
+Admin chọn hủy
+: 
+không thực hiện việc câp nhật thông tin
+.
+Điều kiện kết thúc 
+Hệ thống hiển thị thông báo 
+cập nhật thành công 
+thông tin 
+điểm của 
+học
+ 
+viên 
+vào 
+cơ
+ sở dữ liệu. 
+Bảng đặc tả usecase “ Sửa 
+điểm của học viên
+”
+Mã Use case 
+UC2
+7
+Tên Usecase
+In danh sách điểm 
+Tác nhân
+Admin, giáo viên
+Mục đích sử dụng
+In ra danh sách 
+điểm
+ học
+ viên
+ 
+học tập tại các lớp học của trung tâm.
+Sự kiện kích hoạt
+Thực hiện kết nối với máy in và click vào button thực hiện lệnh in ở giao diện quản lý 
+điểm
+.
+Điều kiện tiên quyết 
+Danh sách 
+điểm học viên 
+phải tồn tài trong 
+cơ sở dữ liệu
+Luồng sự kiện chính
+Người dùng thực hiện đăng nhập vào hệ thống với quyền 
+Giáo viên/a
+dmin 
+Giáo viên/
+Admin n
+hập thông tin
+ lớp học
+ 
+muốn in 
+điểm học viên
+.
+Hệ thống k
+iểm tra thông tin nhập vào
+ có hợp lệ hay không?
+Hệ thống kiểm tra kết nối của máy tính với máy in.
+Hệ thống thực hiện in danh sách khi các điều kiện trên được đáp ứng.
+Luồng sự kiện thay thế
+1.1 Hệ thống thông báo lỗi: đăng nhập thất bại, tài khoản không tồn tại hoặc thông tin sai. 
+3.1 Hệ thống thông báo lỗi: thông tin nhập vào không hợp lệ.
+4.1 Hệ thống thông báo lỗi: không tìm thấy máy in được kết nối để thực hiện in.
+Điều kiện kết thúc 
+Thưc hiện 
+in thành công danh sách 
+điểm của 
+học
+ viên
+.
+Bảng đặc tả usecase 
+“ 
+In danh sách 
+điểm
+”
+Mã Use case 
+UC
+28
+Tên Usecase
+Cập nhật quyền sử dụng 
+Tác nhân
+Admin
+Mục đích sử dụng
+Sử dụng để cho 
+admin
+ cập nhật 
+quyền sử dụng của người dùng
+ khi có thay đổi mới. 
+Sự kiện kích hoạt
+Click vào button “ 
+cập nhật 
+quyền
+” ở giao diện quản lý 
+tài khoản.
+Điều kiện tiên quyết 
+Người dùng có 
+quyền sử dụng 
+trong hệ thống.
+Luồng sự kiện chính
+Người dùng thực hiện đăng nhập vào hệ thống với quyền 
+admin
+. 
+Admin vào danh sách cấp quyền cho người dùng của hệ thống.
+Admin thực hiện
+ 
+cập nhật
+ 
+quyền sử dụng của người dùng đó.
+Hệ thống hiển thị thông báo cho admin xác nhận thực hiện việc cập nhật.
+Admin xác nhân hành động cập nhật.
+Hệ thống tiến hành cập nhật quyền sử dụng của người dùng đó và thông báo cập nhật thành công.
+Luồng sự kiện thay thế
+1.1 Hệ thống thông báo lỗi: đăng nhập thất bại, tài khoản không tồn tại hoặc thông tin sai. 
+5.1 Admin chọn hủy: không thực hiện xóa quyền người dùng đó.
+Điều kiện kết thúc 
+Hệ thống hiện thị thông báo cập nhật
+ thành công 
+quyền sử dụng đồng thời hiển thị danh sách người dùng được cấp quyền.
+Bảng đặc tả usecase “ 
+Cấp
+ quyền sử dụng
+”
+Biểu đồ hoạt động
+Quy trình “ Đăng ký” của Khách
+Hình 
+2.8
+ 
+Biểu đồ hoạt động quá trình Đăng ký
+ 
+Quy trình “ Đăng nhập” của Người dùng
+Hình 2.
+9
+ 
+Biểu đồ hoạt động quá trình Đăng nhập
+Quá 
+trình “
+Đổi mật 
+khẩu” của Người dùng
+Hình 2.
+10
+ 
+Biểu đồ hoạt động quá trình Đổi mật khẩu
+Quá trình “ Quản lý khóa học” của Admin
+Hình 2.
+1
+1
+ 
+Biểu đồ hoạt động quá trình Quản lí khóa học
+Quá trình “Tìm kiếm khóa học” của khách
+Hình 2.
+1
+2
+ 
+Biểu đồ hoạt động quá trình 
+Tìm kiếm 
+khóa học
+Quá trình “ Quản lý 
+lớp
+ học” của Admin
+Hình 2.1
+3
+ 
+Biểu đồ hoạt động quá trình 
+Quản lý lớp học
+Quá trình “ Quản lý học
+ viên
+” của Admin
+Hình 2.1
+4
+ 
+Biểu đồ hoạt động quá trình 
+Quản lý học viên
+Quá trình “ Quản lý 
+giáo viên
+” của Admin
+Hình 2.1
+5
+ 
+Biểu đồ hoạt động quá trình 
+Quản lý giáo viên
+Quá trình “ Quản lý 
+điểm
+” của Admin
+Hình 2.1
+6
+ 
+Biểu đồ hoạt động quá trình 
+Quản lý điểm
+Quá trình “ Quản lý 
+tài khoản
+” của Admin
+Hình 2.1
+7
+ 
+Biểu đồ hoạt động quá trình 
+Quản lý 
+tài khoản
+Biểu đồ tuần tự
+2
+.3.1 
+Biểu đồ tuần tự cho ca sử dụng “Đăng ký”
+H
+ình 2.18 
+Biểu đồ tuần tự cho ca sử dụng “Đăng ký”
+2.3.2 Biểu đồ tuần tự cho ca sử dụng “ Đăng nhập”
+                            
+Hình 2.19 
+Biểu đồ tuần tự cho ca sử dụng “ Đăng nhập”
+2.3.3 
+Biểu đồ tuần tự cho ca sử dụng “ Đổi mật khẩu”
+Hình 2.20 Biểu đồ tuần tự cho ca sử dụng “ Đổi mật khẩu”
+2.
+3
+.4 Biểu đồ tuần tự cho ca sử dụng “
+Thêm học viên
+ ”
+Hình 2.21 Biểu đồ tuần tự cho ca sử dụng “Thêm học viên ”
+2.
+3
+.5 Biểu đồ tuần tự cho ca sử dụng “
+Sửa hồ sơ
+ học viên ”
+Hình 2.22 Biểu đồ tuần tự cho ca sử dụng “Sửa hồ sơ học viên ”
+2.
+3
+.6 Biểu đồ tuần tự cho ca sử dụng “Xóa học viên ”
+Hình 2.23 Biểu đồ tuần tự cho ca sử dụng “Xóa học viên ”
+2.
+3
+.7 Biểu đồ tuần tự cho ca sử dụng “Tìm kiếm học viên ”
+Hình 2.24 Biểu đồ tuần tự cho ca sử dụng “Tìm kiếm học viên ”
+Các
+ biểu đồ tuần tự khác tương tự như trên.
+Phân tích dữ liệu
+Bảng
+ 2. 1
+ 
+X
+ây dựng mô hình thực thể và liên kết
+Thực
+ thể
+Thuộc
+ tính
+Lớp
+ học
+Mã số lớp học, tên lớp học, ngày bắt đầu, ngày kết thúc, sĩ số lớp, mã ngày học, ngày học, mã ca học, giờ học, trạng thái.
+Khóa
+ học
+Mã số khóa học, tên khóa học, số buổi, học phí, mô tả khóa học, trạng thái.
+Học
+ viên
+Mã số học viên, tên học viên, ngày tháng năm sinh, giới tính học viên, số điện thoại, địa chỉ học viên.
+Giáo
+ viên
+Mã số 
+giáo
+ viên, tên 
+giáo
+ viên, ngày tháng năm sinh, giới tính 
+giáo
+ viên, số điện thoại, địa chỉ, trạng thái.
+Người
+ dùng
+Mã
+ người dùng, 
+email, 
+password
+, vai trò, captcha.
+`
+Hình 2.
+25
+ 
+ 
+Sơ đồ mô hình thực thể liên kết 
+CHƯƠNG 3. THIẾT KẾ HỆ THỐNG
+Kiến trúc hệ thống
+MVC là một trường hợp đặc biệt của kiến trúc Repository (Model là cấu trúc
+dữ liệu trung tâm, Control ra lệnh cho luồng điều 
+khiển
+.
+Sơ
+ đồ kiến trúc
+3.1.1. 
+Đặc tả thiết kế kiến trúc
+Model: 
+Hệ thống con duy trì cấu trúc dữ liệu trung tâm
+View: 
+Hệ thống con hiển thị nội dung cho người dùng
+Controller: 
+Hệ thống con quản lý chuỗi tương tác với người dùng.
+Các mục tiêu thiết kế
+Độ tin cậy
+Khả năng bảo trì
+Khả năng sửa đổi
+Hiệu quả
+Thân thiện
+Khả năng dễ đọc
+Dễ sử dụng
+Giá thành thấp
+Giao diện định nghĩa rõ 
+ràng
+Phát triển nhanh
+Ít lỗi
+Thiết kế lớp 
+Thiết kế cơ sở dữ liệu
+Chuyển mô hình thực thể liên kết về mô hình quan hệ
+Khi chuyển mô hình thực thể và liên kết, ta được các quan hệ sau:
+Lớp 
+học
+ 
+(
+Mã số lớp học
+, tên lớp học, ngày bắt đầu, ngày kết thúc, sĩ số lớp, mã ngày học, ngày học, mã ca học, giờ học, trạng thái.
+)
+Khóa 
+học
+ 
+(
+Mã số khóa học
+, tên khóa học, số buổi, học phí, mô tả khóa học, trạng thái
+)
+Người dùng
+ (
+Mã người dùng
+, email, password, vai trò, captcha.
+)
+Học 
+viên
+ 
+(
+Mã người dùng, 
+Mã số học viên
+, tên học viên, ngày tháng năm sinh, giới tính học viên, số điện thoại, địa chỉ học viên
+)
+Giáo
+ 
+viên
+ 
+(
+Mã người dùng, 
+Mã số 
+giáo
+ viên
+, tên 
+giáo
+ viên, ngày tháng năm sinh, giới tính 
+giáo
+ viên, số điện thoại, địa chỉ, trạng thái
+)
+Đăng ký ( 
+mã học viên
+, 
+mã lớp học
+, trạng thái đóng học phí) 
+Kết quả ( 
+mã lớp học
+, 
+mã học viên
+, điểm) 
+Chuẩn hóa cơ sở dữ liệu
+Bảng 3.1 
+Chuẩn hóa dữ liệu về 3NF
+Lớp
+ học
+Quy tắc nghiệp vụ
+Phụ thuộc hàm
+Mỗi
+ lớp học có một mã riêng, duy nhất, xác định 
+duy nhất tên lớp học, 
+ngày bắt đầu, ngày kết thúc, sĩ số lớp, trạng thái
+Mã
+ lớp học 
+à
+ 
+tên lớp học, ngày bắt đầu, ngày kết thúc, sĩ số lớp, trạng thái
+Kết luận: 
+Khóa chính là Mã 
+lớp
+ học
+. Quan hệ đã ở 3NF
+Mỗi 
+ca học có một mã 
+ca học 
+riêng, duy nhất, xác định duy nhất
+ giờ học 
+Mã
+ ca học 
+à
+ giờ học
+Kết luận: 
+Khóa chính là Mã
+ ca học
+. Quan hệ đã ở 3NF
+Mỗi 
+ngày học
+ có một mã 
+ngày học 
+riêng, duy nhất, xác định duy nhất 
+ngày
+ học
+Mã
+ ngày học 
+à
+ ngày học
+Kết luận: 
+Khóa chính là Mã
+ ngày học
+. Quan hệ đã ở 3NF
+Các
+ dữ liệu còn lại đã ở chuẩn 3NF. 
+Sơ đồ thực thể liên kết sau chuẩn hóa
+Từ điển dữ liệu
+Bảng 
+3
+. 
+ SEQ Bảng_4. \* ARABIC 
+2
+ Các thuộc
+ tính
+ 
+người dùng
+Tên thuộc tính
+Kiểu dữ liệu
+Chiều dài
+Giá trị mẫu
+Mô tả
+Ghi chú
+UserId
+INT
+001
+Mã 
+người dùng
+NOT NULL
+email
+VARCHAR
+45
+nhat
+@gmail.com
+Địa chỉ email
+NOT NULL
+pass
+VARCHAR
+45
+123456
+Mật khẩu
+NOT NULL
+roleName
+VARCHAR
+45
+Giáo viên
+Vai trò của người d
+ùng
+NOT NULL
+captcha
+VARCHAR
+45
+34hg4
+6
+Mã xác nhận
+NOT NULL
+Bảng 
+3
+. 
+ SEQ Bảng_4. \* ARABIC 
+3
+ Các thuộc tính bảng 
+HocVien
+Tên thuộc tính
+Kiểu dữ liệu
+Chiều dài
+Giá trị mẫu
+Mô tả
+Ghi chú
+maHV
+int
+234234234
+Mã 
+học viên
+NOT NULL
+TenHV
+VARCHAR
+45
+Lê Khánh Nam
+Tên 
+học viên
+NOT NULL
+ng
+aySinh
+HV
+Date
+31/02/2000
+Ngày sinh
+NOT NULL
+gioiTinhHV
+TINYINT
+1
+Nam
+(1)
+Giới tính
+NOT NULL
+diaChiHV
+VARCHAR
+255
+Hà Nam
+Địa chỉ
+NOT NULL
+sdtHV
+VARCHAR
+0326702844
+Số điện thoại
+NOT NULL
+userID
+int
+002
+Mã người 
+dùng
+NOT NULL
+Bảng 
+3
+.
+ SEQ Bảng_4. \* ARABIC 
+4
+ Các thuộc tính bảng 
+GiaoVien
+Tên thuộc tính
+Kiểu dữ liệu
+Chiều dài
+Giá trị mẫu
+Mô tả
+Ghi chú
+maGV
+int
+54545552
+Mã giáo viên
+NOT NULL
+tenGV
+VARCHAR
+45
+Lê Kim Dung
+Tên 
+giáo viên
+NOT NULL
+ngaySinhGV
+date
+13/08/1981
+Ngày sinh
+NOT NULL
+gioiTinhGV
+TINYINT
+1
+Nữ
+(0)
+Giới tính
+NOT NULL
+sdtGV
+VARCHAR
+45
+039456788
+Số
+ điện thoại
+NOT NULL
+tr
+angthai
+TINYINT
+1
+Làm việc
+(1)
+Trạng thái
+NOT NULL
+userId
+I
+nt
+001
+Mã
+ người dùng
+NOT NULL
+Bảng 
+3
+. 
+ SEQ Bảng_4. \* ARABIC 
+5
+ Các thuộc tính bảng 
+KhoaHoc
+Tên thuộc tính
+Kiểu dữ liệu
+Chiều dài
+Giá trị mẫu
+Mô tả
+Ghi chú
+maKH
+Int
+12445324
+Mã 
+khách hàng
+NOT NULL
+tenKH
+VARCHAR
+45
+Vũ Khắc Tiệp
+Tên khách hàng
+NOT NULL
+soBuoi
+Int
+2
+Số buổi học
+NOT NULL
+hocPhi
+int
+2.500.000
+Học phí đóng
+NOT NULL
+moTa
+VARCHAR
+25
+5
+Học reading
+M
+ô tả 
+NOT NULL
+trangThai
+TINYINT
+thành công
+(1)
+Trạng thái
+NOT NULL
+Bảng 
+3
+. 
+ SEQ Bảng_4. \* ARABIC 
+6
+ Các thuộc tính bảng 
+LopHoc
+Tên thuộc tính
+Kiểu dữ liệu
+Chiều dài
+Giá trị mẫu
+Mô tả
+Ghi chú
+maLH
+int
+001
+3512
+Mã 
+lớp học
+NOT NULL
+maKH
+Int
+234325
+Mã khách hàng
+NOT NULL
+tenLop
+VARCHAR
+45
+reading
+Tên lớp
+NOT NULL
+ngayBD
+Date
+12/03/2023
+Ngày bắt đầu học
+NOT NULL
+ngayKT
+Date
+12/05/2023
+Ngày kiểm tra
+NOT NULL
+siSo
+INT
+25
+Sĩ số lớp
+NOT NULL
+maGV
+int
+54545552
+Mã giáo viên
+NOT NULL
+maNH
+I
+nt
+1234
+Mã 
+n
+gày học
+NOT NULL
+trangThai
+VARCHAR
+45
+Đang diễn ra
+Trạng thái lớp
+Bảng 
+3
+. 
+ SEQ Bảng_4. \* ARABIC 
+7
+ Các thuộc tính bảng
+ NgayHoc
+Tên thuộc tính
+Kiểu dữ liệu
+Chiều dài
+Giá trị mẫu
+Mô tả
+Ghi chú
+maNH
+I
+nt
+1234
+Mã 
+ngày học
+NOT NULL
+ngayHoc
+VARCHAR
+45
+12/03/2023
+Ngày học
+NOT NULL
+Bảng 
+3
+. 
+ SEQ Bảng_4. \* ARABIC 
+8
+ Các thuộc tính bảng 
+DangKyH
+oc
+Tên thuộc tính
+Kiểu dữ liệu
+Chiều dài
+Giá trị mẫu
+Mô tả
+Ghi chú
+maHV
+Int
+234234234
+Mã học viên
+NOT NULL
+maLH
+Int
+0013512
+Mã lớp học
+NOT NULL
+dongTien
+TINYINT
+1
+Đã đóng
+(1)
+Trạng thái 
+thanh toán học phí
+NOT NULL
+Bảng 3. 
+9
+ Các thuộc tính bảng 
+CaHoc
+Tên thuộc tính
+Kiểu dữ liệu
+Chiều dài
+Giá trị mẫu
+Mô tả
+Ghi chú
+ma
+CH
+int
+124
+Mã ca học
+NOT NULL
+GioHoc
+VARCHAR
+45
+16
+h
+Giờ vào học
+NOT NULL
+Bảng 3. 
+10
+ Các thuộc tính bảng 
+KetQua
+Tên thuộc tính
+Kiểu dữ liệu
+Chiều dài
+Giá trị mẫu
+Mô tả
+Ghi chú
+ma
+LH
+Int
+0013512
+Mã 
+lớp học
+NOT NULL
+maHV
+int
+234234234
+Mã học viên
+NOT NULL
+diem
+Int
+10
+Điểm thi
+NOT NULL
+Thiết kế một số mẫu biểu báo cáo đầu ra (nếu có)
+Mẫu biểu Hóa 
+đơn
+PHIẾU THU
+Ngày….tháng….năm
+Tên 
+học viên
+:………………………………………………………………
+Năm sinh
+:
+………………………………………………………………………...
+Địa chỉ
+:……………………………………………………………………….
+Số điện thoại:…………………………………………………………………………..
+Mã 
+ khách 
+hàng
+Khóa học
+Chiết khấu
+Thực thu
+Lý do thu
+Tổng cộng:
+Kế toán
+                          
+Nhân viên tư vấn
+                                         Khách hàng
+Mẫu biểu Phiếu 
+đăng kí 
+nhập
+ học
+PHIẾU 
+ĐĂNG KÍ 
+NHẬP 
+HỌC
+Ngày….tháng….năm
+Họ tên
+:…………………
+                            Giới tính:………
+Ngày sinh:……………..
+                            
+ Email:………….
+Điện thoại:…………….
+                              
+Khóa học 
+Quà tặng/ghi chú
+Nguồn thông tin
+Lộ trình học, học phí
+Hỗ trợ học phí %
+Học phí thực đóng
+Số tiền đặt cọc:…….                                 
+Số học phí còn phải hoàn thành:….
+                                                                   
+Thời hạn hoàn thành học phí:
+……..
+Khách hàng                                  Nhân viên 
+tư vấn
+ 
+                                            
+CHƯƠNG 
+4. 
+ TRIỂN KHAI VÀ ĐÁNH GIÁ HỆ THỐNG
+Kết quả chạy thử
+Hình 4.1 
+Giao diện trang đăng nhập
+Hình 4.2 
+Giao diện trang đăng kí.
+Hình 4.3 
+Giao diện trang quản lí Giảng viên
+Hình 4.4 
+Giao diện trang quản lí Học viên
+Hình 4.5 
+Giao diện trang quản lí Khóa học
+Hình 4.6 
+Giao diện trang quản lí Lớp học
+Hình 4.7 
+Giao diện trang Dashboard
+Đánh giá hệ thống
+STT 
+Tên chức năng
+Thành
+ công
+Thất
+ bại
+Chưa
+ kiểm thử
+1
+Đăng
+ nhập
+10
+0
+0
+2
+Đăng
+ ký
+10
+0
+0
+3
+Đổi
+ mật khẩu
+10
+0
+0
+4
+Quản
+ lý khóa học
+10
+0
+0
+5
+Quản
+ lý lớp học
+10
+0
+0
+6
+Quản
+ lý tài khoản
+10
+0
+0
+7
+Quản
+ lý điểm
+0
+0
+10
+8
+Quản
+ lý học viên
+10
+0
+0
+9
+Quản
+ lý giáo viên 
+10
+0
+0
+Tổng
+ cộng
+80
+0
+10
+Tỷ
+ lệ được kiểm thử:
+80/90
+Tỷ lệ thành công
+:80/90
+Các chức năng đã đạt được
+ so với yêu cầu đặt ra của dự án
+:
+Đăng nhập
+Đăng ký
+Đổi mật khẩu
+Quản lý khóa học
+Quản lý lớp học
+Quản lý tài khoản
+Quản lý học viên
+Quản lý giáo viên 
+Các chức năng chưa đạt được so với yêu cầu đặt ra của dự án:
+Quản lý điểm
+KẾT LUẬN
+Hệ thống trợ giúp quản lý 
+trung
+ tâm tiếng anh 
+đáp ứng được
+ 
+các yêu cầu, chức năng
+ cơ bản
+ đưa ra, có tính hoàn thiện và sau khi phát triển sẽ giải quyết
+ 
+được
+ việc quản lý trung tâm và giảm bớt công sức cho việc lưu trữ và thống kê số liệu và quy trình hoạt động của trung tâm.
+ 
+Phần
+ mềm quản lý 
+không chỉ dừng ở việc giải quyết bài toán 
+quản
+ lý trung tâm tiếng anh
+, mà nó
+ 
+có thể được ứng 
+dụng
+ một cách rộng hơn, trong nhiều lĩnh vực: Y tế, Giáo dục,
+ 
+Thương mại điện tử,..Tuy nhiên, trong khoảng thời gian có hạn và trình độ, hiểu
+ 
+biết của 
+nhóm
+ 
+em còn hạn nên hệ thống vẫn còn tồn đọng
+ 
+một số vấn đề cần cải thiện thêm.
+Sau một thời gian nghiên cứu và phát triển hệ thống dưới sự hướng dẫn, chỉ
+ 
+bảo của TS 
+Nguyễn
+ Thị Kim Thoa
+, 
+nhóm 
+em đã hoàn thành 
+cơ
+ bản 
+các yêu cầu ban đầu đặt ra và trong
+ 
+quá trình thực hiện 
+bài
+ tập lớn
+ thì em đã thu được nhiều kiến thức bổ ích, có được hiểu
+ 
+biết sâu hơn về 
+phân
+ tích 
+và 
+thiết kế
+ hướng đối tượng
+. Biết cách khắc phục vấn đề, giải
+ 
+quyết các bài toán được đặt ra. Không chỉ dừng lại ở các vấn đề lập trình, mà bên
+ 
+cạnh đó là việc tạo ra được một hệ thống có thể ứng dụng được vào trong thực tế.
+Tài liệu tham khảo
+[
+1
+] Avi Silbersch"atz, Peter Baer Galvin, “Operation System Concepts-10
+th”
+, 2018
+ 
+[
+2
+] Brian Ward, “How Linux Works”, San Francisco, 2015

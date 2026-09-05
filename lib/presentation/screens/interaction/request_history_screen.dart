@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:kidguardian/domain/repositories/time_request_repository.dart';
+import 'package:kidguardian/domain/repositories/rules_repository.dart';
 import 'package:kidguardian/presentation/blocs/time_request/time_request_bloc.dart';
 
 class RequestHistoryScreen extends StatelessWidget {
@@ -14,6 +15,7 @@ class RequestHistoryScreen extends StatelessWidget {
     return BlocProvider(
       create: (context) => TimeRequestBloc(
         repository: context.read<TimeRequestRepository>(),
+        rulesRepository: context.read<RulesRepository>(),
       )..add(LoadAllRequests(familyId)),
       child: Scaffold(
         appBar: AppBar(
@@ -163,7 +165,7 @@ class _RequestHistoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final timeStr = DateFormat('dd/MM/yyyy HH:mm').format(request.timestamp);
+    final timeStr = DateFormat('dd/MM/yyyy HH:mm').format(request.timestamp.toLocal());
     final statusColor = request.status == TimeRequestStatus.pending
         ? Colors.orange
         : request.status == TimeRequestStatus.approved
@@ -249,7 +251,7 @@ class _RequestHistoryCard extends StatelessWidget {
   }
 
   void _showDetailSheet(BuildContext context) {
-    final timeStr = DateFormat('dd/MM/yyyy HH:mm').format(request.timestamp);
+    final timeStr = DateFormat('dd/MM/yyyy HH:mm').format(request.timestamp.toLocal());
     final statusColor = request.status == TimeRequestStatus.pending
         ? Colors.orange
         : request.status == TimeRequestStatus.approved

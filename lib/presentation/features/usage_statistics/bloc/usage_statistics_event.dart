@@ -13,43 +13,49 @@ class LoadUsageStats extends UsageStatisticsEvent {
   final String childUid;
   final DateTime startDate;
   final DateTime endDate;
+  final String? familyId;
 
   const LoadUsageStats({
     required this.childUid,
     required this.startDate,
     required this.endDate,
+    this.familyId,
   });
 
   @override
-  List<Object?> get props => [childUid, startDate, endDate];
+  List<Object?> get props => [childUid, startDate, endDate, familyId];
 }
 
 class ChangeTimePeriod extends UsageStatisticsEvent {
   final String childUid;
   final TimePeriod period;
+  final String? familyId;
 
   const ChangeTimePeriod({
     required this.childUid,
     required this.period,
+    this.familyId,
   });
 
   @override
-  List<Object?> get props => [childUid, period];
+  List<Object?> get props => [childUid, period, familyId];
 }
 
 class SelectDateRange extends UsageStatisticsEvent {
   final String childUid;
   final DateTime startDate;
   final DateTime endDate;
+  final String? familyId;
 
   const SelectDateRange({
     required this.childUid,
     required this.startDate,
     required this.endDate,
+    this.familyId,
   });
 
   @override
-  List<Object?> get props => [childUid, startDate, endDate];
+  List<Object?> get props => [childUid, startDate, endDate, familyId];
 }
 
 class ExportUsageData extends UsageStatisticsEvent {
@@ -57,16 +63,18 @@ class ExportUsageData extends UsageStatisticsEvent {
   final DateTime startDate;
   final DateTime endDate;
   final ExportFormat format;
+  final String? familyId;
 
   const ExportUsageData({
     required this.childUid,
     required this.startDate,
     required this.endDate,
     required this.format,
+    this.familyId,
   });
 
   @override
-  List<Object?> get props => [childUid, startDate, endDate, format];
+  List<Object?> get props => [childUid, startDate, endDate, format, familyId];
 }
 
 enum ExportFormat { csv, pdf }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_strings.dart';
 import '../bloc/help_bloc.dart';
 import '../bloc/help_event.dart';
 import '../bloc/help_state.dart';
@@ -60,43 +61,37 @@ class _AppInfoScreenState extends State<AppInfoScreen> {
                 children: [
                   SizedBox(height: 40),
                   // App icon
+                  // App icon
                   Container(
-                    width: 100,
-                    height: 100,
+                    width: 110,
+                    height: 110,
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [AppColors.primary, AppColors.primaryDark],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primary.withOpacity(0.3),
-                          blurRadius: 20,
-                          offset: Offset(0, 10),
+                          color: AppColors.primary.withValues(alpha: 0.35),
+                          blurRadius: 24,
+                          offset: const Offset(0, 8),
                         ),
                       ],
                     ),
-                    child: Icon(
-                      Icons.shield,
-                      size: 56,
-                      color: Colors.white,
+                    child: Image.asset(
+                      'assets/images/logo.png',
+                      fit: BoxFit.contain,
                     ),
                   ),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
                   // App name
                   Text(
                     state.appName,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
                     ),
                   ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Đồng Hành Số',
+                  const SizedBox(height: 8),
+                  const Text(
+                    AppStrings.appTagline,
                     style: TextStyle(
                       fontSize: 16,
                       color: AppColors.textSecondary,
@@ -148,7 +143,7 @@ class _AppInfoScreenState extends State<AppInfoScreen> {
                           ),
                           SizedBox(height: 12),
                           Text(
-                            'KidGuardian (Đồng Hành Số) là ứng dụng quản lý thời gian sử dụng mạng xã hội và thiết bị di động cho trẻ em. '
+                            '${AppStrings.appName} (Đồng Hành Số) là ứng dụng quản lý thời gian sử dụng mạng xã hội và thiết bị di động cho trẻ em. '
                             'Ứng dụng giúp phụ huynh giám sát và bảo vệ con em trong thế giới số.',
                             style: TextStyle(
                               fontSize: 14,
@@ -163,7 +158,7 @@ class _AppInfoScreenState extends State<AppInfoScreen> {
                   SizedBox(height: 24),
                   // Copyright
                   Text(
-                    '© 2026 KidGuardian Team',
+                    '© 2026 ${AppStrings.appName} Team',
                     style: TextStyle(
                       fontSize: 14,
                       color: AppColors.textSecondary,

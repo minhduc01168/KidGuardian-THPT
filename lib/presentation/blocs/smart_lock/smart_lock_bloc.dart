@@ -47,15 +47,35 @@ class SmartLockBloc extends Bloc<SmartLockEvent, SmartLockState> {
         event.childId,
       );
 
+      final configuredMonitoredApps = await repository.getMonitoredApps(event.familyId, event.childId);
+      final popularMonitoredApps = repository.getPopularMonitoredApps();
+      
+      final Map<String, MonitoredAppModel> mergedMonitoredApps = {};
+      for (var app in popularMonitoredApps) {
+        mergedMonitoredApps[app.appPackageName] = app;
+      }
+      for (var app in configuredMonitoredApps) {
+        mergedMonitoredApps[app.appPackageName] = app;
+      }
+
+      final activeMonitoredPackages = mergedMonitoredApps.values
+          .where((a) => a.isMonitored)
+          .map((a) => a.appPackageName)
+          .toSet();
+
       final popularApps = repository.getPopularApps();
       final Map<String, AppTimeLimitModel> mergedApps = {};
 
       for (var app in popularApps) {
-        mergedApps[app.appPackageName] = app;
+        if (activeMonitoredPackages.contains(app.appPackageName)) {
+          mergedApps[app.appPackageName] = app;
+        }
       }
 
       for (var app in configuredApps) {
-        mergedApps[app.appPackageName] = app;
+        if (activeMonitoredPackages.contains(app.appPackageName)) {
+          mergedApps[app.appPackageName] = app;
+        }
       }
 
       _currentApps = mergedApps.values.toList()
@@ -137,7 +157,9 @@ class SmartLockBloc extends Bloc<SmartLockEvent, SmartLockState> {
       }
 
       for (var app in configuredApps) {
-        mergedApps[app.appPackageName] = app;
+        if (mergedApps.containsKey(app.appPackageName)) {
+          mergedApps[app.appPackageName] = mergedApps[app.appPackageName]!.copyWith(isMonitored: app.isMonitored);
+        }
       }
 
       _currentMonitoredApps = mergedApps.values.toList()
@@ -383,6 +405,7 @@ class SmartLockBloc extends Bloc<SmartLockEvent, SmartLockState> {
       emit(SmartLockError(e.toString()));
     }
   }
+
 
   @override
   Future<void> close() {

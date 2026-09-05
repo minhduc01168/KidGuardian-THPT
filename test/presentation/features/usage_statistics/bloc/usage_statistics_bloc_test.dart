@@ -6,8 +6,11 @@ import 'package:kidguardian/domain/repositories/usage_repository.dart';
 import 'package:kidguardian/presentation/features/usage_statistics/bloc/usage_statistics_bloc.dart';
 import 'package:kidguardian/presentation/features/usage_statistics/bloc/usage_statistics_event.dart';
 import 'package:kidguardian/presentation/features/usage_statistics/bloc/usage_statistics_state.dart';
+import 'package:kidguardian/data/repositories/smart_lock_repository.dart';
+import 'package:kidguardian/data/models/monitored_app_model.dart';
 
 class MockUsageRepository extends Mock implements UsageRepository {}
+class MockSmartLockRepository extends Mock implements SmartLockRepository {}
 
 void main() {
   late MockUsageRepository mockRepository;
@@ -34,7 +37,7 @@ void main() {
       docId: '1',
       childUid: 'child1',
       familyId: 'family1',
-      appPackage: 'com.tiktok',
+      appPackage: 'com.zhiliaoapp.musically',
       appName: 'TikTok',
       startTime: now,
       endTime: now.add(const Duration(minutes: 30)),
@@ -45,7 +48,7 @@ void main() {
       docId: '2',
       childUid: 'child1',
       familyId: 'family1',
-      appPackage: 'com.facebook',
+      appPackage: 'com.facebook.katana',
       appName: 'Facebook',
       startTime: now.add(const Duration(hours: 2)),
       endTime: now.add(const Duration(hours: 2, minutes: 45)),
@@ -127,6 +130,61 @@ void main() {
         isA<UsageStatisticsLoaded>(),
         isA<UsageStatisticsLoaded>()
             .having((s) => s.selectedPeriod, 'period', TimePeriod.week),
+      ],
+    );
+
+    blocTest<UsageStatisticsBloc, UsageStatisticsState>(
+      'emits Loaded with logs strictly filtered by monitoredApps (isMonitored == true)',
+      build: () {
+        final mockSmartLock = MockSmartLockRepository();
+        when(() => mockRepository.getUsageByDateRange(
+              'child1',
+              startDateStr,
+              endDateStr,
+            )).thenAnswer((_) async => testLogs);
+        when(() => mockSmartLock.getMonitoredApps('fam1', 'child1'))
+            .thenAnswer((_) async => [
+              const MonitoredAppModel(
+                appPackageName: 'com.zhiliaoapp.musically',
+                appName: 'TikTok',
+                isMonitored: true,
+              ),
+              const MonitoredAppModel(
+                appPackageName: 'com.facebook.katana',
+                appName: 'Facebook',
+                isMonitored: false,
+              ),
+            ]);
+        when(() => mockSmartLock.getPopularMonitoredApps())
+            .thenReturn([
+              const MonitoredAppModel(
+                appPackageName: 'com.zhiliaoapp.musically',
+                appName: 'TikTok',
+                isMonitored: true,
+              ),
+              const MonitoredAppModel(
+                appPackageName: 'com.facebook.katana',
+                appName: 'Facebook',
+                isMonitored: true,
+              ),
+            ]);
+        return UsageStatisticsBloc(
+          usageRepository: mockRepository,
+          smartLockRepository: mockSmartLock,
+        );
+      },
+      act: (bloc) => bloc.add(LoadUsageStats(
+        childUid: 'child1',
+        familyId: 'fam1',
+        startDate: weekAgo,
+        endDate: now,
+      )),
+      expect: () => [
+        isA<UsageStatisticsLoading>(),
+        isA<UsageStatisticsLoaded>()
+            .having((s) => s.totalMinutes, 'totalMinutes', 30)
+            .having((s) => s.logs.length, 'logs count after filtering', 1)
+            .having((s) => s.logs.first.appName, 'filtered log appName', 'TikTok'),
       ],
     );
   });

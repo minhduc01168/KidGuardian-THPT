@@ -15,10 +15,7 @@ class LoadDashboardDataUseCase {
     final dateStr =
         '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
 
-    final usageLogs = await _usageRepository.getUsageLogs(
-      childUid: childUid,
-      date: dateStr,
-    );
+    final usageLogs = await _usageRepository.getUsageByChild(childUid, dateStr);
 
     final totalMinutes = usageLogs.fold<int>(
       0,
@@ -36,10 +33,7 @@ class LoadDashboardDataUseCase {
       final date = today.subtract(Duration(days: i));
       final dateKey =
           '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-      final dayLogs = await _usageRepository.getUsageLogs(
-        childUid: childUid,
-        date: dateKey,
-      );
+      final dayLogs = await _usageRepository.getUsageByChild(childUid, dateKey);
       dailyTotals[dateKey] =
           dayLogs.fold<int>(0, (sum, log) => sum + log.durationMinutes);
     }

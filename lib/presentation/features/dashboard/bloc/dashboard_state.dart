@@ -19,6 +19,7 @@ class DashboardLoaded extends DashboardState {
   final List<UsageLog> recentLogs;
   final List<String> childUids;
   final Map<String, int> dailyTotals;
+  final Map<String, int> appTimeLimits;
 
   const DashboardLoaded({
     required this.totalMinutesToday,
@@ -27,6 +28,7 @@ class DashboardLoaded extends DashboardState {
     required this.recentLogs,
     required this.childUids,
     this.dailyTotals = const {},
+    this.appTimeLimits = const {},
   });
 
   int get totalMinutesLastWeek {
@@ -63,6 +65,7 @@ class DashboardLoaded extends DashboardState {
         recentLogs,
         childUids,
         dailyTotals,
+        appTimeLimits,
       ];
 }
 

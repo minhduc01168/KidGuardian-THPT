@@ -1,16 +1,67 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:bloc_test/bloc_test.dart';
 import 'package:kidguardian/presentation/screens/smart_lock/lock_screen.dart';
+import 'package:kidguardian/presentation/blocs/smart_lock/smart_lock_bloc.dart';
+import 'package:kidguardian/presentation/blocs/smart_lock/smart_lock_event.dart';
+import 'package:kidguardian/presentation/blocs/smart_lock/smart_lock_state.dart';
+import 'package:kidguardian/presentation/blocs/smart_lock/app_monitor_bloc.dart';
+import 'package:kidguardian/domain/repositories/time_request_repository.dart';
+import 'package:kidguardian/domain/repositories/alert_repository.dart';
+import 'package:kidguardian/domain/repositories/rules_repository.dart';
+
+class MockSmartLockBloc extends MockBloc<SmartLockEvent, SmartLockState> implements SmartLockBloc {}
+class MockAppMonitorBloc extends MockBloc<AppMonitorEvent, AppMonitorState> implements AppMonitorBloc {}
+class MockTimeRequestRepository extends Mock implements TimeRequestRepository {}
+class MockAlertRepository extends Mock implements AlertRepository {}
+class MockRulesRepository extends Mock implements RulesRepository {}
 
 void main() {
+  late MockSmartLockBloc mockSmartLockBloc;
+  late MockAppMonitorBloc mockAppMonitorBloc;
+  late MockTimeRequestRepository mockTimeRequestRepository;
+  late MockAlertRepository mockAlertRepository;
+  late MockRulesRepository mockRulesRepository;
+
+  setUp(() {
+    mockSmartLockBloc = MockSmartLockBloc();
+    mockAppMonitorBloc = MockAppMonitorBloc();
+    mockTimeRequestRepository = MockTimeRequestRepository();
+    mockAlertRepository = MockAlertRepository();
+    mockRulesRepository = MockRulesRepository();
+
+    when(() => mockSmartLockBloc.state).thenReturn(SmartLockInitial());
+    when(() => mockAppMonitorBloc.state).thenReturn(AppMonitorInitial());
+  });
+
+  Widget buildTestWidget(Widget child) {
+    return MaterialApp(
+      home: MultiRepositoryProvider(
+        providers: [
+          RepositoryProvider<TimeRequestRepository>(create: (_) => mockTimeRequestRepository),
+          RepositoryProvider<AlertRepository>(create: (_) => mockAlertRepository),
+          RepositoryProvider<RulesRepository>(create: (_) => mockRulesRepository),
+        ],
+        child: MultiBlocProvider(
+          providers: [
+            BlocProvider<SmartLockBloc>.value(value: mockSmartLockBloc),
+            BlocProvider<AppMonitorBloc>.value(value: mockAppMonitorBloc),
+          ],
+          child: child,
+        ),
+      ),
+    );
+  }
+
   group('LockScreen - Schedule block reason', () {
     testWidgets('should show schedule reason when blockReason is schedule', (tester) async {
-      // Use a future reset time to avoid countdown issues
       final resetTime = DateTime.now().add(const Duration(hours: 8));
 
       await tester.pumpWidget(
-        MaterialApp(
-          home: LockScreen(
+        buildTestWidget(
+          LockScreen(
             appPackageName: 'com.test.app',
             appName: 'TikTok',
             limitMinutes: 0,
@@ -29,8 +80,8 @@ void main() {
       final resetTime = DateTime.now().add(const Duration(hours: 3));
 
       await tester.pumpWidget(
-        MaterialApp(
-          home: LockScreen(
+        buildTestWidget(
+          LockScreen(
             appPackageName: 'com.test.app',
             appName: 'TikTok',
             limitMinutes: 0,
@@ -49,8 +100,8 @@ void main() {
       final resetTime = DateTime.now().add(const Duration(hours: 6));
 
       await tester.pumpWidget(
-        MaterialApp(
-          home: LockScreen(
+        buildTestWidget(
+          LockScreen(
             appPackageName: 'com.test.app',
             appName: 'TikTok',
             limitMinutes: 60,
@@ -68,8 +119,8 @@ void main() {
       final resetTime = DateTime.now().add(const Duration(hours: 6));
 
       await tester.pumpWidget(
-        MaterialApp(
-          home: LockScreen(
+        buildTestWidget(
+          LockScreen(
             appPackageName: 'com.test.app',
             appName: 'TikTok',
             limitMinutes: 60,
@@ -86,8 +137,8 @@ void main() {
       final resetTime = DateTime.now().add(const Duration(hours: 8));
 
       await tester.pumpWidget(
-        MaterialApp(
-          home: LockScreen(
+        buildTestWidget(
+          LockScreen(
             appPackageName: 'com.test.app',
             appName: 'TikTok',
             limitMinutes: 0,
@@ -99,7 +150,6 @@ void main() {
         ),
       );
 
-      // Schedule blocks should not show "request more time" button
       expect(find.text('Xin thêm thời gian'), findsNothing);
     });
   });

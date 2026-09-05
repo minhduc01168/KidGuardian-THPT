@@ -1,9 +1,11 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:csv/csv.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../../domain/entities/usage_log.dart';
 
@@ -29,7 +31,7 @@ class UsageExporter {
     final fileName =
         'usage_stats_${DateFormat('yyyyMMdd').format(DateTime.now())}.csv';
     final file = File('${directory.path}/$fileName');
-    await file.writeAsString(csv);
+    await file.writeAsString('\uFEFF$csv', encoding: utf8);
 
     await Share.shareXFiles(
       [XFile(file.path)],
@@ -41,7 +43,14 @@ class UsageExporter {
 
   static Future<String> exportToPdf(
       List<UsageLog> logs, String dateRange) async {
-    final pdf = pw.Document();
+    final fontRegular = await PdfGoogleFonts.robotoRegular();
+    final fontBold = await PdfGoogleFonts.robotoBold();
+    final pdf = pw.Document(
+      theme: pw.ThemeData.withFont(
+        base: fontRegular,
+        bold: fontBold,
+      ),
+    );
 
     final Map<String, int> appTotals = {};
     for (final log in logs) {
@@ -59,11 +68,11 @@ class UsageExporter {
           pw.Header(
             level: 0,
             child: pw.Text('Thống Kê Sử Dụng',
-                style: pw.TextStyle(fontSize: 24)),
+                style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
           ),
           pw.Text('Khoảng thời gian: $dateRange'),
           pw.SizedBox(height: 20),
-          pw.Header(level: 1, child: pw.Text('Tổng hợp theo ứng dụng')),
+          pw.Header(level: 1, child: pw.Text('Tổng hợp theo ứng dụng', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
           pw.TableHelper.fromTextArray(
             headers: ['Ứng dụng', 'Thời lượng (phút)', 'Tỷ lệ'],
             data: sortedApps.map((entry) {
@@ -75,7 +84,7 @@ class UsageExporter {
             }).toList(),
           ),
           pw.SizedBox(height: 20),
-          pw.Header(level: 1, child: pw.Text('Chi tiết sử dụng')),
+          pw.Header(level: 1, child: pw.Text('Chi tiết sử dụng', style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
           pw.TableHelper.fromTextArray(
             headers: ['Ngày', 'Ứng dụng', 'Bắt đầu', 'Kết thúc', 'Phút'],
             data: logs

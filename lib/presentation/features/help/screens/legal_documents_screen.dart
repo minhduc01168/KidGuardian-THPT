@@ -110,14 +110,14 @@ class _LegalDocumentsScreenState extends State<LegalDocumentsScreen> {
   <p class="last-updated">Cập nhật lần cuối: 01/01/2026</p>
 
   <div class="highlight">
-    <p><strong>Lưu ý:</strong> Vui lòng đọc kỹ các điều khoản sử dụng trước khi sử dụng ứng dụng KidGuardian (Đồng Hành Số).</p>
+    <p><strong>Lưu ý:</strong> Vui lòng đọc kỹ các điều khoản sử dụng trước khi sử dụng ứng dụng Kura (Đồng Hành Số).</p>
   </div>
 
   <h2>1. Chấp nhận điều khoản</h2>
   <p>Bằng việc truy cập và sử dụng ứng dụng KidGuardian, bạn đồng ý tuân thủ và bị ràng buộc bởi các điều khoản sử dụng này. Nếu bạn không đồng ý với bất kỳ phần nào của điều khoản, vui lòng không sử dụng ứng dụng.</p>
 
   <h2>2. Mô tả dịch vụ</h2>
-  <p>KidGuardian là ứng dụng quản lý thời gian sử dụng thiết bị di động cho trẻ em, cung cấp các tính năng bao gồm:</p>
+  <p>Kura là ứng dụng quản lý thời gian sử dụng thiết bị di động cho trẻ em, cung cấp các tính năng bao gồm:</p>
   <ul>
     <li>Giám sát thời gian sử dụng ứng dụng</li>
     <li>Quản lý và khóa ứng dụng</li>
@@ -151,7 +151,7 @@ class _LegalDocumentsScreenState extends State<LegalDocumentsScreen> {
   </ul>
 
   <h2>6. Giới hạn trách nhiệm</h2>
-  <p>KidGuardian không chịu trách nhiệm về:</p>
+  <p>Kura không chịu trách nhiệm về:</p>
   <ul>
     <li>Thiệt hại gián tiếp hoặc hệ quả</li>
     <li>Mất mát dữ liệu do sự cố kỹ thuật</li>
@@ -163,7 +163,7 @@ class _LegalDocumentsScreenState extends State<LegalDocumentsScreen> {
 
   <h2>8. Liên hệ</h2>
   <p>Nếu bạn có câu hỏi về điều khoản sử dụng, vui lòng liên hệ:</p>
-  <p>Email: support@kidguardian.vn</p>
+  <p>Email: support@kura.vn</p>
 
   <p class="last-updated">Điều khoản này được cập nhật lần cuối vào ngày 01/01/2026.</p>
 </body>
@@ -237,7 +237,7 @@ class _LegalDocumentsScreenState extends State<LegalDocumentsScreen> {
   <p class="last-updated">Cập nhật lần cuối: 01/01/2026</p>
 
   <div class="highlight">
-    <p><strong>Cam kết:</strong> KidGuardian cam kết bảo vệ quyền riêng tư và thông tin cá nhân của bạn và con em bạn.</p>
+    <p><strong>Cam kết:</strong> Kura cam kết bảo vệ quyền riêng tư và thông tin cá nhân của bạn và con em bạn.</p>
   </div>
 
   <h2>1. Thông tin chúng tôi thu thập</h2>
@@ -284,7 +284,7 @@ class _LegalDocumentsScreenState extends State<LegalDocumentsScreen> {
   <p>Thông tin có thể được chia sẻ trong các trường hợp:</p>
   <ul>
     <li>Khi có yêu cầu từ cơ quan pháp luật</li>
-    <li>Để bảo vệ quyền lợi của KidGuardian</li>
+    <li>Để bảo vệ quyền lợi của Kura</li>
     <li>Với sự đồng ý của người dùng</li>
   </ul>
 
@@ -307,7 +307,7 @@ class _LegalDocumentsScreenState extends State<LegalDocumentsScreen> {
   </ul>
 
   <h2>6. Bảo vệ thông tin trẻ em</h2>
-  <p>KidGuardian đặc biệt chú trọng bảo vệ thông tin của trẻ em:</p>
+  <p>Kura đặc biệt chú trọng bảo vệ thông tin của trẻ em:</p>
   <ul>
     <li>Thu thập thông tin tối thiểu cần thiết</li>
     <li>Không sử dụng thông tin trẻ em cho mục đích quảng cáo</li>
@@ -323,7 +323,7 @@ class _LegalDocumentsScreenState extends State<LegalDocumentsScreen> {
 
   <h2>9. Liên hệ</h2>
   <p>Nếu bạn có câu hỏi về chính sách bảo mật, vui lòng liên hệ:</p>
-  <p>Email: privacy@kidguardian.vn</p>
+  <p>Email: privacy@kura.vn</p>
 
   <p class="last-updated">Chính sách này được cập nhật lần cuối vào ngày 01/01/2026.</p>
 </body>

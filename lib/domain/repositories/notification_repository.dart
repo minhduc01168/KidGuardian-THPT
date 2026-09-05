@@ -98,19 +98,18 @@ class NotificationRepositoryImpl implements NotificationRepository {
   Stream<List<NotificationModel>> watchAllNotifications({
     required String familyId,
   }) {
-    // Note: This query requires a composite index in Firestore:
-    // Collection Group: notifications
-    // Fields: familyId ASC, timestamp DESC
-    // Create this index in Firebase Console or firestore.indexes.json
     return _firestore
         .collectionGroup('notifications')
         .where('familyId', isEqualTo: familyId)
         .orderBy('timestamp', descending: true)
+        .limit(50)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs
+      final list = snapshot.docs
           .map((doc) => NotificationModel.fromFirestore(doc))
           .toList();
+      list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      return list;
     });
   }
 

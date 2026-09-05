@@ -313,54 +313,13 @@ void main() {
     });
 
     group('generateWeeklyReport', () {
-      test('should return existing report if already generated this week', () async {
+      test('should calculate real-time weekly report and save to firestore', () async {
         final mockQuerySnapshot = MockQuerySnapshot();
-        final mockDoc = MockQueryDocumentSnapshot();
 
         when(() => mockReportsCollection.where('childUid', isEqualTo: any(named: 'isEqualTo')))
             .thenReturn(mockReportsCollection);
-        when(() => mockReportsCollection.orderBy('generatedAt', descending: true))
+        when(() => mockReportsCollection.where('weekStartDate', isEqualTo: any(named: 'isEqualTo')))
             .thenReturn(mockReportsCollection);
-        when(() => mockReportsCollection.limit(1)).thenReturn(mockReportsCollection);
-        when(() => mockReportsCollection.get()).thenAnswer((_) async => mockQuerySnapshot);
-        when(() => mockQuerySnapshot.docs).thenReturn([mockDoc]);
-        when(() => mockDoc.id).thenReturn('report-1');
-
-        final now = DateTime.now();
-        final weekStart = now.subtract(Duration(days: now.weekday - 1));
-        final weekStartStr = '${weekStart.year}-${weekStart.month.toString().padLeft(2, '0')}-${weekStart.day.toString().padLeft(2, '0')}';
-
-        when(() => mockDoc.data()).thenReturn({
-          'childUid': 'child-1',
-          'familyId': 'family-1',
-          'weekStartDate': weekStartStr,
-          'weekEndDate': '2026-05-24',
-          'totalMinutes': 120,
-          'previousWeekMinutes': 100,
-          'usageByApp': {'YouTube': 60},
-          'previousWeekUsageByApp': {},
-          'topApps': ['YouTube'],
-          'percentChange': 20.0,
-          'improvements': [],
-          'concerns': [],
-          'generatedAt': Timestamp.fromDate(now),
-        });
-
-        final result = await repository.generateWeeklyReport('child-1', 'family-1');
-
-        expect(result, isNotNull);
-        expect(result.childUid, 'child-1');
-      });
-
-      test('should generate new report when none exists for this week', () async {
-        final mockQuerySnapshot = MockQuerySnapshot();
-        final mockDocRef = MockDocumentReference();
-
-        when(() => mockReportsCollection.where('childUid', isEqualTo: any(named: 'isEqualTo')))
-            .thenReturn(mockReportsCollection);
-        when(() => mockReportsCollection.orderBy('generatedAt', descending: true))
-            .thenReturn(mockReportsCollection);
-        when(() => mockReportsCollection.limit(1)).thenReturn(mockReportsCollection);
         when(() => mockReportsCollection.get()).thenAnswer((_) async => mockQuerySnapshot);
         when(() => mockQuerySnapshot.docs).thenReturn([]);
 
@@ -371,7 +330,45 @@ void main() {
             docId: 'log-1',
             childUid: 'child-1',
             familyId: 'family-1',
-            appPackage: 'com.youtube',
+            appPackage: 'com.google.android.youtube',
+            appName: 'YouTube',
+            startTime: DateTime(2026, 5, 20, 10, 0),
+            endTime: DateTime(2026, 5, 20, 12, 0),
+            durationMinutes: 120,
+            date: '2026-05-20',
+          ),
+        ]);
+
+        final mockDocRef = MockDocumentReference();
+        when(() => mockReportsCollection.add(any())).thenAnswer((_) async => mockDocRef);
+        when(() => mockDocRef.id).thenReturn('report-1');
+
+        final result = await repository.generateWeeklyReport('child-1', 'family-1');
+
+        expect(result, isNotNull);
+        expect(result.childUid, 'child-1');
+        expect(result.totalMinutes, 120);
+      });
+
+      test('should generate new report when none exists for this week', () async {
+        final mockQuerySnapshot = MockQuerySnapshot();
+        final mockDocRef = MockDocumentReference();
+
+        when(() => mockReportsCollection.where('childUid', isEqualTo: any(named: 'isEqualTo')))
+            .thenReturn(mockReportsCollection);
+        when(() => mockReportsCollection.where('weekStartDate', isEqualTo: any(named: 'isEqualTo')))
+            .thenReturn(mockReportsCollection);
+        when(() => mockReportsCollection.get()).thenAnswer((_) async => mockQuerySnapshot);
+        when(() => mockQuerySnapshot.docs).thenReturn([]);
+
+        when(() => mockUsageRepository.getUsageByDateRange(
+              any(), any(), any(),
+            )).thenAnswer((_) async => [
+          UsageLog(
+            docId: 'log-1',
+            childUid: 'child-1',
+            familyId: 'family-1',
+            appPackage: 'com.google.android.youtube',
             appName: 'YouTube',
             startTime: DateTime(2026, 5, 20, 10, 0),
             endTime: DateTime(2026, 5, 20, 11, 0),
@@ -388,6 +385,67 @@ void main() {
         expect(result, isNotNull);
         expect(result.childUid, 'child-1');
         expect(result.familyId, 'family-1');
+      });
+
+      test('should filter out unmonitored apps like Gmail and LinkedIn from weekly report', () async {
+        final mockQuerySnapshot = MockQuerySnapshot();
+        final mockDocRef = MockDocumentReference();
+
+        when(() => mockReportsCollection.where('childUid', isEqualTo: any(named: 'isEqualTo')))
+            .thenReturn(mockReportsCollection);
+        when(() => mockReportsCollection.where('weekStartDate', isEqualTo: any(named: 'isEqualTo')))
+            .thenReturn(mockReportsCollection);
+        when(() => mockReportsCollection.get()).thenAnswer((_) async => mockQuerySnapshot);
+        when(() => mockQuerySnapshot.docs).thenReturn([]);
+
+        // Mock current week and previous week logs
+        when(() => mockUsageRepository.getUsageByDateRange(
+              any(), any(), any(),
+            )).thenAnswer((_) async => [
+          UsageLog(
+            docId: 'log-1',
+            childUid: 'child-1',
+            familyId: 'family-1',
+            appPackage: 'com.zhiliaoapp.musically',
+            appName: 'TikTok',
+            startTime: DateTime(2026, 5, 20, 10, 0),
+            endTime: DateTime(2026, 5, 20, 12, 0),
+            durationMinutes: 120, // Monitored
+            date: '2026-05-20',
+          ),
+          UsageLog(
+            docId: 'log-2',
+            childUid: 'child-1',
+            familyId: 'family-1',
+            appPackage: 'com.google.android.gm',
+            appName: 'Gmail',
+            startTime: DateTime(2026, 5, 20, 13, 0),
+            endTime: DateTime(2026, 5, 20, 13, 30),
+            durationMinutes: 30, // Unmonitored
+            date: '2026-05-20',
+          ),
+          UsageLog(
+            docId: 'log-3',
+            childUid: 'child-1',
+            familyId: 'family-1',
+            appPackage: 'com.linkedin.android',
+            appName: 'LinkedIn',
+            startTime: DateTime(2026, 5, 20, 14, 0),
+            endTime: DateTime(2026, 5, 20, 14, 20),
+            durationMinutes: 20, // Unmonitored
+            date: '2026-05-20',
+          ),
+        ]);
+
+        when(() => mockReportsCollection.add(any())).thenAnswer((_) async => mockDocRef);
+        when(() => mockDocRef.id).thenReturn('new-report-id');
+
+        final result = await repository.generateWeeklyReport('child-1', 'family-1');
+
+        expect(result.totalMinutes, 120); // Only TikTok (120) should be counted
+        expect(result.usageByApp.keys, contains('TikTok'));
+        expect(result.usageByApp.keys, isNot(contains('Gmail')));
+        expect(result.usageByApp.keys, isNot(contains('LinkedIn')));
       });
     });
   });
