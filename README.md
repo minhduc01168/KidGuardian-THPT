@@ -1,11 +1,11 @@
-# 🛡️ KidGuardian - Đồng Hành Số & Quản Lý Thời Gian Thông Minh (THPT)
+# 🛡️ Kura (KidGuardian) - Đồng Hành Số & Quản Lý Thời Gian Thông Minh (THPT)
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter)](https://flutter.dev)
 [![Firebase](https://img.shields.io/badge/Firebase-Cloud%20Firestore%20%7C%20Auth-FFCA28?logo=firebase)](https://firebase.google.com)
-[![Test Coverage](https://img.shields.io/badge/Tests-650%2F650%20Passed%20(100%25)-4CAF50?logo=checkmarx)](test/)
+[![Test Coverage](https://img.shields.io/badge/Tests-772%2F772%20Passed%20(100%25)-4CAF50?logo=checkmarx)](test/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**KidGuardian** là giải pháp phần mềm toàn diện trên nền tảng di động giúp phụ huynh bảo vệ, đồng hành và quản lý thời gian sử dụng thiết bị số của học sinh THPT một cách minh bạch, khoa học và tự chủ.
+**Kura (KidGuardian)** là giải pháp phần mềm toàn diện trên nền tảng di động giúp phụ huynh bảo vệ, đồng hành và quản lý thời gian sử dụng thiết bị số của học sinh THPT một cách minh bạch, khoa học và tự chủ.
 
 ---
 
@@ -21,71 +21,70 @@
 - **Quyền truy cập khẩn cấp (`Emergency Access`):** Cho phép mở khóa tạm thời trong 5 phút khi có việc khẩn cấp, tích hợp cơ chế đóng băng (`cooldown`) chống lạm dụng.
 
 ### 3. 💬 Tương Tác Đồng Hành (`Time Requests`)
-- **Xin thêm thời gian thông minh:** Khi hết giờ, trẻ có thể bấm xin thêm (15/30/60 phút) kèm lý do ngay từ màn hình khóa (`app_blocked`) hoặc từ màn hình chính (`general_time`).
-- **App Selector Dropdown:** Khi xin giờ từ màn hình chính, hệ thống hiển thị danh sách Dropdown (`AppSelector`) tự động lọc các ứng dụng đang có quy tắc giới hạn từ `RulesRepository`.
-- **Duyệt yêu cầu tức thì:** Phụ huynh nhận thông báo realtime dưới 5 giây qua Firestore Stream và duyệt/từ chối chỉ với 1 chạm.
+- **Xin thêm thời gian thông minh:** Khi hết giờ, trẻ có thể bấm xin thêm (15/30/60 phút) kèm lý do ngay từ màn hình khóa.
+- **Duyệt yêu cầu tức thì:** Phụ huynh nhận thông báo realtime dưới 5 giây qua hệ thống Firebase và duyệt/từ chối chỉ với 1 chạm.
+- **App Selector Dropdown:** Hiển thị danh sách chọn lựa 10 ứng dụng mạng xã hội chuẩn hóa khi xin giờ, tự động lọc và loại bỏ các ứng dụng/game không thuộc quyền giám sát.
 
 ### 4. 🚨 Giám Sát Từ Khóa Nhạy Cảm (`Sensitive Keywords Monitor`)
 - **Bộ 21 từ khóa mặc định chuẩn hóa:** Bảo vệ trẻ khỏi các nội dung độc hại thuộc 5 nhóm nguy cơ cao: *Nguy hiểm tính mạng, Bạo lực/Vũ khí, Chất kích thích/Cờ bạc, Nội dung người lớn (18+), Lừa đảo/An toàn*.
-- **Quản lý tùy chỉnh linh hoạt:** Phụ huynh có thể thêm/xóa từ khóa tùy chỉnh hoặc khôi phục về mặc định (`ResetToDefaults`).
+- **Quản lý tùy chỉnh linh hoạt:** Phụ huynh có thể thêm/xóa từ khóa tùy chỉnh hoặc khôi phục về mặc định.
 
 ### 5. 📈 Báo Cáo & Thống Kê Khoa Học (`Analytics & Summaries`)
-- **Biểu đồ trực quan:** Thống kê chi tiết thời gian sử dụng theo ngày, tuần, tháng và gom nhóm theo khung giờ (`groupByHour`).
-- **Báo cáo tuần tự động (`Weekly Reports`):** Tự động tổng hợp và đánh giá mức độ sử dụng của học sinh.
+- **Biểu đồ trực quan thông minh:** Thống kê chi tiết thời gian sử dụng theo ngày, tuần, tháng. Tích hợp thuật toán làm tròn (`Smart Rounding`) và tối ưu hiển thị UX (tự động ẩn số phần trăm quá bé để chống đè chữ trên PieChart).
+- **Báo cáo tự động:** Tự động tổng hợp danh sách Top các ứng dụng sử dụng nhiều nhất để phụ huynh dễ dàng đánh giá.
 
 ---
 
 ## 🏗️ Kiến Trúc Kỹ Thuật & Tối Ưu Hiệu Năng
 
-KidGuardian được xây dựng theo kiến trúc **Clean Architecture + BLoC Pattern**, đặc biệt chú trọng tới khả năng mở rộng và tối ưu chi phí hạ tầng Cloud Firebase:
+Kura được xây dựng theo kiến trúc **Clean Architecture + BLoC Pattern**, đặc biệt chú trọng tới khả năng mở rộng và tối ưu chi phí hạ tầng Cloud Firebase:
 
 ### 🛡️ 1. Index-Defensive Querying (Truy Vấn Phòng Thủ Chỉ Mục)
-Để chống lại lỗi `FAILED_PRECONDITION: The query requires an index...` và đảm bảo độ phản hồi siêu nhanh:
-- **Single-Field Server Queries:** Các Repository (`SummaryRepository`, `ReportRepository`, `UsageRepository`) khi truy vấn lên Firestore chỉ lọc theo trường chính duy nhất (`childUid` hoặc `familyId`).
-- **Client-Side Filtering & Sorting:** Toàn bộ việc sắp xếp thời gian (`orderBy`) và lọc dải ngày (`date range`) được thực hiện trong bộ nhớ RAM của ứng dụng Flutter (Client-side logic), loại bỏ hoàn toàn sự phụ thuộc vào Composite Indexes phức tạp và tiết kiệm tối đa Quota.
+Để đảm bảo độ phản hồi siêu nhanh và chống cạn kiệt Quota Firebase:
+- **Single-Field Server Queries:** Các Repository khi truy vấn lên Firestore chỉ lọc theo trường chính duy nhất (`childUid` hoặc `familyId`).
+- **Client-Side Filtering & Sorting:** Toàn bộ việc sắp xếp thời gian (`orderBy`) và lọc dải ngày (`date range`) được thực hiện trong bộ nhớ RAM của ứng dụng Flutter, loại bỏ hoàn toàn sự phụ thuộc vào Composite Indexes đắt đỏ.
 
-### 🔋 2. Bộ 8 Cơ Chế Bảo Vệ Hạn Ngạch Firebase (`Firebase Quota Protection`)
+### 🔋 2. Các Cơ Chế Tối Ưu & Bảo Vệ Cấp Độ Hệ Thống
 | Cơ chế | Mô tả kỹ thuật | Lợi ích |
 | :--- | :--- | :--- |
-| **FIX C1: Foreground Service** | Dịch vụ giám sát chạy ngầm (`START_STICKY`) với notification cố định | Không bị kill khi swipe app khỏi Recent Apps hay Force Stop |
-| **FIX C2: Native App Blocking** | Khóa app tức thì bằng lệnh `GLOBAL_ACTION_HOME` qua Accessibility Service | Ngăn chặn vòng lặp mở app vi phạm |
-| **FIX C3: Realtime Notifications** | Lắng nghe yêu cầu qua Firestore Stream và gửi thông báo đẩy | Nhận thông báo dưới 5 giây, không cần polling/refresh |
-| **FIX C4: Cooldown 5 phút/app** | Bộ nhớ cache `_lastAlertSentMap` kiểm soát tần suất ghi cảnh báo | Giảm 90-95% số lần Writes lên Firestore khi trẻ bấm liên tục vào app bị chặn |
-| **FIX C5: Khóa trần Reads (`.limit(50)`)** | Giới hạn tối đa 50 tài liệu mới nhất trên mọi luồng Stream Cảnh báo (`AlertRepository`) | Bảo vệ hạn ngạch 50.000 Reads/ngày của gói Spark Plan |
-| **FIX C6: Offline SharedPreferences Cache** | Tự động đọc danh sách app và từ khóa từ cache cục bộ khi mất mạng/timeout | App hoạt động mượt mà 100% khi không có Internet |
-| **FIX C7: Index-Defensive Architecture** | Lọc và sắp xếp dữ liệu báo cáo trực tiếp trong RAM Client | Ngăn lỗi `FAILED_PRECONDITION` và giảm số lượng Index cần bảo trì |
-| **FIX C8: Granular App Selector** | Dropdown chọn ứng dụng cụ thể khi xin giờ từ Dashboard, kiểm tra qua `RulesRepository` | Tương tác chính xác, tránh ghi sai dữ liệu yêu cầu |
+| **Foreground Service bền bỉ** | Dịch vụ giám sát chạy ngầm (`START_STICKY`) | Không bị Android tự động tắt (kill) khi người dùng vuốt xóa ứng dụng khỏi Recent Apps. |
+| **Native App Blocking** | Khóa app tức thì bằng lệnh `GLOBAL_ACTION_HOME` | Hoạt động sâu ở mức phần cứng, ngăn chặn trẻ cố gắng mở vòng lặp app liên tục. |
+| **Realtime Stream Monitoring** | Lắng nghe yêu cầu qua Firestore Stream | Cập nhật giới hạn giờ và thông báo thời gian thực dưới 5 giây. |
+| **Cooldown Cảnh báo 5 phút** | Bộ nhớ cache cục bộ kiểm soát tần suất ghi cảnh báo | Giảm 95% số lần Writes rác lên Firebase khi trẻ spam mở app bị chặn. |
+| **Khóa trần Reads (`.limit`)** | Giới hạn tối đa tài liệu mới nhất trên luồng Stream | Bảo vệ tuyệt đối hạn ngạch 50.000 Reads/ngày của Firebase Spark Plan. |
+| **Offline Cache Mode** | Tự động đọc dữ liệu từ `SharedPreferences` | Hệ thống khóa vẫn hoạt động mượt mà 100% kể cả khi thiết bị mất mạng Internet. |
+| **Tự động hóa Chỉ mục** | Đóng gói sẵn 14+ Firestore Indexes qua `firestore.indexes.json` | Triển khai siêu nhanh toàn bộ cấu trúc Server qua 1 dòng lệnh `firebase deploy`. |
 
 ---
 
 ## 🧪 Chất Lượng Code & Bộ Kiểm Thử Tự Động (Test Suite)
 
-Dự án tự hào đạt tỷ lệ pass **100% (`650/650 tests`)** cho toàn bộ bộ kiểm thử tự động (Unit Tests, BLoC Tests, và Widget/UI Tests):
+Dự án tự hào đạt tỷ lệ pass **100% (`772/772 tests`)** cho toàn bộ bộ kiểm thử tự động (Unit Tests, BLoC Tests, và Widget/UI Tests):
 
 ```bash
 # Chạy toàn bộ bộ kiểm thử tự động
 flutter test
 
-# Kết quả thực tế (11/07/2026):
-# 00:16 +650 ~1: All other tests passed!
+# Kết quả thực tế (Tháng 09/2026):
+# 02:13 +772: All tests passed!
 # Exit code: 0
 ```
 
-- **Thư viện Mock chuẩn enterprise:** Sử dụng `mocktail` + `bloc_test` để lập trình giả lập đầy đủ các BLoC (`SmartLockBloc`, `AppMonitorBloc`) và Repository (`TimeRequestRepository`, `AlertRepository`, `RulesRepository`, `SummaryRepository`, `UsageRepository`, `ReportRepository`).
-- **Kiểm thử chi tiết từng màn hình:** Đảm bảo tính ổn định tuyệt đối cho các luồng UI quan trọng như `LockScreen`, `RequestTimeDialog`, `EmergencyContactSheet`, `LoginScreen`, `RegisterScreen`, `DashboardScreen`, `KeywordManagementScreen`.
+- **Thư viện Mock chuẩn Enterprise:** Sử dụng `mocktail` + `bloc_test` để lập trình giả lập đầy đủ các BLoC và Repository (bao gồm `SmartLockBloc`, `AppMonitorBloc`, `TimeRequestRepository`, `SummaryRepository`...).
+- **Kiểm thử chi tiết từng màn hình:** Đảm bảo tính ổn định tuyệt đối cho các luồng UI cực kỳ phức tạp như `LockScreen`, `RequestTimeDialog`, và hệ thống biểu đồ báo cáo `Dashboard`.
 
 ---
 
-## 📚 Tài Liệu Hướng Dẫn & Kiểm Thử
+## 📚 Tài Liệu Hướng Dẫn Kỹ Thuật
 
-Hệ thống tài liệu đầy đủ và chuẩn hóa, sẵn sàng cho việc triển khai và kiểm thử thực tế:
+Hệ thống tài liệu đầy đủ và chuẩn hóa được đặt tại thư mục `docs/`:
 
-1. **[Hướng Dẫn Cài Đặt & Cấu Hình Firebase (`docs/FIREBASE_SETUP_GUIDE.md`)](docs/FIREBASE_SETUP_GUIDE.md):**  
-   Hướng dẫn chi tiết từng bước tạo dự án Firebase, bật Authentication, thiết lập Firestore Test Mode, cấu hình `firestore.indexes.json` (`firebase deploy --only firestore:indexes`), và giải thích chiến lược Index-Defensive Querying.
-2. **[Hướng Dẫn Kiểm Thử Thủ Công (`docs/MANUAL_TEST_GUIDE.md`)](docs/MANUAL_TEST_GUIDE.md):**  
-   Tài liệu step-by-step gồm 17 Test Flows (từ Đăng nhập, Smart Lock, Tương tác Parent-Child với App Selector Dropdown, đến các bài test kiểm chứng Quota & Offline Cache).
-3. **[Danh Sách Test Cases Chi Tiết (`docs/manual-test-cases.md`)](docs/manual-test-cases.md):**  
-   Bộ 52 Test Cases chuẩn hóa (gồm `TC-REQ-001`, `TC-REQ-002`, `TC-026B`, `TC-QUOTA-001 -> TC-QUOTA-004`) kèm mẫu báo cáo lỗi (`Bug Report Template`) và bảng tổng kết (`Sign-off table`).
+1. **[Hướng Dẫn Khởi Tạo Cơ Sở Dữ Liệu Firebase (`docs/KURA_DATABASE_SETUP_GUIDE.md`)](docs/KURA_DATABASE_SETUP_GUIDE.md):**  
+   Hướng dẫn chi tiết tạo dự án, thiết lập Auth, cấu trúc Firestore Schema tự động (NoSQL), và Security Rules.
+2. **[Phân Tích Kiến Trúc Kura (`docs/Kura_Technical_Analysis.md`)](docs/Kura_Technical_Analysis.md):**  
+   Phân tích chuyên sâu về hệ thống giám sát ngầm, cơ chế giao tiếp Native, cấu trúc Flat Structure, và Data Flow đa tầng.
+3. **[Hướng Dẫn Triển Khai Cloud Functions (`docs/CLOUD_FUNCTIONS_DEPLOY_GUIDE.md`)](docs/CLOUD_FUNCTIONS_DEPLOY_GUIDE.md):**  
+   Cách thiết lập Push Notification tự động thông qua Node.js để đẩy thông báo khẩn cấp về máy phụ huynh.
 
 ---
 
@@ -94,7 +93,7 @@ Hệ thống tài liệu đầy đủ và chuẩn hóa, sẵn sàng cho việc t
 ### 1. Yêu cầu hệ thống
 - **Flutter SDK:** `>=3.16.0 <4.0.0`
 - **Dart SDK:** `>=3.2.0 <4.0.0`
-- **Android Studio / VS Code** (kèm Flutter & Dart plugins)
+- **IDE:** Android Studio / VS Code (kèm Flutter & Dart plugins)
 - **Thiết bị Android:** API 26 (Android 8.0) trở lên
 
 ### 2. Cài đặt và khởi chạy
@@ -106,13 +105,13 @@ cd KidGuardian-THPT
 # 2. Tải các package phụ thuộc
 flutter pub get
 
-# 3. Triển khai chỉ mục Firestore lên Firebase (chỉ cần chạy 1 lần nếu có Firebase CLI)
+# 3. Triển khai cấu trúc chỉ mục Firestore lên Firebase (Chỉ chạy 1 lần nếu có Firebase CLI)
 firebase deploy --only firestore:indexes
 
-# 4. Kiểm tra toàn bộ test suite
+# 4. Chạy kiểm tra bộ test suite để đảm bảo mã nguồn an toàn
 flutter test
 
-# 5. Khởi chạy ứng dụng trên thiết bị / emulator
+# 5. Khởi chạy ứng dụng
 flutter run
 ```
 
