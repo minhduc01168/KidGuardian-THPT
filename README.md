@@ -33,6 +33,9 @@
 - **Biểu đồ trực quan thông minh:** Thống kê chi tiết thời gian sử dụng theo ngày, tuần, tháng. Tích hợp thuật toán làm tròn (`Smart Rounding`) và tối ưu hiển thị UX (tự động ẩn số phần trăm quá bé để chống đè chữ trên PieChart).
 - **Báo cáo tự động:** Tự động tổng hợp danh sách Top các ứng dụng sử dụng nhiều nhất để phụ huynh dễ dàng đánh giá.
 
+### 6. Cảnh Báo Khẩn Cấp (`SOS Emergency`)
+- **Nút SOS:** Trẻ có thể nhấn nút khẩn cấp để ngay lập tức gửi cảnh báo định vị/thời điểm về máy phụ huynh thông qua hệ thống Firebase.
+
 ---
 
 ## 🏗️ Kiến Trúc Kỹ Thuật & Tối Ưu Hiệu Năng
@@ -96,7 +99,12 @@ Hệ thống tài liệu đầy đủ và chuẩn hóa được đặt tại th�
 - **IDE:** Android Studio / VS Code (kèm Flutter & Dart plugins)
 - **Thiết bị Android:** API 26 (Android 8.0) trở lên
 
-### 2. Cài đặt và khởi chạy
+### 2. Thiết lập Firebase (Bắt buộc)
+Trước khi chạy ứng dụng, bạn **BẮT BUỘC** phải kết nối dự án với Firebase của bạn:
+1. Tạo một dự án Firebase mới và bật Authentication (Email/Password), Firestore Database (Xem chi tiết tại [Hướng Dẫn Thiết Lập Firebase](docs/KURA_DATABASE_SETUP_GUIDE.md)).
+2. Tải file cấu hình `google-services.json` từ Firebase Console và đặt vào thư mục `android/app/`.
+
+### 3. Cài đặt và khởi chạy
 ```bash
 # 1. Clone dự án về máy
 git clone <url-repository>
@@ -105,17 +113,13 @@ cd KidGuardian-THPT
 # 2. Tải các package phụ thuộc
 flutter pub get
 
-# 3. Triển khai cấu trúc chỉ mục Firestore lên Firebase (Chỉ chạy 1 lần nếu có Firebase CLI)
+# 3. Triển khai cấu trúc chỉ mục Firestore lên Firebase
 firebase deploy --only firestore:indexes
 
 # 4. Chạy kiểm tra bộ test suite để đảm bảo mã nguồn an toàn
 flutter test
 
-# 5. Khởi chạy ứng dụng
+# 5. Build file APK hoặc Khởi chạy ứng dụng
 flutter run
+# Hoặc Build APK: flutter build apk --release
 ```
-
----
-
-## 👥 Nhóm Phát Triển
-Dự án được thiết kế, xây dựng và chuẩn hóa kỹ thuật cho cấp học **THPT**, định hướng kiến tạo một môi trường phát triển lành mạnh và an toàn cho thế hệ trẻ trong kỷ nguyên số.
